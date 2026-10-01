@@ -21,7 +21,8 @@ export const FilmCard: React.FC<FilmCardProps> = ({
   progressSeconds = 0,
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const { triggerEnter, triggerLeave } = useHoverPreview();
+  const { activeFilm, isOpen, triggerEnter, triggerLeave } = useHoverPreview();
+  const isHoveredInPortal = isOpen && activeFilm?.id === film.id;
   const totalSeconds = (film.runtime_minutes || 1) * 60;
   const progressPercent = Math.min(100, Math.round((progressSeconds / totalSeconds) * 100));
 
@@ -43,7 +44,9 @@ export const FilmCard: React.FC<FilmCardProps> = ({
       ref={cardRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="group relative flex-none w-48 sm:w-56 md:w-60 cursor-pointer select-none outline-none transition-transform duration-200 hover:-translate-y-1"
+      className={`group relative flex-none w-48 sm:w-56 md:w-60 cursor-pointer select-none outline-none transition-all duration-200 ${
+        isHoveredInPortal ? 'opacity-0 pointer-events-none' : 'opacity-100 hover:-translate-y-1'
+      }`}
       tabIndex={0}
     >
       {/* Poster Container: Sharp 2px corners, graphite backing, hairline border */}

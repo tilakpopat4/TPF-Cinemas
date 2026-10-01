@@ -6,6 +6,7 @@ import { useCatalogue } from './hooks/useCatalogue';
 import { useWatchlist } from './hooks/useWatchlist';
 import { useWatchHistory } from './hooks/useWatchHistory';
 import { ViewerHeader } from './components/navigation/ViewerHeader';
+import { ViewerFooter } from './components/navigation/ViewerFooter';
 import { HeroBillboard } from './components/hero/HeroBillboard';
 import { ContentRail } from './components/catalog/ContentRail';
 import { FilmCard } from './components/catalog/FilmCard';
@@ -418,45 +419,14 @@ export default function App() {
           }}
         />
 
-        {/* Platform Editorial Masthead Footer (No Emoji in Chrome) */}
-        <footer className="border-t border-hairline bg-canvas py-12 text-muted text-xs">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-            <div className="flex flex-col md:flex-row items-baseline justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="h-6 w-6 bg-graphite border border-hairline flex items-center justify-center rounded-sm">
-                  <div className="w-2 h-2.5 border-y border-signature" />
-                </div>
-                <div>
-                  <span className="font-display text-lg tracking-[0.08em] text-ivory">
-                    TPF <span className="text-signature">CINEMAS</span>
-                  </span>
-                  <span className="font-mono text-[9px] uppercase tracking-widest text-muted block -mt-1">
-                    Screening Beginners&apos; Dreams
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-6 font-mono text-[10px] uppercase tracking-wider text-muted">
-                <button onClick={() => setCurrentTab('home')} className="hover:text-ivory transition-colors">
-                  Curated
-                </button>
-                <button onClick={() => setCurrentTab('browse')} className="hover:text-ivory transition-colors">
-                  Catalogue
-                </button>
-                <button onClick={() => setCurrentTab('watchlist')} className="hover:text-ivory transition-colors">
-                  Queue
-                </button>
-              </div>
-            </div>
-
-            <div className="border-t border-hairline pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-muted text-[11px] font-mono">
-              <p>© 2026 TPF Cinemas. Curated independent cinema platform.</p>
-              <p className="tracking-wider uppercase text-[10px] text-muted">
-                Screening Beginners&apos; Dreams worldwide.
-              </p>
-            </div>
-          </div>
-        </footer>
+        {/* Netflix-Inspired Curatorial Footer */}
+        <ViewerFooter
+          onSelectTab={(tab) => {
+            setCurrentTab(tab);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          onOpenAuth={() => setShowAuthModal(true)}
+        />
       </div>
     </HoverPreviewProvider>
   );
