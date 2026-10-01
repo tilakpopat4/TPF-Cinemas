@@ -1,9 +1,7 @@
 import React, { useRef } from 'react';
-import { motion } from 'motion/react';
 import { Play, Plus, Check, Clock } from 'lucide-react';
 import { Film } from '../../types';
 import { formatRuntime, formatProgress } from '../../lib/utils';
-import { useReducedMotion, railItem } from '../../lib/motion';
 import { useHoverPreview } from '../../context/HoverPreviewContext';
 
 interface FilmCardProps {
@@ -21,11 +19,9 @@ export const FilmCard: React.FC<FilmCardProps> = ({
   isInWatchlist,
   onToggleWatchlist,
   progressSeconds = 0,
-  inRail = false,
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const { triggerEnter, triggerLeave } = useHoverPreview();
-  const reduced = useReducedMotion();
   const totalSeconds = (film.runtime_minutes || 1) * 60;
   const progressPercent = Math.min(100, Math.round((progressSeconds / totalSeconds) * 100));
 
@@ -42,36 +38,18 @@ export const FilmCard: React.FC<FilmCardProps> = ({
     triggerLeave();
   };
 
-  const itemVariants = inRail ? railItem(reduced) : undefined;
-  const standaloneProps = !inRail
-    ? {
-        initial: reduced ? { opacity: 0 } : { opacity: 0, y: 12 },
-        animate: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-      }
-    : {};
-
-  const liftProps = reduced
-    ? {}
-    : {
-        whileHover: { y: -2, transition: { duration: 0.15 } },
-        whileFocus: { y: -2, transition: { duration: 0.15 } },
-      };
-
   return (
-    <motion.div
+    <div
       ref={cardRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="group relative flex-none w-48 sm:w-56 md:w-60 cursor-pointer select-none outline-none"
+      className="group relative flex-none w-48 sm:w-56 md:w-60 cursor-pointer select-none outline-none transition-transform duration-200 hover:-translate-y-1"
       tabIndex={0}
-      {...(itemVariants ?? {})}
-      {...standaloneProps}
-      {...liftProps}
     >
       {/* Poster Container: Sharp 2px corners, graphite backing, hairline border */}
       <div
         onClick={() => onPlay(film)}
-        className="relative aspect-[2/3] w-full rounded-sm overflow-hidden bg-graphite border border-hairline group-hover:border-signature/50 transition-colors"
+        className="relative aspect-[2/3] w-full rounded-sm overflow-hidden bg-graphite border border-hairline group-hover:border-signature/50 transition-colors shadow-lg"
       >
         <img
           src={film.poster_url || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=600&auto=format&fit=crop'}
@@ -171,6 +149,6 @@ export const FilmCard: React.FC<FilmCardProps> = ({
           </p>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 };

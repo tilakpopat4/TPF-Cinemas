@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Play,
   Plus,
@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import { Film } from '../../types';
 import { formatRuntime, extractYouTubeId } from '../../lib/utils';
-import { useReducedMotion } from '../../lib/motion';
 
 export interface HeroBillboardProps {
   film?: Film | null;
@@ -33,7 +32,6 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
   onSelectGenre,
   onMoreInfo,
 }) => {
-  const reduced = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -45,7 +43,8 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoError, setVideoError] = useState(false);
 
-  const currentFilm = activeFilms[currentIndex] || null;
+  // Guarantee we always have a current film
+  const currentFilm = activeFilms[currentIndex] || activeFilms[0] || null;
 
   useEffect(() => {
     setVideoLoaded(false);
@@ -62,11 +61,6 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
 
     return () => clearInterval(timer);
   }, [activeFilms.length, isPaused]);
-
-  // Parallax on scroll
-  const { scrollY } = useScroll();
-  const posterY = useTransform(scrollY, [0, 500], [0, reduced ? 0 : 50]);
-  const textOpacity = useTransform(scrollY, [0, 300], [1, reduced ? 1 : 0.1]);
 
   if (!currentFilm) return null;
 
@@ -105,7 +99,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
       ref={containerRef}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className="relative w-full h-[78vh] min-h-[560px] max-h-[820px] overflow-hidden bg-canvas select-none border-b border-hairline"
+      className="relative w-full h-[82vh] min-h-[580px] max-h-[860px] overflow-hidden bg-canvas select-none border-b border-hairline"
     >
       {/* Background Media with Anamorphic 2.39:1 Cinema Ratio */}
       <AnimatePresence mode="wait">
@@ -113,8 +107,8 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
           key={currentFilm.id}
           className="absolute inset-0 z-0 overflow-hidden"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1, transition: { duration: 0.7, ease: 'easeOut' } }}
-          exit={{ opacity: 0, transition: { duration: 0.4, ease: 'easeIn' } }}
+          animate={{ opacity: 1, transition: { duration: 0.5, ease: 'easeOut' } }}
+          exit={{ opacity: 0, transition: { duration: 0.3, ease: 'easeIn' } }}
         >
           {/* Teaser Video (Muted Background Stream) */}
           {videoId && !videoError ? (
@@ -126,7 +120,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 onLoad={() => setVideoLoaded(true)}
                 onError={() => setVideoError(true)}
-                className={`w-full h-full object-cover border-none transition-opacity duration-1000 ${
+                className={`w-full h-full object-cover border-none transition-opacity duration-700 ${
                   videoLoaded ? 'opacity-70' : 'opacity-0'
                 }`}
                 style={{
@@ -144,20 +138,19 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
           ) : null}
 
           {/* Fallback Still Poster */}
-          <motion.img
+          <img
             src={
               currentFilm.poster_url ||
               'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1600&auto=format&fit=crop'
             }
             alt={currentFilm.title}
-            className={`w-full h-[110%] object-cover object-center filter brightness-[0.85] transition-opacity duration-700 ${
+            className={`w-full h-full object-cover object-center filter brightness-[0.8] transition-opacity duration-500 ${
               videoLoaded ? 'opacity-30' : 'opacity-100'
             }`}
-            style={{ y: posterY }}
           />
 
           {/* Letterbox Mask & Layering (Graphite to Canvas — No AI Purple/Blue Gradients) */}
-          <div className="absolute inset-0 bg-gradient-to-r from-canvas via-canvas/80 via-40% to-transparent z-[1]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-canvas via-canvas/80 via-45% to-transparent z-[1]" />
           <div className="absolute inset-0 bg-gradient-to-t from-canvas via-canvas/60 via-30% to-transparent z-[1]" />
 
           {/* Film Grain Texture Overlay (Authentic 2.8% Noise) */}
@@ -165,22 +158,19 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
         </motion.div>
       </AnimatePresence>
 
-      {/* Hero Content Container — Asymmetric Editorial Layout */}
-      <motion.div
-        className="relative z-10 max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-16 md:pb-20"
-        style={{ opacity: textOpacity }}
-      >
+      {/* Hero Content Container — Asymmetric Editorial Layout, Guaranteed Fully Visible */}
+      <div className="relative z-10 max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-16 md:pb-20 pt-20">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentFilm.id}
             className="max-w-2xl lg:max-w-3xl space-y-4"
-            initial={reduced ? { opacity: 0 } : { opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } }}
-            exit={{ opacity: 0, y: -8, transition: { duration: 0.2 } }}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0, transition: { duration: 0.3 } }}
+            exit={{ opacity: 0, y: -6, transition: { duration: 0.15 } }}
           >
             {/* Curatorial Header Stamp */}
             <div className="flex items-center gap-3">
-              <div className="h-3 w-0.5 bg-signature" />
+              <div className="h-3.5 w-1 bg-signature" />
               <span className="font-mono text-[10px] tracking-[0.24em] text-muted uppercase">
                 {currentFilm.is_debut ? 'Director Debut Spotlight' : 'Official Festival Selection'}
               </span>
@@ -188,8 +178,8 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
               {currentFilm.profiles?.display_name && (
                 <>
                   <span className="text-hairline">|</span>
-                  <span className="font-editorial italic text-xs text-ivory/80">
-                    A work by <strong className="text-ivory font-medium not-italic">{currentFilm.profiles.display_name}</strong>
+                  <span className="font-editorial italic text-xs sm:text-sm text-ivory/80">
+                    Directed by <strong className="text-ivory font-medium not-italic">{currentFilm.profiles.display_name}</strong>
                   </span>
                 </>
               )}
@@ -206,7 +196,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
                 2.39:1 ANAMORPHIC
               </span>
 
-              <span className="px-2 py-0.5 rounded-sm bg-graphite border border-hairline text-ivory">
+              <span className="px-2 py-0.5 rounded-sm bg-graphite border border-hairline text-signature">
                 {currentFilm.age_rating}
               </span>
 
@@ -242,7 +232,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
             </div>
 
             {/* Synopsis with Generous 1.6 Line-Height */}
-            <p className="font-sans text-xs sm:text-sm text-ivory/70 max-w-xl leading-[1.6] line-clamp-3">
+            <p className="font-sans text-xs sm:text-sm text-ivory/80 max-w-xl leading-[1.6] line-clamp-3">
               {currentFilm.synopsis}
             </p>
 
@@ -310,7 +300,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
             </div>
           </motion.div>
         </AnimatePresence>
-      </motion.div>
+      </div>
 
       {/* Multi-Title Carousel Controls: Hairline Progress Bars on Bottom-Right */}
       {activeFilms.length > 1 && (
@@ -320,7 +310,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
             <button
               onClick={handlePrevSlide}
               aria-label="Previous Featured Film"
-              className="p-2 rounded-sm bg-graphite/80 hover:bg-graphite text-muted hover:text-ivory border border-hairline transition-colors"
+              className="p-2.5 rounded-sm bg-graphite/90 hover:bg-graphite text-muted hover:text-ivory border border-hairline transition-colors shadow-lg"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -329,15 +319,15 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
             <button
               onClick={handleNextSlide}
               aria-label="Next Featured Film"
-              className="p-2 rounded-sm bg-graphite/80 hover:bg-graphite text-muted hover:text-ivory border border-hairline transition-colors"
+              className="p-2.5 rounded-sm bg-graphite/90 hover:bg-graphite text-muted hover:text-ivory border border-hairline transition-colors shadow-lg"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
 
           {/* Hairline Step Indicators (Minimalist Editorial, No Rounded Pills) */}
-          <div className="absolute right-6 sm:right-10 bottom-8 z-20 flex items-center gap-1.5 bg-graphite/90 border border-hairline px-3 py-2 rounded-sm">
-            <span className="font-mono text-[10px] text-muted mr-1.5">
+          <div className="absolute right-6 sm:right-10 bottom-8 z-20 flex items-center gap-2 bg-graphite/95 border border-hairline px-3 py-2 rounded-sm shadow-xl">
+            <span className="font-mono text-[10px] text-muted mr-1">
               0{currentIndex + 1} / 0{activeFilms.length}
             </span>
             {activeFilms.map((_, index) => (
@@ -348,7 +338,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
                 className={`h-0.5 transition-all duration-200 ${
                   index === currentIndex
                     ? 'w-6 bg-signature'
-                    : 'w-2.5 bg-ivory/20 hover:bg-ivory/40'
+                    : 'w-2.5 bg-ivory/20 hover:bg-ivory/50'
                 }`}
               />
             ))}

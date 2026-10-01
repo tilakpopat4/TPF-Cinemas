@@ -176,25 +176,24 @@ const SAMPLE_FILMS: Film[] = [
 ];
 
 export function useCatalogue() {
-  const [films, setFilms] = useState<Film[]>([]);
+  const [films, setFilms] = useState<Film[]>(SAMPLE_FILMS);
   const [genres, setGenres] = useState<Genre[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   const fetchFilms = useCallback(async () => {
     try {
-      setLoading(true);
       setError(null);
 
-      // 1. Fetch published films
+      // 1. Fetch published films (omit 'role' from profiles to satisfy anon column grants)
       const { data: filmsData, error: filmsErr } = await supabase
         .from('films')
         .select(`
           *,
           profiles:profiles!films_filmmaker_id_fkey (
-            id, role, display_name, bio, avatar_url, city, website_url, instagram_handle
+            id, display_name, bio, avatar_url, city, website_url, instagram_handle
           ),
           film_genres (
             genre_id,
