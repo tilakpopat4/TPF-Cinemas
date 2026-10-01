@@ -12,6 +12,8 @@ import { FilmCard } from './components/catalog/FilmCard';
 import { WatchModal } from './components/player/WatchModal';
 import { MoreInfoModal } from './components/player/MoreInfoModal';
 import { ViewerAuthModal } from './components/auth/ViewerAuthModal';
+import { HoverPreviewProvider } from './context/HoverPreviewContext';
+import { HoverPreviewPortal } from './components/catalog/HoverPreviewPortal';
 import { Film as FilmType } from './types';
 
 export default function App() {
@@ -67,7 +69,8 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen bg-[#08090c] text-zinc-100 flex flex-col selection:bg-amber-500 selection:text-black">
+    <HoverPreviewProvider>
+      <div className="min-h-screen bg-[#08090c] text-zinc-100 flex flex-col selection:bg-amber-500 selection:text-black">
       {/* Navigation Header */}
       <ViewerHeader
         currentTab={currentTab}
@@ -389,6 +392,18 @@ export default function App() {
         onClose={() => setShowAuthModal(false)}
       />
 
+      {/* Netflix-Style Hover Preview Portal */}
+      <HoverPreviewPortal
+        onPlay={(f) => setActiveWatchFilm(f)}
+        isInWatchlist={isInWatchlist}
+        onToggleWatchlist={toggleWatchlist}
+        onMoreInfo={(f) => setMoreInfoFilm(f)}
+        onSelectGenre={(g) => {
+          setSelectedGenre(g);
+          setCurrentTab('browse');
+        }}
+      />
+
       {/* Platform Footer */}
       <footer className="border-t border-white/10 bg-[#06070a] py-12 text-zinc-400 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
@@ -418,5 +433,6 @@ export default function App() {
         </div>
       </footer>
     </div>
+  </HoverPreviewProvider>
   );
 }

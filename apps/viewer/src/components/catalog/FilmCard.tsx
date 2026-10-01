@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { motion } from 'motion/react';
 import { Play, Plus, Check, Clock } from 'lucide-react';
 import { Film } from '../../types';
 import { formatRuntime, getAgeRatingColor, formatProgress } from '../../lib/utils';
 import { useReducedMotion, springSnappy, springNatural, railItem } from '../../lib/motion';
+import { useHoverPreview } from '../../context/HoverPreviewContext';
 
 interface FilmCardProps {
   film: Film;
@@ -23,10 +24,26 @@ export const FilmCard: React.FC<FilmCardProps> = ({
   progressSeconds = 0,
   inRail = false,
 }) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const { triggerEnter, triggerLeave } = useHoverPreview();
   const reduced = useReducedMotion();
   const ageRatingStyle = getAgeRatingColor(film.age_rating);
   const totalSeconds = (film.runtime_minutes || 1) * 60;
   const progressPercent = Math.min(100, Math.round((progressSeconds / totalSeconds) * 100));
+
+  const handleMouseEnter = () => {
+    // Only trigger hover popout on desktop fine-pointer devices (not touch screens)
+    if (typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      if (cardRef.current) {
+        const rect = cardRef.current.getBoundingClientRect();
+        triggerEnter(film, rect);
+      }
+    }
+  };
+
+  const handleMouseLeave = () => {
+    triggerLeave();
+  };
 
   // When in a stagger rail: use named variants driven by parent container.
   // When standalone (search grid): use own entrance animation.
@@ -47,6 +64,9 @@ export const FilmCard: React.FC<FilmCardProps> = ({
 
   return (
     <motion.div
+      ref={cardRef}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       className="group relative flex-none w-48 sm:w-56 md:w-60 cursor-pointer select-none outline-none"
       tabIndex={0}
       {...(itemVariants ?? {})}

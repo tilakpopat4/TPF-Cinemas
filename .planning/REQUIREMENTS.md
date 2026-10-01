@@ -16,10 +16,10 @@ Requirements for initial release of the Viewer Home Page.
 
 ### Netflix-Style Hover Previews
 
-- [ ] **HOVER-01**: Smooth hover card expansion on desktop with buffered delay to avoid accidental triggers while scanning.
-- [ ] **HOVER-02**: Expanded card shows video teaser or backdrop with synopsis preview, runtime, and classification badges.
-- [ ] **HOVER-03**: Interactive action buttons within expanded card (Quick Play, Watchlist toggle, Like/Reaction, More Info).
-- [ ] **HOVER-04**: Viewport-boundary awareness ensuring expanded cards on screen edges do not overflow or cause horizontal window scrolling.
+- [x] **HOVER-01**: Smooth hover card expansion on desktop with buffered delay to avoid accidental triggers while scanning.
+- [x] **HOVER-02**: Expanded card shows video teaser or backdrop with synopsis preview, runtime, and classification badges.
+- [x] **HOVER-03**: Interactive action buttons within expanded card (Quick Play, Watchlist toggle, Like/Reaction, More Info).
+- [x] **HOVER-04**: Viewport-boundary awareness ensuring expanded cards on screen edges do not overflow or cause horizontal window scrolling.
 
 ### Dynamic Content Rails & Ranked Lists
 
@@ -62,10 +62,10 @@ Which phases cover which requirements.
 | HERO-02 | Phase 1 | Complete |
 | HERO-03 | Phase 1 | Complete |
 | HERO-04 | Phase 1 | Complete |
-| HOVER-01 | Phase 2 | Pending |
-| HOVER-02 | Phase 2 | Pending |
-| HOVER-03 | Phase 2 | Pending |
-| HOVER-04 | Phase 2 | Pending |
+| HOVER-01 | Phase 2 | Complete |
+| HOVER-02 | Phase 2 | Complete |
+| HOVER-03 | Phase 2 | Complete |
+| HOVER-04 | Phase 2 | Complete |
 | RAILS-01 | Phase 3 | Pending |
 | RAILS-02 | Phase 3 | Pending |
 | RAILS-03 | Phase 3 | Pending |
