@@ -22,7 +22,14 @@ export const FilmComments: React.FC<FilmCommentsProps> = ({
   const [newComment, setNewComment] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(filmId);
+
   const fetchComments = useCallback(async () => {
+    if (!isUuid) {
+      setComments([]);
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
@@ -46,10 +53,12 @@ export const FilmComments: React.FC<FilmCommentsProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [filmId]);
+  }, [filmId, isUuid]);
 
   useEffect(() => {
     fetchComments();
+
+    if (!isUuid) return;
 
     // Listen for comments in realtime
     const channel = supabase
