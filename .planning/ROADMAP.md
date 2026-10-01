@@ -40,8 +40,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: Build `HoverPreviewCard` component with Motion spring animations and viewport edge collision detection.
-- [ ] 02-02: Integrate preview video playback and quick action controls (watchlist toggle and play modal trigger).
+- [ ] 02-01: Build `HoverPreviewPortal` component and context with Motion spring animations and viewport edge collision detection.
+- [ ] 02-02: Integrate preview video teaser playback, audio controls, and quick action controls (play, watchlist, like, more info).
 
 ### Phase 3: Dynamic Content Rails & Ranked Lists
 **Goal**: Build a rich hierarchy of content rails including a personalized "Continue Watching" row and a stylized "Top 10" ranked rail.
