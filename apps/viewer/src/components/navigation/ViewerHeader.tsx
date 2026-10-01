@@ -64,13 +64,13 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
     <header
       className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
         isScrolled
-          ? 'bg-canvas py-3 shadow-2xl'
-          : 'bg-gradient-to-b from-canvas/95 via-canvas/80 to-transparent py-3.5 sm:py-4'
+          ? 'bg-canvas py-4 sm:py-4.5 shadow-2xl'
+          : 'bg-gradient-to-b from-canvas/95 via-canvas/85 to-transparent py-4.5 sm:py-6'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
-        {/* Official Brand Logo */}
-        <div className="flex items-center gap-6 lg:gap-8">
+        {/* Official Brand Logo — Prominent & Bold */}
+        <div className="flex items-center gap-7 lg:gap-10">
           <button
             onClick={() => onSelectTab('home')}
             className="flex items-center group text-left focus:outline-none"
@@ -79,17 +79,17 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
             <img
               src="/tpf-cinemas-logo.png"
               alt="TPF Cinemas - Screening The Beginner Dreams"
-              className="h-8 sm:h-9 md:h-10 w-auto object-contain transition-opacity group-hover:opacity-90"
+              className="h-10 sm:h-12 md:h-14 lg:h-16 w-auto object-contain transition-transform group-hover:scale-[1.02]"
             />
           </button>
 
           {/* Minimalist Editorial Nav Links (Clean, No Underlines) */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1.5">
             <button
               onClick={() => onSelectTab('home')}
-              className={`px-3 py-1.5 rounded-sm text-xs uppercase tracking-wider transition-colors ${
+              className={`px-3.5 py-2 rounded-sm text-xs sm:text-sm uppercase tracking-wider transition-colors ${
                 currentTab === 'home'
-                  ? 'text-ivory font-semibold bg-graphite/60'
+                  ? 'text-ivory font-semibold bg-graphite/70'
                   : 'text-muted hover:text-ivory hover:bg-graphite/40 font-medium'
               }`}
             >
@@ -97,9 +97,9 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
             </button>
             <button
               onClick={() => onSelectTab('browse')}
-              className={`px-3 py-1.5 rounded-sm text-xs uppercase tracking-wider transition-colors ${
+              className={`px-3.5 py-2 rounded-sm text-xs sm:text-sm uppercase tracking-wider transition-colors ${
                 currentTab === 'browse'
-                  ? 'text-ivory font-semibold bg-graphite/60'
+                  ? 'text-ivory font-semibold bg-graphite/70'
                   : 'text-muted hover:text-ivory hover:bg-graphite/40 font-medium'
               }`}
             >
@@ -113,9 +113,9 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
                   onSelectTab('watchlist');
                 }
               }}
-              className={`px-3 py-1.5 rounded-sm text-xs uppercase tracking-wider flex items-center gap-1.5 transition-colors ${
+              className={`px-3.5 py-2 rounded-sm text-xs sm:text-sm uppercase tracking-wider flex items-center gap-1.5 transition-colors ${
                 currentTab === 'watchlist'
-                  ? 'text-ivory font-semibold bg-graphite/60'
+                  ? 'text-ivory font-semibold bg-graphite/70'
                   : 'text-muted hover:text-ivory hover:bg-graphite/40 font-medium'
               }`}
             >
@@ -130,9 +130,9 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
                   onSelectTab('history');
                 }
               }}
-              className={`px-3 py-1.5 rounded-sm text-xs uppercase tracking-wider flex items-center gap-1.5 transition-colors ${
+              className={`px-3.5 py-2 rounded-sm text-xs sm:text-sm uppercase tracking-wider flex items-center gap-1.5 transition-colors ${
                 currentTab === 'history'
-                  ? 'text-ivory font-semibold bg-graphite/60'
+                  ? 'text-ivory font-semibold bg-graphite/70'
                   : 'text-muted hover:text-ivory hover:bg-graphite/40 font-medium'
               }`}
             >
@@ -178,10 +178,10 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
                 <button
                   key="search-icon"
                   onClick={() => setShowSearch(true)}
-                  className="p-1.5 sm:p-2 rounded-sm text-muted hover:text-ivory hover:bg-graphite transition-colors"
+                  className="p-2 sm:p-2.5 rounded-sm text-muted hover:text-ivory hover:bg-graphite transition-colors"
                   title="Search Catalogue"
                 >
-                  <Search className="h-4 w-4" />
+                  <Search className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
                 </button>
               )}
             </AnimatePresence>
@@ -191,19 +191,19 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
           <div className="relative" ref={langMenuRef}>
             <button
               onClick={() => setShowLangMenu(!showLangMenu)}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm bg-black/70 border border-hairline hover:border-ivory/50 text-ivory text-xs font-sans transition-colors focus:outline-none ${
+              className={`flex items-center gap-2 px-3 py-2 rounded-sm bg-black/70 border border-hairline hover:border-ivory/50 text-ivory text-xs sm:text-sm font-sans transition-colors focus:outline-none ${
                 isTranslating ? 'animate-pulse border-signature' : ''
               }`}
               title="Change Website Language (Live Google Translator)"
             >
-              <Globe className="h-3.5 w-3.5 text-signature" />
+              <Globe className="h-4 w-4 text-signature" />
               <span className="hidden sm:inline font-medium">{currentLanguage.nativeName}</span>
-              <ChevronDown className={`h-3 w-3 text-muted transition-transform ${showLangMenu ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`h-3.5 w-3.5 text-muted transition-transform ${showLangMenu ? 'rotate-180' : ''}`} />
             </button>
 
             {showLangMenu && (
               <div
-                className="absolute right-0 mt-1.5 w-48 rounded-sm border border-hairline/80 shadow-2xl py-1 z-50 font-sans max-h-72 overflow-y-auto"
+                className="absolute right-0 mt-2 w-48 rounded-sm border border-hairline/80 shadow-2xl py-1 z-50 font-sans max-h-72 overflow-y-auto"
                 style={{ backgroundColor: '#141417' }}
               >
                 <div className="px-3 py-1.5 border-b border-hairline/60 text-[10px] uppercase font-mono tracking-wider text-muted flex items-center justify-between">
@@ -237,15 +237,15 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
             <div className="relative" ref={userMenuRef}>
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center gap-2 px-2.5 py-1.5 rounded-sm bg-graphite hover:bg-[#232328] border border-hairline transition-colors focus:outline-none"
+                className="flex items-center gap-2.5 px-3 py-2 rounded-sm bg-graphite hover:bg-[#232328] border border-hairline transition-colors focus:outline-none"
               >
-                <div className="h-5 w-5 bg-signature text-black flex items-center justify-center text-[10px] font-bold font-mono">
+                <div className="h-6 w-6 bg-signature text-black flex items-center justify-center text-[11px] font-bold font-mono">
                   {profile?.display_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
                 </div>
-                <span className="hidden sm:inline text-xs font-medium text-ivory max-w-[100px] truncate">
+                <span className="hidden sm:inline text-xs sm:text-sm font-medium text-ivory max-w-[120px] truncate">
                   {profile?.display_name || user.email?.split('@')[0]}
                 </span>
-                <ChevronDown className="h-3 w-3 text-muted" />
+                <ChevronDown className="h-3.5 w-3.5 text-muted" />
               </button>
 
               <AnimatePresence>
@@ -309,10 +309,10 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
           ) : (
             <button
               onClick={onOpenAuth}
-              className="px-4 py-1.5 rounded-sm bg-signature text-black font-semibold uppercase tracking-wider text-xs hover:bg-[#f79612] transition-colors flex items-center gap-1.5 shadow-sm"
+              className="px-5 py-2 rounded-sm bg-signature text-black font-semibold uppercase tracking-wider text-xs sm:text-sm hover:bg-[#f79612] transition-colors flex items-center gap-2 shadow-md"
               title="Sign In to TPF Cinemas"
             >
-              <LogIn className="h-3.5 w-3.5" />
+              <LogIn className="h-4 w-4" />
               <span>Sign In</span>
             </button>
           )}

@@ -101,7 +101,7 @@ export default function App() {
         <main className="flex-1 pb-16">
           {/* Search Results Overlay View if Search is active */}
           {searchQuery.trim() ? (
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 space-y-6">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 sm:pt-36 space-y-6">
               <div className="flex items-baseline justify-between border-b border-hairline pb-4">
                 <h2 className="text-xl sm:text-2xl font-normal font-display tracking-widest text-ivory uppercase">
                   Search Results for &ldquo;{searchQuery}&rdquo;
