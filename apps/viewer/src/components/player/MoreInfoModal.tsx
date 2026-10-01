@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
 import { X, Play, Plus, Check, Clock, Calendar, Globe } from 'lucide-react';
 import { Film } from '../../types';
@@ -32,9 +33,9 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
 
   if (!film) return null;
 
-  return (
+  return createPortal(
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas/85 overflow-y-auto"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-canvas/85 overflow-y-auto"
       {...fadeOnly(reduced)}
       onClick={onClose}
     >
@@ -179,6 +180,7 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
           )}
         </div>
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body
   );
 };

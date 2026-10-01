@@ -71,26 +71,28 @@ export default function App() {
   return (
     <HoverPreviewProvider>
       <div className="min-h-screen bg-canvas text-ivory flex flex-col font-sans selection:bg-signature selection:text-black">
-        {/* Navigation Header */}
-        <ViewerHeader
-          currentTab={currentTab}
-          onSelectTab={(tab) => {
-            setCurrentTab(tab);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-          searchQuery={searchQuery}
-          onSearchChange={(q) => {
-            setSearchQuery(q);
-            if (q.trim() && currentTab !== 'browse') {
-              setCurrentTab('browse');
-            }
-          }}
-          user={user}
-          profile={profile}
-          role={role}
-          onOpenAuth={() => setShowAuthModal(true)}
-          onSignOut={signOut}
-        />
+        {/* Navigation Header (Hidden in Theater Mode) */}
+        {!activeWatchFilm && (
+          <ViewerHeader
+            currentTab={currentTab}
+            onSelectTab={(tab) => {
+              setCurrentTab(tab);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            searchQuery={searchQuery}
+            onSearchChange={(q) => {
+              setSearchQuery(q);
+              if (q.trim() && currentTab !== 'browse') {
+                setCurrentTab('browse');
+              }
+            }}
+            user={user}
+            profile={profile}
+            role={role}
+            onOpenAuth={() => setShowAuthModal(true)}
+            onSignOut={signOut}
+          />
+        )}
 
         {/* Main Content View */}
         <main className="flex-1 pb-16">

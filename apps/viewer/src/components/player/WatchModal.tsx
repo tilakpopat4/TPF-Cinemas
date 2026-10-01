@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowLeft,
@@ -180,12 +181,12 @@ export const WatchModal: React.FC<WatchModalProps> = ({
     }
   }, [film.id, controller.currentTime, onRecordProgress]);
 
-  return (
+  return createPortal(
     <div
       ref={containerRef}
       onMouseMove={resetHideTimer}
       onClick={resetHideTimer}
-      className={`fixed inset-0 z-50 w-screen h-screen bg-canvas overflow-hidden select-none flex flex-col justify-between ${
+      className={`fixed inset-0 z-[100] w-screen h-screen bg-canvas overflow-hidden select-none flex flex-col justify-between ${
         !showControls && !showDetailsDrawer && controller.isPlaying ? 'cursor-none' : 'cursor-default'
       }`}
     >
@@ -431,6 +432,7 @@ export const WatchModal: React.FC<WatchModalProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </div>,
+    document.body
   );
 };
