@@ -19,6 +19,7 @@ import { CinematicTransportHUD } from './CinematicTransportHUD';
 
 interface WatchModalProps {
   film: Film | null;
+  mode?: 'movie' | 'trailer';
   onClose: () => void;
   user: any;
   profile: Profile | null;
@@ -31,6 +32,7 @@ interface WatchModalProps {
 
 export const WatchModal: React.FC<WatchModalProps> = ({
   film,
+  mode = 'movie',
   onClose,
   user,
   profile,
@@ -224,6 +226,13 @@ export const WatchModal: React.FC<WatchModalProps> = ({
             <div className="flex items-center gap-2 truncate">
               <span className="px-1.5 py-0.5 rounded-sm font-mono text-[9px] uppercase tracking-wider bg-graphite border border-hairline text-ivory shrink-0">
                 {film.age_rating}
+              </span>
+              <span className={`px-2 py-0.5 rounded-sm font-mono text-[9px] uppercase tracking-wider shrink-0 ${
+                mode === 'trailer'
+                  ? 'bg-signature text-black font-bold'
+                  : 'bg-canvas border border-hairline text-ivory font-medium'
+              }`}>
+                {mode === 'trailer' ? 'Official Trailer' : 'Full Feature'}
               </span>
               <h1 className="font-editorial text-base sm:text-xl font-normal text-ivory tracking-tight truncate leading-none">
                 {film.title}

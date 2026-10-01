@@ -37,6 +37,7 @@ export default function App() {
 
   const [currentTab, setCurrentTab] = useState<'home' | 'browse' | 'watchlist' | 'history'>('home');
   const [activeWatchFilm, setActiveWatchFilm] = useState<FilmType | null>(null);
+  const [activeWatchMode, setActiveWatchMode] = useState<'movie' | 'trailer'>('movie');
   const [moreInfoFilm, setMoreInfoFilm] = useState<FilmType | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
@@ -141,7 +142,10 @@ export default function App() {
               <HeroBillboard
                 films={featuredCarouselFilms}
                 film={featuredFilm}
-                onPlay={(f) => setActiveWatchFilm(f)}
+                onPlay={(f, mode) => {
+                  setActiveWatchFilm(f);
+                  setActiveWatchMode(mode || 'movie');
+                }}
                 isInWatchlist={(id) => isInWatchlist(id)}
                 onToggleWatchlist={toggleWatchlist}
                 onSelectGenre={(slug) => {
@@ -380,6 +384,7 @@ export default function App() {
           {activeWatchFilm && (
             <WatchModal
               film={activeWatchFilm}
+              mode={activeWatchMode}
               onClose={() => setActiveWatchFilm(null)}
               user={user}
               profile={profile}
