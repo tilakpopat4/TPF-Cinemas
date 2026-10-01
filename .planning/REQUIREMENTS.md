@@ -30,10 +30,10 @@ Requirements for initial release of the Viewer Home Page.
 
 ### Custom Cinematic Video Player
 
-- [ ] **PLAYER-01**: Custom Amber-accented video control interface replacing default embed UI with custom interactive scrub bar, buffer display, and hover time preview.
-- [ ] **PLAYER-02**: Transport controls with glowing amber play/pause, 10s forward/rewind skip, keyboard hotkeys (Space, J, K, L, M, F), and center-screen pulse feedback animations.
-- [ ] **PLAYER-03**: Interactive volume control with draggable slider, mute toggle, playback speed selector (0.5x - 2.0x), and quality indicators.
-- [ ] **PLAYER-04**: Unified cinema playback engine supporting chromeless YouTube IFrame API and native HTML5/HLS streams with auto-hiding controls and custom cursor.
+- [x] **PLAYER-01**: Custom Amber-accented video control interface replacing default embed UI with custom interactive scrub bar, buffer display, and hover time preview.
+- [x] **PLAYER-02**: Transport controls with glowing amber play/pause, 10s forward/rewind skip, keyboard hotkeys (Space, J, K, L, M, F), and center-screen pulse feedback animations.
+- [x] **PLAYER-03**: Interactive volume control with draggable slider, mute toggle, playback speed selector (0.5x - 2.0x), and quality indicators.
+- [x] **PLAYER-04**: Unified cinema playback engine supporting chromeless YouTube IFrame API and native HTML5/HLS streams with auto-hiding controls and custom cursor.
 
 ### Discovery & Category Filtering
 
@@ -77,10 +77,10 @@ Which phases cover which requirements.
 | RAILS-02 | Phase 4 | Pending |
 | RAILS-03 | Phase 4 | Pending |
 | RAILS-04 | Phase 4 | Pending |
-| PLAYER-01 | Phase 3 | Pending |
-| PLAYER-02 | Phase 3 | Pending |
-| PLAYER-03 | Phase 3 | Pending |
-| PLAYER-04 | Phase 3 | Pending |
+| PLAYER-01 | Phase 3 | Complete |
+| PLAYER-02 | Phase 3 | Complete |
+| PLAYER-03 | Phase 3 | Complete |
+| PLAYER-04 | Phase 3 | Complete |
 | FILTER-01 | Phase 5 | Pending |
 | FILTER-02 | Phase 5 | Pending |
 | FILTER-03 | Phase 5 | Pending |

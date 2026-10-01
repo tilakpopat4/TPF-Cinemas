@@ -8,13 +8,15 @@ import {
   Info,
   Maximize2,
   Minimize2,
-  Film as FilmIcon,
   Sparkles,
 } from 'lucide-react';
 import { Film, Profile } from '../../types';
-import { formatRuntime, extractYouTubeId, getAgeRatingColor } from '../../lib/utils';
+import { formatRuntime, getAgeRatingColor } from '../../lib/utils';
 import { FilmComments } from '../comments/FilmComments';
 import { useReducedMotion, springSnappy } from '../../lib/motion';
+import { useVideoPlayer } from '../../hooks/useVideoPlayer';
+import { CinematicPlayerEngine } from './CinematicPlayerEngine';
+import { CinematicTransportHUD } from './CinematicTransportHUD';
 
 interface WatchModalProps {
   film: Film | null;
@@ -42,15 +44,26 @@ export const WatchModal: React.FC<WatchModalProps> = ({
   if (!film) return null;
 
   const reduced = useReducedMotion();
-  const videoId = extractYouTubeId(film.video_ref);
   const ageStyle = getAgeRatingColor(film.age_rating);
+  const controller = useVideoPlayer((film.runtime_minutes || 0) * 60);
 
   const [showControls, setShowControls] = useState(true);
   const [showDetailsDrawer, setShowDetailsDrawer] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [lastGesture, setLastGesture] = useState<{
+    type: 'play' | 'pause' | 'skip-forward' | 'skip-backward';
+    id: number;
+  } | null>(null);
 
   const hideControlsTimerRef = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const triggerGesture = useCallback(
+    (type: 'play' | 'pause' | 'skip-forward' | 'skip-backward') => {
+      setLastGesture({ type, id: Date.now() });
+    },
+    []
+  );
 
   // Auto-hide controls after 3.5 seconds of inactivity unless the drawer is open
   const resetHideTimer = useCallback(() => {
@@ -73,7 +86,7 @@ export const WatchModal: React.FC<WatchModalProps> = ({
   }, [resetHideTimer]);
 
   // Handle Fullscreen toggle
-  const toggleFullscreen = () => {
+  const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
       containerRef.current?.requestFullscreen().catch((err) => {
         console.error('Failed to enter fullscreen:', err);
@@ -85,62 +98,115 @@ export const WatchModal: React.FC<WatchModalProps> = ({
       });
       setIsFullscreen(false);
     }
-  };
+  }, []);
 
-  // Keyboard navigation: Escape to close (or close drawer first), F for fullscreen, I for info
+  const handleTogglePlay = useCallback(() => {
+    triggerGesture(controller.isPlaying ? 'pause' : 'play');
+    controller.togglePlay();
+  }, [controller, triggerGesture]);
+
+  const handleSkip = useCallback(
+    (delta: number) => {
+      triggerGesture(delta > 0 ? 'skip-forward' : 'skip-backward');
+      controller.skip(delta);
+    },
+    [controller, triggerGesture]
+  );
+
+  // Comprehensive keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (showDetailsDrawer) {
-          setShowDetailsDrawer(false);
-        } else {
-          onClose();
-        }
-      } else if (e.key.toLowerCase() === 'f' && !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
-        toggleFullscreen();
-      } else if (e.key.toLowerCase() === 'i' && !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
-        setShowDetailsDrawer((prev) => !prev);
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
+        return;
+      }
+
+      resetHideTimer();
+
+      switch (e.code) {
+        case 'Space':
+        case 'KeyK':
+          e.preventDefault();
+          handleTogglePlay();
+          break;
+        case 'KeyJ':
+        case 'ArrowLeft':
+          e.preventDefault();
+          handleSkip(-10);
+          break;
+        case 'KeyL':
+        case 'ArrowRight':
+          e.preventDefault();
+          handleSkip(10);
+          break;
+        case 'KeyM':
+          e.preventDefault();
+          controller.toggleMute();
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          controller.setVolume(controller.volume + 10);
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          controller.setVolume(controller.volume - 10);
+          break;
+        case 'KeyF':
+          e.preventDefault();
+          toggleFullscreen();
+          break;
+        case 'KeyI':
+          e.preventDefault();
+          setShowDetailsDrawer((prev) => !prev);
+          break;
+        case 'Escape':
+          e.preventDefault();
+          if (showDetailsDrawer) {
+            setShowDetailsDrawer(false);
+          } else {
+            onClose();
+          }
+          break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, showDetailsDrawer]);
+  }, [
+    onClose,
+    showDetailsDrawer,
+    resetHideTimer,
+    handleTogglePlay,
+    handleSkip,
+    controller,
+    toggleFullscreen,
+  ]);
 
-  // Record initial view session
+  // Periodic watch progress recording
   useEffect(() => {
-    if (onRecordProgress) {
-      onRecordProgress(film.id, Math.max(initialProgressSeconds, 15));
+    if (onRecordProgress && controller.currentTime > 5) {
+      onRecordProgress(film.id, Math.round(controller.currentTime));
     }
-  }, [film.id, initialProgressSeconds, onRecordProgress]);
+  }, [film.id, controller.currentTime, onRecordProgress]);
 
   return (
     <div
       ref={containerRef}
       onMouseMove={resetHideTimer}
       onClick={resetHideTimer}
-      className="fixed inset-0 z-50 w-screen h-screen bg-black overflow-hidden select-none flex flex-col justify-between"
+      className={`fixed inset-0 z-50 w-screen h-screen bg-black overflow-hidden select-none flex flex-col justify-between ${
+        !showControls && !showDetailsDrawer && controller.isPlaying ? 'cursor-none' : 'cursor-default'
+      }`}
     >
-      {/* Edge-to-Edge Video Playback Canvas */}
-      <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-black">
-        {videoId ? (
-          <iframe
-            src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1&controls=1&start=${initialProgressSeconds || 0}`}
-            title={film.title}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-            className="w-full h-full border-none"
-          />
-        ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center text-zinc-500 bg-zinc-950">
-            <FilmIcon className="h-16 w-16 mb-4 text-zinc-600 animate-pulse" />
-            <p className="text-base font-medium text-zinc-300">Video stream currently unavailable</p>
-            <p className="text-xs text-zinc-500 mt-1">Please check back shortly.</p>
-          </div>
-        )}
-      </div>
+      {/* Edge-to-Edge Custom Cinema Video Engine */}
+      <CinematicPlayerEngine
+        film={film}
+        controller={controller}
+        initialProgressSeconds={initialProgressSeconds}
+        onTogglePlay={handleTogglePlay}
+        onDoubleTapFullscreen={toggleFullscreen}
+      />
 
-      {/* Netflix-Style Floating Cinema Top Bar */}
+      {/* Floating Cinema Top Bar */}
       <motion.div
         className={`absolute top-0 left-0 right-0 z-40 px-4 sm:px-8 py-5 flex items-center justify-between bg-gradient-to-b from-black/95 via-black/60 to-transparent transition-opacity duration-300 ${
           showControls || showDetailsDrawer ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
@@ -153,7 +219,7 @@ export const WatchModal: React.FC<WatchModalProps> = ({
           <motion.button
             onClick={onClose}
             className="flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/10 transition-all shrink-0"
-            title="Back to Browse"
+            title="Back to Browse (Esc)"
             whileHover={reduced ? {} : { scale: 1.05 }}
             whileTap={reduced ? {} : { scale: 0.92, transition: springSnappy }}
           >
@@ -214,7 +280,7 @@ export const WatchModal: React.FC<WatchModalProps> = ({
             onClick={() => setShowDetailsDrawer(!showDetailsDrawer)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-md border transition-all ${
               showDetailsDrawer
-                ? 'bg-amber-500 text-black border-amber-500'
+                ? 'bg-amber-500 text-black border-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.5)]'
                 : 'bg-black/60 hover:bg-black/80 border-white/15 text-white'
             }`}
             title="Film Info & Discussion (I)"
@@ -249,11 +315,28 @@ export const WatchModal: React.FC<WatchModalProps> = ({
         </div>
       </motion.div>
 
+      {/* Floating Bottom Cinema Transport HUD */}
+      <motion.div
+        className={`transition-opacity duration-300 ${
+          showControls || showDetailsDrawer ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        <CinematicTransportHUD
+          controller={controller}
+          filmTitle={film.title}
+          isFullscreen={isFullscreen}
+          onToggleFullscreen={toggleFullscreen}
+          showDetailsDrawer={showDetailsDrawer}
+          onToggleDetailsDrawer={() => setShowDetailsDrawer(!showDetailsDrawer)}
+          lastGesture={lastGesture}
+        />
+      </motion.div>
+
       {/* Slide-out Sidebar Drawer for Info, Cast, and Discussion */}
       <AnimatePresence>
         {showDetailsDrawer && (
           <motion.div
-            className="fixed top-0 bottom-0 right-0 z-50 w-full sm:w-[460px] bg-[#0c0e14]/95 backdrop-blur-2xl border-l border-white/10 p-6 flex flex-col justify-between shadow-2xl text-white overflow-hidden"
+            className="fixed top-0 bottom-0 right-0 z-50 w-full sm:w-[460px] bg-[#0c0e14]/95 backdrop-blur-2xl border-l border-white/10 p-6 flex flex-col justify-between shadow-2xl text-white overflow-hidden pointer-events-auto"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
@@ -270,7 +353,7 @@ export const WatchModal: React.FC<WatchModalProps> = ({
               <button
                 onClick={() => setShowDetailsDrawer(false)}
                 className="p-1.5 rounded-full hover:bg-white/10 text-zinc-400 hover:text-white transition-colors"
-                title="Close Info Drawer"
+                title="Close Info Drawer (Esc)"
               >
                 <X className="h-4 w-4" />
               </button>

@@ -56,8 +56,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: Build `CinematicPlayer` chromeless engine and custom Amber scrubber with buffer & hover previews.
-- [ ] 03-02: Build transport HUD controls (play/pause, volume slider, 10s skip, speed selector, keyboard hotkeys & ripples).
+- [x] 03-01: Build `CinematicPlayer` chromeless engine and custom Amber scrubber with buffer & hover previews.
+- [x] 03-02: Build transport HUD controls (play/pause, volume slider, 10s skip, speed selector, keyboard hotkeys & ripples).
 
 ### Phase 4: Dynamic Content Rails & Ranked Lists
 **Goal**: Build a rich hierarchy of content rails including a personalized "Continue Watching" row and a stylized "Top 10" ranked rail.
