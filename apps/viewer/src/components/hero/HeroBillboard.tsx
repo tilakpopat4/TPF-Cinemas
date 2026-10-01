@@ -4,25 +4,15 @@ import {
   Play,
   Plus,
   Check,
-  Sparkles,
-  Clock,
   Volume2,
   VolumeX,
   Info,
   ChevronLeft,
   ChevronRight,
-  Tv,
 } from 'lucide-react';
 import { Film } from '../../types';
-import { formatRuntime, getAgeRatingColor, extractYouTubeId } from '../../lib/utils';
-import {
-  useReducedMotion,
-  heroBillboardBadge,
-  heroBillboardText,
-  fadeSlideUp,
-  springSnappy,
-  springNatural,
-} from '../../lib/motion';
+import { formatRuntime, extractYouTubeId } from '../../lib/utils';
+import { useReducedMotion } from '../../lib/motion';
 
 export interface HeroBillboardProps {
   film?: Film | null;
@@ -47,48 +37,40 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  // Normalize list of featured films
   const activeFilms = films.length > 0 ? films : singleFilm ? [singleFilm] : [];
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
-  // Audio and teaser playback state
   const [isMuted, setIsMuted] = useState(true);
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoError, setVideoError] = useState(false);
 
   const currentFilm = activeFilms[currentIndex] || null;
 
-  // Reset video loading state on slide change
   useEffect(() => {
     setVideoLoaded(false);
     setVideoError(false);
   }, [currentIndex, currentFilm?.id]);
 
-  // Carousel auto-advance timer (9s interval, paused on hover)
+  // Rotate carousel every 10 seconds if not hovered
   useEffect(() => {
     if (activeFilms.length <= 1 || isPaused) return;
 
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % activeFilms.length);
-    }, 9000);
+    }, 10000);
 
     return () => clearInterval(timer);
   }, [activeFilms.length, isPaused]);
 
-  // Scroll-driven parallax
+  // Parallax on scroll
   const { scrollY } = useScroll();
-  const posterY = useTransform(scrollY, [0, 600], [0, reduced ? 0 : 80]);
-  const textOpacity = useTransform(scrollY, [0, 350], [1, reduced ? 1 : 0.1]);
+  const posterY = useTransform(scrollY, [0, 500], [0, reduced ? 0 : 50]);
+  const textOpacity = useTransform(scrollY, [0, 300], [1, reduced ? 1 : 0.1]);
 
   if (!currentFilm) return null;
 
   const videoId = currentFilm.video_ref ? extractYouTubeId(currentFilm.video_ref) : '';
-  const ageRatingStyle = getAgeRatingColor(currentFilm.age_rating);
-  const badge = heroBillboardBadge(reduced);
-  const text = heroBillboardText(reduced);
-  const ctas = fadeSlideUp(reduced, true);
-
   const inList =
     typeof isInWatchlist === 'function'
       ? isInWatchlist(currentFilm.id)
@@ -123,20 +105,20 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
       ref={containerRef}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className="relative w-full h-[82vh] min-h-[580px] max-h-[880px] overflow-hidden bg-[#08090c] select-none"
+      className="relative w-full h-[78vh] min-h-[560px] max-h-[820px] overflow-hidden bg-canvas select-none border-b border-hairline"
     >
-      {/* Background Media Layer with AnimatePresence for smooth slide transitions */}
+      {/* Background Media with Anamorphic 2.39:1 Cinema Ratio */}
       <AnimatePresence mode="wait">
         <motion.div
           key={currentFilm.id}
           className="absolute inset-0 z-0 overflow-hidden"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1, transition: { duration: 0.8, ease: 'easeInOut' } }}
-          exit={{ opacity: 0, transition: { duration: 0.5, ease: 'easeInOut' } }}
+          animate={{ opacity: 1, transition: { duration: 0.7, ease: 'easeOut' } }}
+          exit={{ opacity: 0, transition: { duration: 0.4, ease: 'easeIn' } }}
         >
-          {/* 1. YouTube Teaser Iframe (when videoId exists and not errored) */}
+          {/* Teaser Video (Muted Background Stream) */}
           {videoId && !videoError ? (
-            <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden scale-110">
+            <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden">
               <iframe
                 ref={iframeRef}
                 src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&playsinline=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&enablejsapi=1`}
@@ -145,7 +127,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
                 onLoad={() => setVideoLoaded(true)}
                 onError={() => setVideoError(true)}
                 className={`w-full h-full object-cover border-none transition-opacity duration-1000 ${
-                  videoLoaded ? 'opacity-80' : 'opacity-0'
+                  videoLoaded ? 'opacity-70' : 'opacity-0'
                 }`}
                 style={{
                   width: '100vw',
@@ -161,43 +143,29 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
             </div>
           ) : null}
 
-          {/* 2. Poster Backdrop (Always loaded as foundation + Ken Burns fallback) */}
+          {/* Fallback Still Poster */}
           <motion.img
             src={
               currentFilm.poster_url ||
               'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1600&auto=format&fit=crop'
             }
             alt={currentFilm.title}
-            className={`w-full h-[115%] object-cover object-center filter brightness-90 transition-opacity duration-1000 ${
+            className={`w-full h-[110%] object-cover object-center filter brightness-[0.85] transition-opacity duration-700 ${
               videoLoaded ? 'opacity-30' : 'opacity-100'
             }`}
             style={{ y: posterY }}
-            animate={
-              reduced
-                ? {}
-                : {
-                    scale: [1, 1.06],
-                    transition: {
-                      duration: 18,
-                      repeat: Infinity,
-                      repeatType: 'reverse',
-                      ease: 'easeInOut',
-                    },
-                  }
-            }
           />
 
-          {/* 3. Dual Cinematic Vignette & Deep Gradient Masks */}
-          {/* Left-to-right fade for text contrast */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#08090c] via-[#08090c]/85 via-45% to-transparent z-[1]" />
-          {/* Bottom-to-top gradient merging into #08090c content rails */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#08090c] via-[#08090c]/65 via-35% to-transparent z-[2]" />
-          {/* Ambient top amber atmospheric glow */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-amber-500/15 via-transparent to-transparent z-[2]" />
+          {/* Letterbox Mask & Layering (Graphite to Canvas — No AI Purple/Blue Gradients) */}
+          <div className="absolute inset-0 bg-gradient-to-r from-canvas via-canvas/80 via-40% to-transparent z-[1]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-canvas via-canvas/60 via-30% to-transparent z-[1]" />
+
+          {/* Film Grain Texture Overlay (Authentic 2.8% Noise) */}
+          <div className="absolute inset-0 film-grain pointer-events-none z-[2]" />
         </motion.div>
       </AnimatePresence>
 
-      {/* Hero Content Container */}
+      {/* Hero Content Container — Asymmetric Editorial Layout */}
       <motion.div
         className="relative z-10 max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-16 md:pb-20"
         style={{ opacity: textOpacity }}
@@ -206,226 +174,181 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
           <motion.div
             key={currentFilm.id}
             className="max-w-2xl lg:max-w-3xl space-y-4"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0, transition: { ...springNatural, delay: 0.1 } }}
-            exit={{ opacity: 0, y: -10, transition: { duration: 0.2 } }}
+            initial={reduced ? { opacity: 0 } : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } }}
+            exit={{ opacity: 0, y: -8, transition: { duration: 0.2 } }}
           >
-            {/* Top Spotlight Tag */}
-            <motion.div
-              className="flex flex-wrap items-center gap-2.5"
-              initial={badge.initial}
-              animate={badge.animate}
-            >
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/35 backdrop-blur-md shadow-sm">
-                <Sparkles className="h-3.5 w-3.5 fill-current" />
-                <span>{currentFilm.is_debut ? 'Director Debut Spotlight' : 'TPF Exclusive Premiere'}</span>
+            {/* Curatorial Header Stamp */}
+            <div className="flex items-center gap-3">
+              <div className="h-3 w-0.5 bg-signature" />
+              <span className="font-mono text-[10px] tracking-[0.24em] text-muted uppercase">
+                {currentFilm.is_debut ? 'Director Debut Spotlight' : 'Official Festival Selection'}
               </span>
 
               {currentFilm.profiles?.display_name && (
-                <span className="text-xs text-zinc-300 font-medium">
-                  Directed by <strong className="text-white">{currentFilm.profiles.display_name}</strong>
-                </span>
+                <>
+                  <span className="text-hairline">|</span>
+                  <span className="font-editorial italic text-xs text-ivory/80">
+                    A work by <strong className="text-ivory font-medium not-italic">{currentFilm.profiles.display_name}</strong>
+                  </span>
+                </>
               )}
-            </motion.div>
+            </div>
 
-            {/* Cinematic Title */}
-            <motion.h1
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black font-display tracking-tight text-white leading-[1.05] drop-shadow-2xl"
-              initial={text.initial}
-              animate={text.animate}
-            >
+            {/* Editorial Serif Film Title */}
+            <h1 className="font-editorial text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-normal text-ivory leading-[1.05] tracking-tight">
               {currentFilm.title}
-            </motion.h1>
+            </h1>
 
-            {/* Glassmorphic Metadata Badges */}
-            <motion.div
-              className="flex flex-wrap items-center gap-2.5 text-xs text-zinc-300"
-              initial={text.initial}
-              animate={{
-                ...text.animate,
-                transition: { ...(text.animate as any).transition, delay: 0.12 },
-              }}
-            >
-              {/* 4K Ultra HD Badge */}
-              <span className="px-2 py-0.5 rounded font-black tracking-widest text-[10px] bg-black/50 border border-white/25 text-white backdrop-blur-md">
-                4K ULTRA HD
+            {/* Architectural Metadata Badges (Sharp 2px corners, no pills) */}
+            <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] text-muted tracking-wider">
+              <span className="px-2 py-0.5 rounded-sm bg-graphite border border-hairline text-ivory">
+                2.39:1 ANAMORPHIC
               </span>
 
-              {/* Age Rating Pill */}
-              <span
-                className={`px-2 py-0.5 rounded font-bold border backdrop-blur-md text-[11px] ${ageRatingStyle.bg} ${ageRatingStyle.text} ${ageRatingStyle.border}`}
-              >
+              <span className="px-2 py-0.5 rounded-sm bg-graphite border border-hairline text-ivory">
                 {currentFilm.age_rating}
               </span>
 
-              {/* Duration */}
-              <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/10 border border-white/15 backdrop-blur-md text-zinc-200">
-                <Clock className="h-3.5 w-3.5 text-amber-400" />
+              <span className="px-2 py-0.5 rounded-sm bg-graphite border border-hairline text-muted">
                 {formatRuntime(currentFilm.runtime_minutes)}
               </span>
 
-              {/* Release Year */}
-              <span className="px-2 py-0.5 rounded-full bg-white/10 border border-white/15 backdrop-blur-md text-zinc-200 font-medium">
+              <span className="px-2 py-0.5 rounded-sm bg-graphite border border-hairline text-muted">
                 {currentFilm.release_year}
               </span>
 
-              {/* Audio badge */}
-              <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/10 border border-white/15 backdrop-blur-md text-[11px] text-zinc-300">
-                <Tv className="h-3 w-3 text-zinc-400" />
-                5.1 AUDIO
-              </span>
+              {currentFilm.language && (
+                <span className="px-2 py-0.5 rounded-sm bg-graphite border border-hairline text-muted uppercase">
+                  {currentFilm.language}
+                </span>
+              )}
 
-              {/* Interactive Genre Pills */}
+              {/* Genre links */}
               {currentFilm.film_genres && currentFilm.film_genres.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 ml-1">
-                  {currentFilm.film_genres.slice(0, 3).map((fg) => (
+                <div className="flex items-center gap-1.5 ml-1">
+                  {currentFilm.film_genres.slice(0, 2).map((fg) => (
                     <button
                       key={fg.genre_id}
                       type="button"
                       onClick={() => onSelectGenre?.(fg.genres?.slug || '')}
-                      className="px-2.5 py-0.5 rounded-full bg-white/10 hover:bg-amber-500/20 border border-white/15 hover:border-amber-500/40 text-zinc-300 hover:text-amber-300 text-[11px] transition-colors cursor-pointer backdrop-blur-md"
-                      title={`Filter by ${fg.genres?.name}`}
+                      className="px-2 py-0.5 rounded-sm border border-hairline hover:border-signature text-muted hover:text-ivory transition-colors"
                     >
                       {fg.genres?.name}
                     </button>
                   ))}
                 </div>
               )}
-            </motion.div>
+            </div>
 
-            {/* Synopsis */}
-            <motion.p
-              className="text-sm sm:text-base text-zinc-300/95 line-clamp-3 leading-relaxed drop-shadow max-w-2xl font-normal"
-              initial={text.initial}
-              animate={{
-                ...text.animate,
-                transition: { ...(text.animate as any).transition, delay: 0.18 },
-              }}
-            >
+            {/* Synopsis with Generous 1.6 Line-Height */}
+            <p className="font-sans text-xs sm:text-sm text-ivory/70 max-w-xl leading-[1.6] line-clamp-3">
               {currentFilm.synopsis}
-            </motion.p>
+            </p>
 
-            {/* Action CTAs & Sound Control Cluster */}
-            <motion.div
-              className="flex flex-wrap items-center gap-3 pt-3"
-              initial={ctas.initial}
-              animate={{
-                ...ctas.animate,
-                transition: { ...(ctas.animate as any).transition, delay: 0.25 },
-              }}
-            >
-              {/* Primary Play Button */}
-              <motion.button
+            {/* Three Distinct Button Weights: Solid Primary, Outline Secondary, Ghost Tertiary */}
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              {/* Solid Signature Primary */}
+              <button
                 onClick={() => onPlay(currentFilm)}
-                className="flex items-center gap-2.5 px-6 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black shadow-xl shadow-amber-500/25 transition-shadow cursor-pointer"
-                whileHover={reduced ? {} : { scale: 1.04, transition: springSnappy }}
-                whileTap={reduced ? {} : { scale: 0.96, transition: springSnappy }}
+                className="btn-primary"
               >
-                <Play className="h-5 w-5 fill-current" />
-                <span>Watch Now</span>
-              </motion.button>
+                <Play className="h-3.5 w-3.5 fill-current" />
+                <span>Screen Film</span>
+              </button>
 
-              {/* Watchlist Toggle Button */}
-              <motion.button
+              {/* Outline Secondary */}
+              <button
                 onClick={() => onToggleWatchlist(currentFilm.id)}
-                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm border backdrop-blur-md transition-colors cursor-pointer ${
-                  inList
-                    ? 'bg-amber-500/20 border-amber-500/40 text-amber-400 hover:bg-amber-500/30'
-                    : 'bg-zinc-900/70 border-white/20 text-white hover:bg-zinc-800/80 hover:border-white/40'
-                }`}
-                whileHover={reduced ? {} : { scale: 1.03, transition: springSnappy }}
-                whileTap={reduced ? {} : { scale: 0.96, transition: springSnappy }}
+                className="btn-secondary"
               >
                 {inList ? (
                   <>
-                    <Check className="h-4 w-4 text-amber-400" />
-                    <span>In Watchlist</span>
+                    <Check className="h-3.5 w-3.5 text-signature" />
+                    <span>In Queue</span>
                   </>
                 ) : (
                   <>
-                    <Plus className="h-4 w-4" />
-                    <span>Add to List</span>
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Add to Queue</span>
                   </>
                 )}
-              </motion.button>
+              </button>
 
-              {/* Sound Toggle Button (D-02 Decision: placed directly in CTA group) */}
+              {/* Sound Toggle Ghost */}
               {videoId ? (
-                <motion.button
+                <button
                   onClick={toggleSound}
-                  className={`flex items-center gap-2 px-4 py-3 rounded-xl font-medium text-sm border backdrop-blur-md transition-colors cursor-pointer ${
-                    !isMuted
-                      ? 'bg-amber-500/20 border-amber-500/40 text-amber-300 hover:bg-amber-500/30'
-                      : 'bg-zinc-900/60 border-white/15 text-zinc-300 hover:bg-zinc-800 hover:text-white'
-                  }`}
-                  whileHover={reduced ? {} : { scale: 1.03, transition: springSnappy }}
-                  whileTap={reduced ? {} : { scale: 0.96, transition: springSnappy }}
-                  title={isMuted ? 'Unmute Teaser Sound' : 'Mute Teaser Sound'}
+                  className="btn-ghost text-xs"
+                  title={isMuted ? 'Unmute Teaser' : 'Mute Teaser'}
                 >
                   {!isMuted ? (
                     <>
-                      <Volume2 className="h-4 w-4 text-amber-400 animate-pulse" />
-                      <span className="hidden sm:inline text-xs font-semibold">Sound On</span>
+                      <Volume2 className="h-3.5 w-3.5 text-signature" />
+                      <span className="font-mono text-[10px] tracking-wider uppercase text-signature">Audio On</span>
                     </>
                   ) : (
                     <>
-                      <VolumeX className="h-4 w-4" />
-                      <span className="hidden sm:inline text-xs">Muted</span>
+                      <VolumeX className="h-3.5 w-3.5" />
+                      <span className="font-mono text-[10px] tracking-wider uppercase">Muted</span>
                     </>
                   )}
-                </motion.button>
+                </button>
               ) : null}
 
-              {/* More Info Button */}
+              {/* More Info */}
               {onMoreInfo ? (
-                <motion.button
+                <button
                   onClick={() => onMoreInfo(currentFilm)}
-                  className="flex items-center gap-2 px-4 py-3 rounded-xl font-medium text-sm border bg-zinc-900/50 border-white/15 text-zinc-300 hover:bg-zinc-800/80 hover:text-white hover:border-white/30 backdrop-blur-md transition-colors cursor-pointer"
-                  whileHover={reduced ? {} : { scale: 1.03, transition: springSnappy }}
-                  whileTap={reduced ? {} : { scale: 0.96, transition: springSnappy }}
-                  title="Film Details & Credits"
+                  className="btn-ghost text-xs"
+                  title="Curatorial Notes & Credits"
                 >
-                  <Info className="h-4 w-4" />
-                  <span className="hidden sm:inline text-xs">More Info</span>
-                </motion.button>
+                  <Info className="h-3.5 w-3.5" />
+                  <span className="font-mono text-[10px] tracking-wider uppercase">Editorial Notes</span>
+                </button>
               ) : null}
-            </motion.div>
+            </div>
           </motion.div>
         </AnimatePresence>
       </motion.div>
 
-      {/* Multi-Title Carousel Navigation Controls & Indicators (When multiple films exist) */}
+      {/* Multi-Title Carousel Controls: Hairline Progress Bars on Bottom-Right */}
       {activeFilms.length > 1 && (
         <>
-          {/* Left Arrow */}
-          <button
-            onClick={handlePrevSlide}
-            aria-label="Previous Featured Film"
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-black/40 hover:bg-black/80 text-white/70 hover:text-white border border-white/10 hover:border-white/30 backdrop-blur-md transition-all opacity-0 hover:opacity-100 group-hover:opacity-100 focus:opacity-100"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
+          {/* Arrow navigation */}
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 z-20 flex gap-2">
+            <button
+              onClick={handlePrevSlide}
+              aria-label="Previous Featured Film"
+              className="p-2 rounded-sm bg-graphite/80 hover:bg-graphite text-muted hover:text-ivory border border-hairline transition-colors"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex gap-2">
+            <button
+              onClick={handleNextSlide}
+              aria-label="Next Featured Film"
+              className="p-2 rounded-sm bg-graphite/80 hover:bg-graphite text-muted hover:text-ivory border border-hairline transition-colors"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
 
-          {/* Right Arrow */}
-          <button
-            onClick={handleNextSlide}
-            aria-label="Next Featured Film"
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-black/40 hover:bg-black/80 text-white/70 hover:text-white border border-white/10 hover:border-white/30 backdrop-blur-md transition-all opacity-0 hover:opacity-100 group-hover:opacity-100 focus:opacity-100"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
-
-          {/* Carousel Slide Indicators on Bottom Right */}
-          <div className="absolute right-6 sm:right-10 bottom-8 z-20 flex items-center gap-2 bg-black/50 border border-white/15 px-3 py-1.5 rounded-full backdrop-blur-md">
+          {/* Hairline Step Indicators (Minimalist Editorial, No Rounded Pills) */}
+          <div className="absolute right-6 sm:right-10 bottom-8 z-20 flex items-center gap-1.5 bg-graphite/90 border border-hairline px-3 py-2 rounded-sm">
+            <span className="font-mono text-[10px] text-muted mr-1.5">
+              0{currentIndex + 1} / 0{activeFilms.length}
+            </span>
             {activeFilms.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}
                 aria-label={`Go to slide ${index + 1}`}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
+                className={`h-0.5 transition-all duration-200 ${
                   index === currentIndex
-                    ? 'w-6 bg-amber-400'
-                    : 'w-1.5 bg-white/30 hover:bg-white/60'
+                    ? 'w-6 bg-signature'
+                    : 'w-2.5 bg-ivory/20 hover:bg-ivory/40'
                 }`}
               />
             ))}

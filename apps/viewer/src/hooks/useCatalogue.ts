@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { Film, Genre } from '../types';
 
-// Sample preview film to ensure the catalog looks rich even before first publication
+// Sample preview films representing authentic independent festival selections
 const SAMPLE_FILMS: Film[] = [
   {
     id: 'preview-1',
@@ -28,6 +28,7 @@ const SAMPLE_FILMS: Film[] = [
       role: 'filmmaker',
       display_name: 'Anand Menon',
       city: 'Kochi, Kerala',
+      bio: 'Alumnus of Satyajit Ray Film & Television Institute. Explores auditory ecologies and rural memories across Southern India.',
     },
     film_genres: [
       { genre_id: 1, genres: { id: 1, name: 'Drama', slug: 'drama' } },
@@ -62,6 +63,7 @@ const SAMPLE_FILMS: Film[] = [
       role: 'filmmaker',
       display_name: 'Pranab Bordoloi',
       city: 'Guwahati, Assam',
+      bio: 'Documentary and narrative filmmaker working along the Brahmaputra basin, focusing on riverine isolation.',
     },
     film_genres: [
       { genre_id: 1, genres: { id: 1, name: 'Drama', slug: 'drama' } },
@@ -76,7 +78,7 @@ const SAMPLE_FILMS: Film[] = [
     filmmaker_id: '00000000-0000-0000-0000-000000000000',
     title: 'Letters from Old Delhi',
     slug: 'letters-from-old-delhi',
-    synopsis: 'A lyrical exploration of Chandni Chowk through handwritten postcards found in an abandoned calligrapher’s studio before redevelopment begins.',
+    synopsis: 'A lyrical exploration of Chandni Chowk through handwritten postcards found in an abandoned calligrapher’s studio before demolition.',
     runtime_minutes: 29,
     release_year: 2024,
     language: 'Hindi / Urdu',
@@ -95,12 +97,80 @@ const SAMPLE_FILMS: Film[] = [
       role: 'filmmaker',
       display_name: 'Zoya Qureshi',
       city: 'Delhi',
+      bio: 'National Award-winning visual archivist capturing endangered architectural heritage and written cultures.',
     },
     film_genres: [
       { genre_id: 6, genres: { id: 6, name: 'Documentary', slug: 'documentary' } },
     ],
     film_credits: [
       { id: 'c4', person_name: 'Zoya Qureshi', credit_role: 'Director & Cinematographer', sort_order: 1 },
+    ],
+  },
+  {
+    id: 'preview-4',
+    filmmaker_id: '00000000-0000-0000-0000-000000000000',
+    title: 'Shadows of Chettinad',
+    slug: 'shadows-of-chettinad',
+    synopsis: 'Inside an empty 120-room ancestral mansion in rural Tamil Nadu, an elderly caretaker preserves memories of a bygone merchant dynasty through ritualistic daily chores.',
+    runtime_minutes: 24,
+    release_year: 2025,
+    language: 'Tamil',
+    age_rating: 'U',
+    video_provider: 'youtube',
+    video_ref: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    poster_url: 'https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?q=80&w=900&auto=format&fit=crop',
+    is_featured: false,
+    is_debut: true,
+    status: 'published',
+    published_at: new Date().toISOString(),
+    view_count: 1840,
+    created_at: new Date().toISOString(),
+    profiles: {
+      id: '00000000-0000-0000-0000-000000000000',
+      role: 'filmmaker',
+      display_name: 'Karthik Subramanian',
+      city: 'Madurai, Tamil Nadu',
+      bio: 'Independent director exploring spatial stillness and Tamil vernacular architecture on 16mm celluloid.',
+    },
+    film_genres: [
+      { genre_id: 1, genres: { id: 1, name: 'Drama', slug: 'drama' } },
+      { genre_id: 6, genres: { id: 6, name: 'Documentary', slug: 'documentary' } },
+    ],
+    film_credits: [
+      { id: 'c5', person_name: 'Karthik Subramanian', credit_role: 'Director', sort_order: 1 },
+    ],
+  },
+  {
+    id: 'preview-5',
+    filmmaker_id: '00000000-0000-0000-0000-000000000000',
+    title: 'The Clay Modeler of Kumartuli',
+    slug: 'the-clay-modeler-of-kumartuli',
+    synopsis: 'Days before the autumnal festival in Kolkata, a veteran idol-maker loses his eyesight and must teach his estranged daughter the sacred geometry of sculpting.',
+    runtime_minutes: 31,
+    release_year: 2025,
+    language: 'Bengali',
+    age_rating: 'UA7+',
+    video_provider: 'youtube',
+    video_ref: 'https://www.youtube.com/watch?v=L_LUpnjgPso',
+    poster_url: 'https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900&auto=format&fit=crop',
+    is_featured: false,
+    is_debut: true,
+    status: 'published',
+    published_at: new Date().toISOString(),
+    view_count: 2150,
+    created_at: new Date().toISOString(),
+    profiles: {
+      id: '00000000-0000-0000-0000-000000000000',
+      role: 'filmmaker',
+      display_name: 'Debashish Roy',
+      city: 'Kolkata, West Bengal',
+      bio: 'Photographer and fiction debutant examining generational artisan guilds in North Kolkata.',
+    },
+    film_genres: [
+      { genre_id: 1, genres: { id: 1, name: 'Drama', slug: 'drama' } },
+    ],
+    film_credits: [
+      { id: 'c6', person_name: 'Debashish Roy', credit_role: 'Director & Writer', sort_order: 1 },
     ],
   }
 ];

@@ -100,34 +100,34 @@ export const AmberScrubber: React.FC<AmberScrubberProps> = ({
       onTouchStart={handleTouchStart}
       className="group/scrubber relative w-full py-3 cursor-pointer select-none flex items-center"
     >
-      {/* Floating Hover Timestamp Tooltip */}
+      {/* Timecode Hover Stamp */}
       {(isHovering || isDragging) && (
         <div
-          className="absolute -top-7 px-2 py-0.5 rounded-md bg-black/90 border border-white/20 text-[11px] font-mono font-medium text-amber-400 shadow-xl backdrop-blur-md pointer-events-none -translate-x-1/2 z-30 transition-transform duration-75"
+          className="absolute -top-7 px-2 py-0.5 rounded-sm bg-graphite border border-hairline font-mono text-[10px] text-signature pointer-events-none -translate-x-1/2 z-30 shadow-lg"
           style={{ left: `${isDragging ? progressPercent : (hoverX / (trackRef.current?.offsetWidth || 1)) * 100}%` }}
         >
           {formatScrubberTime(isDragging ? currentTime : hoverTime)}
         </div>
       )}
 
-      {/* Main Track Rail */}
-      <div className="relative w-full h-1.5 group-hover/scrubber:h-2.5 bg-white/20 rounded-full transition-all duration-200 overflow-hidden">
-        {/* Buffered Track (Translucent White) */}
+      {/* Main Track Rail (Architectural 2px hairline, expands to 4px on hover) */}
+      <div className="relative w-full h-[2px] group-hover/scrubber:h-[4px] bg-graphite transition-all duration-150 overflow-hidden">
+        {/* Buffered Track (Ivory 15%) */}
         <div
-          className="absolute left-0 top-0 h-full bg-white/30 rounded-full transition-all duration-300"
+          className="absolute left-0 top-0 h-full bg-ivory/15"
           style={{ width: `${buffered}%` }}
         />
 
-        {/* Played Progress Track (Glowing Amber Gradient) */}
+        {/* Played Progress Track (Solid Electric Amber #FF9F1C, No gradients) */}
         <div
-          className="absolute left-0 top-0 h-full bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 rounded-full shadow-[0_0_12px_rgba(245,158,11,0.7)] transition-all duration-75"
+          className="absolute left-0 top-0 h-full bg-signature"
           style={{ width: `${progressPercent}%` }}
         />
       </div>
 
-      {/* Scrubber Knob Thumb */}
+      {/* Scrubber Knob Thumb: Sharp 2px Square */}
       <div
-        className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 h-4 w-4 rounded-full bg-amber-400 border-2 border-white shadow-[0_0_12px_rgba(245,158,11,0.9)] transition-transform duration-150 pointer-events-none ${
+        className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 h-3.5 w-3.5 bg-signature border border-black shadow-md transition-transform duration-100 pointer-events-none ${
           isHovering || isDragging ? 'scale-100' : 'scale-0'
         }`}
         style={{ left: `${progressPercent}%` }}

@@ -2,8 +2,8 @@ import React, { useRef } from 'react';
 import { motion } from 'motion/react';
 import { Play, Plus, Check, Clock } from 'lucide-react';
 import { Film } from '../../types';
-import { formatRuntime, getAgeRatingColor, formatProgress } from '../../lib/utils';
-import { useReducedMotion, springSnappy, springNatural, railItem } from '../../lib/motion';
+import { formatRuntime, formatProgress } from '../../lib/utils';
+import { useReducedMotion, railItem } from '../../lib/motion';
 import { useHoverPreview } from '../../context/HoverPreviewContext';
 
 interface FilmCardProps {
@@ -12,7 +12,6 @@ interface FilmCardProps {
   isInWatchlist: boolean;
   onToggleWatchlist: (filmId: string) => void;
   progressSeconds?: number;
-  /** When inside a stagger rail, omit individual entrance — rail drives it */
   inRail?: boolean;
 }
 
@@ -27,12 +26,10 @@ export const FilmCard: React.FC<FilmCardProps> = ({
   const cardRef = useRef<HTMLDivElement>(null);
   const { triggerEnter, triggerLeave } = useHoverPreview();
   const reduced = useReducedMotion();
-  const ageRatingStyle = getAgeRatingColor(film.age_rating);
   const totalSeconds = (film.runtime_minutes || 1) * 60;
   const progressPercent = Math.min(100, Math.round((progressSeconds / totalSeconds) * 100));
 
   const handleMouseEnter = () => {
-    // Only trigger hover popout on desktop fine-pointer devices (not touch screens)
     if (typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
       if (cardRef.current) {
         const rect = cardRef.current.getBoundingClientRect();
@@ -45,21 +42,19 @@ export const FilmCard: React.FC<FilmCardProps> = ({
     triggerLeave();
   };
 
-  // When in a stagger rail: use named variants driven by parent container.
-  // When standalone (search grid): use own entrance animation.
   const itemVariants = inRail ? railItem(reduced) : undefined;
   const standaloneProps = !inRail
     ? {
-        initial: reduced ? { opacity: 0 } : { opacity: 0, y: 24 },
-        animate: { opacity: 1, y: 0, transition: springNatural },
+        initial: reduced ? { opacity: 0 } : { opacity: 0, y: 12 },
+        animate: { opacity: 1, y: 0, transition: { duration: 0.25 } },
       }
     : {};
 
   const liftProps = reduced
     ? {}
     : {
-        whileHover: { y: -6, transition: springNatural },
-        whileFocus: { y: -6, transition: springNatural },
+        whileHover: { y: -2, transition: { duration: 0.15 } },
+        whileFocus: { y: -2, transition: { duration: 0.15 } },
       };
 
   return (
@@ -73,111 +68,106 @@ export const FilmCard: React.FC<FilmCardProps> = ({
       {...standaloneProps}
       {...liftProps}
     >
-      {/* Poster Container */}
+      {/* Poster Container: Sharp 2px corners, graphite backing, hairline border */}
       <div
         onClick={() => onPlay(film)}
-        className="relative aspect-[2/3] w-full rounded-xl overflow-hidden bg-zinc-900 border border-white/10 shadow-lg poster-glow"
+        className="relative aspect-[2/3] w-full rounded-sm overflow-hidden bg-graphite border border-hairline group-hover:border-signature/50 transition-colors"
       >
-        <motion.img
+        <img
           src={film.poster_url || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=600&auto=format&fit=crop'}
           alt={film.title}
           loading="lazy"
-          className="w-full h-full object-cover"
-          whileHover={reduced ? {} : { scale: 1.05, transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] as [number, number, number, number] } }}
+          className="w-full h-full object-cover filter brightness-[0.92] group-hover:brightness-100 transition-all duration-300"
         />
 
-        {/* Hover Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3.5">
-          {/* Top Row: Watchlist button */}
+        {/* Minimalist Top Stamp / Debut Ribbon */}
+        {film.is_debut && (
+          <div className="absolute top-2 left-2 z-10">
+            <span className="px-1.5 py-0.5 text-[8px] font-mono font-bold uppercase tracking-widest bg-signature text-black rounded-none">
+              Debut
+            </span>
+          </div>
+        )}
+
+        {/* Hover Quick Actions Overlay (Minimalist, No AI Blur) */}
+        <div className="absolute inset-0 bg-canvas/80 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-200 flex flex-col justify-between p-3">
+          {/* Top Row: Rating Badge & Queue Toggle */}
           <div className="flex items-center justify-between">
-            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${ageRatingStyle.bg} ${ageRatingStyle.text} ${ageRatingStyle.border}`}>
+            <span className="px-1.5 py-0.5 text-[9px] font-mono uppercase bg-graphite border border-hairline text-ivory">
               {film.age_rating}
             </span>
 
-            <motion.button
+            <button
               onClick={(e) => {
                 e.stopPropagation();
                 onToggleWatchlist(film.id);
               }}
-              className={`p-1.5 rounded-full backdrop-blur-md transition-colors ${
+              className={`p-1.5 rounded-sm border transition-colors ${
                 isInWatchlist
-                  ? 'bg-amber-500 text-black'
-                  : 'bg-black/60 text-white hover:bg-black/80'
+                  ? 'bg-signature text-black border-signature'
+                  : 'bg-graphite text-ivory border-hairline hover:border-ivory'
               }`}
-              title={isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
-              whileTap={reduced ? {} : { scale: 0.88, transition: springSnappy }}
+              title={isInWatchlist ? 'Remove from Queue' : 'Add to Queue'}
             >
-              {isInWatchlist ? <Check className="h-3.5 w-3.5 stroke-[2.5]" /> : <Plus className="h-3.5 w-3.5 stroke-[2.5]" />}
-            </motion.button>
+              {isInWatchlist ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+            </button>
           </div>
 
-          {/* Center: Play Icon */}
+          {/* Center: Play Trigger */}
           <div className="self-center">
-            <motion.div
-              className="h-11 w-11 rounded-full bg-amber-500 text-black flex items-center justify-center shadow-lg shadow-amber-500/40"
-              whileHover={reduced ? {} : { scale: 1.12, transition: springSnappy }}
-              whileTap={reduced ? {} : { scale: 0.9, transition: springSnappy }}
+            <div
+              className="h-10 w-10 bg-signature text-black flex items-center justify-center rounded-sm transition-transform group-hover:scale-105"
               onClick={() => onPlay(film)}
             >
-              <Play className="h-5 w-5 fill-current ml-0.5" />
-            </motion.div>
+              <Play className="h-4 w-4 fill-current ml-0.5" />
+            </div>
           </div>
 
-          {/* Bottom Hover Info */}
+          {/* Bottom Info: Runtime & Release */}
           <div className="space-y-1">
-            <div className="flex items-center justify-between text-[11px] text-zinc-300">
+            <div className="flex items-center justify-between font-mono text-[10px] text-muted">
               <span className="flex items-center gap-1">
-                <Clock className="h-3 w-3 text-zinc-400" />
+                <Clock className="h-3 w-3 text-muted" />
                 {formatRuntime(film.runtime_minutes)}
               </span>
               <span>{film.release_year}</span>
             </div>
 
             {film.film_genres && film.film_genres.length > 0 && (
-              <p className="text-[10px] text-amber-400/90 font-medium truncate">
+              <p className="text-[10px] text-ivory/80 font-editorial italic truncate">
                 {film.film_genres.map((fg) => fg.genres?.name).filter(Boolean).join(' • ')}
               </p>
             )}
           </div>
         </div>
 
-        {/* Continue Watching Progress Bar */}
+        {/* Continue Watching Progress Bar (Hairline Signature Accent) */}
         {progressSeconds > 0 && (
-          <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-black/60 z-20">
-            <motion.div
-              className="h-full bg-amber-500 origin-left"
-              animate={{ scaleX: progressPercent / 100 }}
-              transition={reduced ? { duration: 0.01 } : { duration: 0.4, ease: [0.4, 0, 0.2, 1] as [number, number, number, number] }}
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/80 z-20">
+            <div
+              className="h-full bg-signature"
+              style={{ width: `${progressPercent}%` }}
             />
-          </div>
-        )}
-
-        {/* Debut Ribbon */}
-        {film.is_debut && (
-          <div className="absolute top-2 left-2 z-10">
-            <span className="px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider bg-amber-500 text-black rounded-md shadow-md">
-              Debut
-            </span>
           </div>
         )}
       </div>
 
-      {/* Card Details below poster */}
+      {/* Card Typography below poster */}
       <div className="mt-2.5 px-0.5">
         <h3
           onClick={() => onPlay(film)}
-          className="text-sm font-semibold text-white truncate group-hover:text-amber-400 group-focus:text-amber-400 transition-colors"
+          className="font-editorial text-base sm:text-lg font-semibold text-ivory truncate group-hover:text-signature transition-colors leading-tight"
           title={film.title}
         >
           {film.title}
         </h3>
-        <p className="text-xs text-zinc-400 truncate mt-0.5">
+        <p className="text-xs text-muted truncate mt-0.5 font-sans">
           {film.profiles?.display_name || 'Independent Filmmaker'}
         </p>
 
         {progressSeconds > 0 && (
-          <p className="text-[11px] text-amber-500/80 font-medium mt-0.5">
-            Resume at {formatProgress(progressSeconds)}
+          <p className="font-mono text-[10px] text-signature mt-0.5 uppercase tracking-wider">
+            Resume • {formatProgress(progressSeconds)}
           </p>
         )}
       </div>

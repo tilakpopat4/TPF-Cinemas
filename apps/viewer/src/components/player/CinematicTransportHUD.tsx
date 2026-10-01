@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 import { VideoPlayerController } from '../../hooks/useVideoPlayer';
 import { AmberScrubber } from './AmberScrubber';
-import { useReducedMotion, springSnappy } from '../../lib/motion';
 
 interface CinematicTransportHUDProps {
   controller: VideoPlayerController;
@@ -36,14 +35,12 @@ export const CinematicTransportHUD: React.FC<CinematicTransportHUDProps> = ({
   onToggleDetailsDrawer,
   lastGesture,
 }) => {
-  const reduced = useReducedMotion();
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [isVolumeHovered, setIsVolumeHovered] = useState(false);
   const speedMenuRef = useRef<HTMLDivElement>(null);
 
   const speedOptions = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 
-  // Close speed menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (speedMenuRef.current && !speedMenuRef.current.contains(e.target as Node)) {
@@ -65,7 +62,7 @@ export const CinematicTransportHUD: React.FC<CinematicTransportHUDProps> = ({
 
   return (
     <>
-      {/* Center Screen Feedback Ripple Animation */}
+      {/* Center Screen Feedback (Architectural Sharp Badge) */}
       <AnimatePresence>
         {lastGesture && (
           <div
@@ -73,24 +70,24 @@ export const CinematicTransportHUD: React.FC<CinematicTransportHUDProps> = ({
             className="absolute inset-0 flex items-center justify-center pointer-events-none z-30"
           >
             <motion.div
-              className="h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-black/60 border border-amber-500/40 text-amber-400 backdrop-blur-xl flex flex-col items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.5)]"
-              initial={{ scale: 0.7, opacity: 0.9 }}
-              animate={{ scale: 1.35, opacity: 0 }}
+              className="h-16 w-16 bg-graphite/90 border border-signature text-signature flex flex-col items-center justify-center rounded-sm shadow-2xl"
+              initial={{ scale: 0.8, opacity: 0.9 }}
+              animate={{ scale: 1.1, opacity: 0 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.6, ease: 'easeOut' }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
             >
-              {lastGesture.type === 'play' && <Play className="h-10 w-10 fill-current ml-1" />}
-              {lastGesture.type === 'pause' && <Pause className="h-10 w-10 fill-current" />}
+              {lastGesture.type === 'play' && <Play className="h-8 w-8 fill-current ml-0.5" />}
+              {lastGesture.type === 'pause' && <Pause className="h-8 w-8 fill-current" />}
               {lastGesture.type === 'skip-forward' && (
                 <div className="flex flex-col items-center">
-                  <RotateCw className="h-7 w-7" />
-                  <span className="text-[10px] font-bold mt-0.5">+10s</span>
+                  <RotateCw className="h-6 w-6" />
+                  <span className="font-mono text-[9px] font-bold mt-0.5">+10s</span>
                 </div>
               )}
               {lastGesture.type === 'skip-backward' && (
                 <div className="flex flex-col items-center">
-                  <RotateCcw className="h-7 w-7" />
-                  <span className="text-[10px] font-bold mt-0.5">-10s</span>
+                  <RotateCcw className="h-6 w-6" />
+                  <span className="font-mono text-[9px] font-bold mt-0.5">-10s</span>
                 </div>
               )}
             </motion.div>
@@ -99,7 +96,7 @@ export const CinematicTransportHUD: React.FC<CinematicTransportHUDProps> = ({
       </AnimatePresence>
 
       {/* Bottom Floating Control Bar */}
-      <div className="absolute bottom-0 left-0 right-0 z-40 px-4 sm:px-8 pb-6 pt-12 bg-gradient-to-t from-black/95 via-black/70 to-transparent pointer-events-auto">
+      <div className="absolute bottom-0 left-0 right-0 z-40 px-4 sm:px-8 pb-6 pt-12 bg-gradient-to-t from-canvas via-canvas/80 to-transparent pointer-events-auto border-t border-hairline/30">
         {/* Signature Amber Scrubber */}
         <AmberScrubber
           currentTime={controller.currentTime}
@@ -111,76 +108,67 @@ export const CinematicTransportHUD: React.FC<CinematicTransportHUDProps> = ({
         {/* Transport Toolbar Row */}
         <div className="flex items-center justify-between pt-1">
           {/* Left: Play/Pause, 10s Skips, Volume, Timecode */}
-          <div className="flex items-center gap-3 sm:gap-4">
-            {/* Play / Pause Toggle Button */}
-            <motion.button
+          <div className="flex items-center gap-3">
+            {/* Play / Pause Toggle Button (Solid Signature Square) */}
+            <button
               onClick={controller.togglePlay}
-              className="h-10 w-10 rounded-full bg-amber-500 hover:bg-amber-400 text-black flex items-center justify-center shadow-[0_0_15px_rgba(245,158,11,0.5)] transition-colors shrink-0"
+              className="h-9 w-9 rounded-sm bg-signature hover:bg-[#f79612] text-black flex items-center justify-center transition-transform hover:-translate-y-0.5 shrink-0"
               title={controller.isPlaying ? 'Pause (Space or K)' : 'Play (Space or K)'}
-              whileHover={reduced ? {} : { scale: 1.1, transition: springSnappy }}
-              whileTap={reduced ? {} : { scale: 0.9, transition: springSnappy }}
             >
               {controller.isPlaying ? (
-                <Pause className="h-5 w-5 fill-current" />
+                <Pause className="h-4 w-4 fill-current" />
               ) : (
-                <Play className="h-5 w-5 fill-current ml-0.5" />
+                <Play className="h-4 w-4 fill-current ml-0.5" />
               )}
-            </motion.button>
+            </button>
 
             {/* Rewind 10 Seconds */}
-            <motion.button
+            <button
               onClick={() => controller.skip(-10)}
-              className="p-2 text-zinc-300 hover:text-white hover:bg-white/10 rounded-full transition-colors relative"
+              className="p-2 text-muted hover:text-ivory hover:bg-graphite rounded-sm transition-colors relative"
               title="Rewind 10 seconds (J or ←)"
-              whileHover={reduced ? {} : { scale: 1.1 }}
-              whileTap={reduced ? {} : { scale: 0.9, transition: springSnappy }}
             >
-              <RotateCcw className="h-5 w-5" />
-              <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-zinc-300">
+              <RotateCcw className="h-4 w-4" />
+              <span className="absolute inset-0 flex items-center justify-center text-[8px] font-mono font-bold text-muted">
                 10
               </span>
-            </motion.button>
+            </button>
 
             {/* Fast-Forward 10 Seconds */}
-            <motion.button
+            <button
               onClick={() => controller.skip(10)}
-              className="p-2 text-zinc-300 hover:text-white hover:bg-white/10 rounded-full transition-colors relative"
+              className="p-2 text-muted hover:text-ivory hover:bg-graphite rounded-sm transition-colors relative"
               title="Forward 10 seconds (L or →)"
-              whileHover={reduced ? {} : { scale: 1.1 }}
-              whileTap={reduced ? {} : { scale: 0.9, transition: springSnappy }}
             >
-              <RotateCw className="h-5 w-5" />
-              <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-zinc-300">
+              <RotateCw className="h-4 w-4" />
+              <span className="absolute inset-0 flex items-center justify-center text-[8px] font-mono font-bold text-muted">
                 10
               </span>
-            </motion.button>
+            </button>
 
-            {/* Volume Control Cluster */}
+            {/* Volume Control */}
             <div
               className="flex items-center gap-1.5"
               onMouseEnter={() => setIsVolumeHovered(true)}
               onMouseLeave={() => setIsVolumeHovered(false)}
             >
-              <motion.button
+              <button
                 onClick={controller.toggleMute}
-                className="p-2 text-zinc-300 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+                className="p-2 text-muted hover:text-ivory hover:bg-graphite rounded-sm transition-colors"
                 title={controller.isMuted ? 'Unmute (M)' : 'Mute (M)'}
-                whileHover={reduced ? {} : { scale: 1.1 }}
-                whileTap={reduced ? {} : { scale: 0.9, transition: springSnappy }}
               >
                 {controller.isMuted || controller.volume === 0 ? (
-                  <VolumeX className="h-5 w-5 text-red-400" />
+                  <VolumeX className="h-4 w-4 text-red-400" />
                 ) : controller.volume < 50 ? (
-                  <Volume1 className="h-5 w-5 text-zinc-200" />
+                  <Volume1 className="h-4 w-4 text-ivory" />
                 ) : (
-                  <Volume2 className="h-5 w-5 text-amber-400" />
+                  <Volume2 className="h-4 w-4 text-signature" />
                 )}
-              </motion.button>
+              </button>
 
-              {/* Expandable Amber Volume Slider */}
               <div
-                className={`overflow-hidden transition-all duration-200 flex items-center ${
-                  isVolumeHovered ? 'w-20 sm:w-24 opacity-100' : 'w-0 opacity-0'
+                className={`overflow-hidden transition-all duration-150 flex items-center ${
+                  isVolumeHovered ? 'w-20 opacity-100' : 'w-0 opacity-0'
                 }`}
               >
                 <input
@@ -189,54 +177,51 @@ export const CinematicTransportHUD: React.FC<CinematicTransportHUDProps> = ({
                   max="100"
                   value={controller.isMuted ? 0 : controller.volume}
                   onChange={(e) => controller.setVolume(Number(e.target.value))}
-                  className="w-full h-1 bg-white/20 accent-amber-500 rounded-lg cursor-pointer"
+                  className="w-full h-1 bg-graphite accent-[#FF9F1C] cursor-pointer"
                   title="Volume"
                 />
               </div>
             </div>
 
             {/* Timecode Readout */}
-            <div className="text-xs font-mono text-zinc-300 select-none hidden sm:flex items-center gap-1">
-              <span className="text-white font-medium">{formatTime(controller.currentTime)}</span>
-              <span className="text-zinc-500">/</span>
+            <div className="text-xs font-mono text-muted select-none hidden sm:flex items-center gap-1.5">
+              <span className="text-ivory font-medium">{formatTime(controller.currentTime)}</span>
+              <span>/</span>
               <span>{formatTime(controller.duration)}</span>
             </div>
           </div>
 
-          {/* Center: Film Title (Desktop) */}
-          <div className="hidden lg:block text-xs font-medium text-zinc-400 truncate max-w-xs text-center">
+          {/* Center: Film Title */}
+          <div className="hidden lg:block font-editorial text-sm text-ivory/80 truncate max-w-sm text-center">
             {filmTitle}
           </div>
 
-          {/* Right: Speed, Quality, Details Drawer, Fullscreen */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          {/* Right: Speed, 4K Badge, Info Drawer, Fullscreen */}
+          <div className="flex items-center gap-2">
             {/* Playback Speed Popover */}
             <div className="relative" ref={speedMenuRef}>
-              <motion.button
+              <button
                 onClick={() => setShowSpeedMenu(!showSpeedMenu)}
-                className={`px-2.5 py-1 rounded-full text-xs font-mono font-medium border backdrop-blur-md transition-all ${
+                className={`px-2 py-1 rounded-sm text-xs font-mono border transition-colors ${
                   controller.playbackRate !== 1.0
-                    ? 'bg-amber-500/20 border-amber-500 text-amber-400'
-                    : 'bg-white/10 hover:bg-white/15 border-white/10 text-zinc-200'
+                    ? 'bg-signature text-black border-signature font-bold'
+                    : 'bg-graphite hover:bg-[#25252b] border-hairline text-muted hover:text-ivory'
                 }`}
                 title="Playback Speed"
-                whileHover={reduced ? {} : { scale: 1.05 }}
-                whileTap={reduced ? {} : { scale: 0.95 }}
               >
                 {controller.playbackRate}x
-              </motion.button>
+              </button>
 
-              {/* Speed Dropdown Menu */}
               <AnimatePresence>
                 {showSpeedMenu && (
                   <motion.div
-                    className="absolute bottom-10 right-0 py-2 w-32 rounded-xl bg-[#0e1118]/95 border border-white/15 shadow-2xl backdrop-blur-2xl text-xs space-y-0.5 z-50"
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    transition={{ duration: 0.15 }}
+                    className="absolute bottom-10 right-0 py-1 w-32 rounded-sm bg-graphite border border-hairline text-xs z-50 shadow-2xl"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 6 }}
+                    transition={{ duration: 0.12 }}
                   >
-                    <div className="px-3 py-1 text-[10px] font-bold text-zinc-500 uppercase tracking-wider border-b border-white/5">
+                    <div className="px-3 py-1 text-[9px] font-mono font-bold text-muted uppercase tracking-widest border-b border-hairline">
                       Speed
                     </div>
                     {speedOptions.map((rate) => (
@@ -246,14 +231,14 @@ export const CinematicTransportHUD: React.FC<CinematicTransportHUDProps> = ({
                           controller.setPlaybackRate(rate);
                           setShowSpeedMenu(false);
                         }}
-                        className={`w-full px-3 py-1.5 flex items-center justify-between text-left transition-colors ${
+                        className={`w-full px-3 py-1.5 flex items-center justify-between text-left font-mono text-xs transition-colors ${
                           controller.playbackRate === rate
-                            ? 'text-amber-400 font-bold bg-amber-500/10'
-                            : 'text-zinc-300 hover:text-white hover:bg-white/10'
+                            ? 'text-signature font-bold bg-canvas'
+                            : 'text-ivory hover:bg-canvas'
                         }`}
                       >
                         <span>{rate === 1.0 ? '1.0x (Normal)' : `${rate}x`}</span>
-                        {controller.playbackRate === rate && <Check className="h-3 w-3 stroke-[3]" />}
+                        {controller.playbackRate === rate && <Check className="h-3 w-3" />}
                       </button>
                     ))}
                   </motion.div>
@@ -261,36 +246,32 @@ export const CinematicTransportHUD: React.FC<CinematicTransportHUDProps> = ({
               </AnimatePresence>
             </div>
 
-            {/* Quality Badge */}
-            <span className="hidden sm:inline-block px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-white/10 text-amber-400/90 border border-white/10">
-              4K HD
+            {/* Quality Stamp */}
+            <span className="hidden sm:inline-block px-1.5 py-0.5 rounded-sm font-mono text-[9px] uppercase tracking-wider bg-graphite border border-hairline text-signature">
+              4K UHD
             </span>
 
-            {/* Film Info & Discussion Drawer Toggle */}
-            <motion.button
+            {/* Film Info & Notes Drawer Toggle */}
+            <button
               onClick={onToggleDetailsDrawer}
-              className={`p-2 rounded-full border backdrop-blur-md transition-all ${
+              className={`p-2 rounded-sm border transition-colors ${
                 showDetailsDrawer
-                  ? 'bg-amber-500 text-black border-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.5)]'
-                  : 'bg-white/10 hover:bg-white/15 border-white/10 text-zinc-200'
+                  ? 'bg-signature text-black border-signature'
+                  : 'bg-graphite hover:bg-[#25252b] border-hairline text-muted hover:text-ivory'
               }`}
-              title="Film Info & Discussion (I)"
-              whileHover={reduced ? {} : { scale: 1.08 }}
-              whileTap={reduced ? {} : { scale: 0.9, transition: springSnappy }}
+              title="Curatorial Notes (I)"
             >
               <Info className="h-4 w-4" />
-            </motion.button>
+            </button>
 
             {/* Browser Fullscreen Toggle */}
-            <motion.button
+            <button
               onClick={onToggleFullscreen}
-              className="p-2 rounded-full bg-white/10 hover:bg-white/15 text-zinc-200 border border-white/10 backdrop-blur-md transition-colors"
+              className="p-2 rounded-sm bg-graphite hover:bg-[#25252b] text-muted hover:text-ivory border border-hairline transition-colors"
               title={isFullscreen ? 'Exit Fullscreen (F)' : 'Fullscreen (F)'}
-              whileHover={reduced ? {} : { scale: 1.08 }}
-              whileTap={reduced ? {} : { scale: 0.9, transition: springSnappy }}
             >
               {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-            </motion.button>
+            </button>
           </div>
         </div>
       </div>

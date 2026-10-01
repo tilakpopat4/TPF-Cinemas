@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, LogIn, UserPlus, AlertCircle, Loader2, Film, CheckCircle2 } from 'lucide-react';
+import { X, LogIn, UserPlus, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { useReducedMotion, fadeOnly, scaleModal, springSnappy } from '../../lib/motion';
+import { useReducedMotion, fadeOnly } from '../../lib/motion';
 
 interface ViewerAuthModalProps {
   isOpen: boolean;
@@ -48,7 +48,7 @@ export const ViewerAuthModal: React.FC<ViewerAuthModalProps> = ({ isOpen, onClos
         if (data.session) {
           onClose();
         } else {
-          setSuccessMsg('Account created! Please check your email to verify your address before signing in.');
+          setSuccessMsg('Account created. Please verify your email before screening.');
         }
       }
     } catch (err) {
@@ -63,79 +63,78 @@ export const ViewerAuthModal: React.FC<ViewerAuthModalProps> = ({ isOpen, onClos
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas/85"
           {...fadeOnly(reduced)}
         >
           <motion.div
-            className="relative w-full max-w-md bg-[#0d1017] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl"
-            {...scaleModal(reduced)}
+            className="relative w-full max-w-sm bg-graphite border border-hairline rounded-sm p-6 sm:p-7 shadow-2xl"
+            initial={reduced ? { opacity: 0 } : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0, transition: { duration: 0.2 } }}
+            exit={{ opacity: 0, y: 8, transition: { duration: 0.15 } }}
           >
-            <motion.button
+            <button
               onClick={onClose}
-              className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-white rounded-lg transition-colors"
-              whileTap={reduced ? {} : { scale: 0.88, transition: springSnappy }}
+              className="absolute top-3 right-3 p-1.5 text-muted hover:text-ivory rounded-sm transition-colors"
             >
-              <X className="h-5 w-5" />
-            </motion.button>
+              <X className="h-4 w-4" />
+            </button>
 
-            <div className="flex flex-col items-center text-center mb-6">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-500 to-red-600 flex items-center justify-center shadow-lg shadow-amber-500/20 mb-3">
-                <Film className="h-6 w-6 text-black" />
-              </div>
-              <h3 className="text-xl font-bold font-display text-white">
-                {mode === 'signin' ? 'Welcome Back to TPF Cinemas' : 'Create Viewer Account'}
+            <div className="text-left mb-6">
+              <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-signature font-bold">
+                TPF Cinemas Access
+              </span>
+              <h3 className="font-editorial text-2xl font-normal text-ivory mt-0.5 leading-tight">
+                {mode === 'signin' ? 'Sign In to Stream' : 'Register Viewer Pass'}
               </h3>
-              <p className="text-xs text-zinc-400 mt-1">
+              <p className="text-xs text-muted mt-1 leading-[1.5]">
                 {mode === 'signin'
-                  ? 'Sign in to access your watchlist, resume streams, and join discussions.'
-                  : 'Join the community of cinema lovers streaming independent cinema.'}
+                  ? 'Access your personal screening queue, synchronized history, and filmmaker discussions.'
+                  : 'Join an independent audience supporting first-time directors worldwide.'}
               </p>
             </div>
 
-            {/* Tab switch */}
-            <div className="flex rounded-xl bg-zinc-900/80 p-1 border border-white/5 mb-6">
-              <motion.button
+            {/* Mode switch */}
+            <div className="flex bg-canvas p-1 border border-hairline mb-5 rounded-sm">
+              <button
                 type="button"
                 onClick={() => {
                   setMode('signin');
                   setError(null);
                   setSuccessMsg(null);
                 }}
-                className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors ${
+                className={`flex-1 py-1.5 font-mono text-[10px] uppercase tracking-wider transition-colors rounded-none ${
                   mode === 'signin'
-                    ? 'bg-amber-500 text-black shadow-md'
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-signature text-black font-bold'
+                    : 'text-muted hover:text-ivory'
                 }`}
-                whileTap={reduced ? {} : { scale: 0.97, transition: springSnappy }}
               >
                 Sign In
-              </motion.button>
-              <motion.button
+              </button>
+              <button
                 type="button"
                 onClick={() => {
                   setMode('signup');
                   setError(null);
                   setSuccessMsg(null);
                 }}
-                className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors ${
+                className={`flex-1 py-1.5 font-mono text-[10px] uppercase tracking-wider transition-colors rounded-none ${
                   mode === 'signup'
-                    ? 'bg-amber-500 text-black shadow-md'
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-signature text-black font-bold'
+                    : 'text-muted hover:text-ivory'
                 }`}
-                whileTap={reduced ? {} : { scale: 0.97, transition: springSnappy }}
               >
-                Create Account
-              </motion.button>
+                Register
+              </button>
             </div>
 
             {/* Error / success alerts */}
             <AnimatePresence>
               {error && (
                 <motion.div
-                  className="mb-4 p-3 bg-red-950/50 border border-red-500/30 rounded-xl text-xs text-red-300 flex items-center gap-2"
-                  initial={reduced ? { opacity: 0 } : { opacity: 0, y: -6 }}
-                  animate={{ opacity: 1, y: 0, transition: { duration: 0.2 } }}
-                  exit={{ opacity: 0, transition: { duration: 0.1 } }}
+                  className="mb-4 p-2.5 bg-red-950/60 border border-red-500/30 rounded-sm text-xs text-red-300 flex items-center gap-2 font-sans"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                 >
                   <AlertCircle className="h-4 w-4 shrink-0 text-red-400" />
                   <span>{error}</span>
@@ -146,10 +145,10 @@ export const ViewerAuthModal: React.FC<ViewerAuthModalProps> = ({ isOpen, onClos
             <AnimatePresence>
               {successMsg && (
                 <motion.div
-                  className="mb-4 p-3 bg-emerald-950/50 border border-emerald-500/30 rounded-xl text-xs text-emerald-300 flex items-center gap-2"
-                  initial={reduced ? { opacity: 0 } : { opacity: 0, y: -6 }}
-                  animate={{ opacity: 1, y: 0, transition: { duration: 0.2 } }}
-                  exit={{ opacity: 0, transition: { duration: 0.1 } }}
+                  className="mb-4 p-2.5 bg-emerald-950/60 border border-emerald-500/30 rounded-sm text-xs text-emerald-300 flex items-center gap-2 font-sans"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                 >
                   <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
                   <span>{successMsg}</span>
@@ -157,33 +156,26 @@ export const ViewerAuthModal: React.FC<ViewerAuthModalProps> = ({ isOpen, onClos
               )}
             </AnimatePresence>
 
-            {/* Form fields — signup-only field slides in */}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <AnimatePresence initial={false}>
-                {mode === 'signup' && (
-                  <motion.div
-                    key="display-name"
-                    initial={reduced ? { opacity: 0 } : { opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0, transition: { duration: 0.2 } }}
-                    exit={{ opacity: 0, y: -4, transition: { duration: 0.15 } }}
-                  >
-                    <label className="block text-xs font-medium text-zinc-300 mb-1.5">
-                      Display Name
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={displayName}
-                      onChange={(e) => setDisplayName(e.target.value)}
-                      placeholder="e.g. Maya Sen"
-                      className="w-full bg-zinc-900/80 border border-white/10 focus:border-amber-500 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none transition-colors"
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-3.5">
+              {mode === 'signup' && (
+                <div>
+                  <label className="block font-mono text-[10px] uppercase tracking-wider text-muted mb-1">
+                    Display Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="e.g. Maya Sen"
+                    className="w-full bg-canvas border border-hairline focus:border-signature rounded-sm px-3 py-2 text-xs text-ivory placeholder:text-muted/60 focus:outline-none transition-colors font-sans"
+                  />
+                </div>
+              )}
 
               <div>
-                <label className="block text-xs font-medium text-zinc-300 mb-1.5">
+                <label className="block font-mono text-[10px] uppercase tracking-wider text-muted mb-1">
                   Email Address
                 </label>
                 <input
@@ -192,12 +184,12 @@ export const ViewerAuthModal: React.FC<ViewerAuthModalProps> = ({ isOpen, onClos
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@domain.com"
-                  className="w-full bg-zinc-900/80 border border-white/10 focus:border-amber-500 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none transition-colors"
+                  className="w-full bg-canvas border border-hairline focus:border-signature rounded-sm px-3 py-2 text-xs text-ivory placeholder:text-muted/60 focus:outline-none transition-colors font-sans"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-300 mb-1.5">
+                <label className="block font-mono text-[10px] uppercase tracking-wider text-muted mb-1">
                   Password
                 </label>
                 <input
@@ -207,30 +199,29 @@ export const ViewerAuthModal: React.FC<ViewerAuthModalProps> = ({ isOpen, onClos
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-zinc-900/80 border border-white/10 focus:border-amber-500 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none transition-colors"
+                  className="w-full bg-canvas border border-hairline focus:border-signature rounded-sm px-3 py-2 text-xs text-ivory placeholder:text-muted/60 focus:outline-none transition-colors font-sans"
                 />
               </div>
 
-              <motion.button
+              <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-2 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold text-xs shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
-                whileTap={reduced ? {} : { scale: 0.97, transition: springSnappy }}
+                className="btn-primary w-full mt-2"
               >
                 {loading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : mode === 'signin' ? (
                   <>
-                    <LogIn className="h-4 w-4" />
-                    <span>Sign In to TPF Cinemas</span>
+                    <LogIn className="h-3.5 w-3.5" />
+                    <span>Enter Cinema</span>
                   </>
                 ) : (
                   <>
-                    <UserPlus className="h-4 w-4" />
-                    <span>Register Viewer Account</span>
+                    <UserPlus className="h-3.5 w-3.5" />
+                    <span>Create Pass</span>
                   </>
                 )}
-              </motion.button>
+              </button>
             </form>
           </motion.div>
         </motion.div>

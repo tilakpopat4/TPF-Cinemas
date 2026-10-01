@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import { motion } from 'motion/react';
-import { X, Play, Plus, Check, Clock, Calendar, Globe, Sparkles } from 'lucide-react';
+import { X, Play, Plus, Check, Clock, Calendar, Globe } from 'lucide-react';
 import { Film } from '../../types';
-import { formatRuntime, getAgeRatingColor } from '../../lib/utils';
-import { useReducedMotion, fadeOnly, springNatural, springSnappy } from '../../lib/motion';
+import { formatRuntime } from '../../lib/utils';
+import { useReducedMotion, fadeOnly } from '../../lib/motion';
 
 interface MoreInfoModalProps {
   film: Film | null;
@@ -22,7 +22,6 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
 }) => {
   const reduced = useReducedMotion();
 
-  // Esc key closes modal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -33,130 +32,129 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
 
   if (!film) return null;
 
-  const ageStyle = getAgeRatingColor(film.age_rating);
-
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas/85 overflow-y-auto"
       {...fadeOnly(reduced)}
       onClick={onClose}
     >
       <motion.div
-        className="relative w-full max-w-3xl my-auto bg-[#0d1017] border border-white/15 rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
-        initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 16 }}
-        animate={{ opacity: 1, scale: 1, y: 0, transition: { ...springNatural, delay: 0.05 } }}
-        exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.15 } }}
+        className="relative w-full max-w-2xl my-auto bg-graphite border border-hairline rounded-sm overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
+        initial={reduced ? { opacity: 0 } : { opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0, transition: { duration: 0.2 } }}
+        exit={{ opacity: 0, y: 8, transition: { duration: 0.15 } }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-20 p-2.5 rounded-full bg-black/60 hover:bg-black/90 text-white/80 hover:text-white border border-white/10 backdrop-blur-md transition-all cursor-pointer"
+          className="absolute top-3 right-3 z-20 p-2 rounded-sm bg-black/80 hover:bg-black text-muted hover:text-ivory border border-hairline transition-colors"
           aria-label="Close details"
         >
-          <X className="h-5 w-5" />
+          <X className="h-4 w-4" />
         </button>
 
-        {/* Modal Backdrop Banner */}
-        <div className="relative aspect-video w-full max-h-[320px] bg-black overflow-hidden">
+        {/* Modal Backdrop Banner: 2.39:1 Cinema Ratio */}
+        <div className="relative aspect-video w-full max-h-[280px] bg-black overflow-hidden">
           <img
             src={
               film.poster_url ||
               'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1200&auto=format&fit=crop'
             }
             alt={film.title}
-            className="w-full h-full object-cover object-center filter brightness-90"
+            className="w-full h-full object-cover object-center filter brightness-[0.85]"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0d1017] via-[#0d1017]/40 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0d1017] via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-graphite via-graphite/40 to-transparent" />
+          <div className="absolute inset-0 film-grain pointer-events-none" />
 
           {/* Quick Play CTA on banner */}
-          <div className="absolute bottom-6 left-6 z-10 flex items-center gap-3">
-            <motion.button
+          <div className="absolute bottom-5 left-5 z-10 flex items-center gap-3">
+            <button
               onClick={() => {
                 onClose();
                 onPlay(film);
               }}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-500 to-amber-600 text-black shadow-lg shadow-amber-500/30 cursor-pointer"
-              whileHover={reduced ? {} : { scale: 1.04, transition: springSnappy }}
-              whileTap={reduced ? {} : { scale: 0.96, transition: springSnappy }}
+              className="btn-primary"
             >
-              <Play className="h-4 w-4 fill-current" />
-              <span>Watch Now</span>
-            </motion.button>
+              <Play className="h-3.5 w-3.5 fill-current" />
+              <span>Screen Film</span>
+            </button>
 
-            <motion.button
+            <button
               onClick={() => onToggleWatchlist(film.id)}
-              className="p-2.5 rounded-xl bg-black/60 border border-white/20 hover:border-white/40 text-white backdrop-blur-md cursor-pointer transition-colors"
-              whileHover={reduced ? {} : { scale: 1.04, transition: springSnappy }}
-              whileTap={reduced ? {} : { scale: 0.96, transition: springSnappy }}
-              title={isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
+              className="btn-secondary"
+              title={isInWatchlist ? 'Remove from Queue' : 'Add to Queue'}
             >
               {isInWatchlist ? (
-                <Check className="h-4 w-4 text-amber-400" />
+                <>
+                  <Check className="h-3.5 w-3.5 text-signature" />
+                  <span>In Queue</span>
+                </>
               ) : (
-                <Plus className="h-4 w-4" />
+                <>
+                  <Plus className="h-3.5 w-3.5" />
+                  <span>Add to Queue</span>
+                </>
               )}
-            </motion.button>
+            </button>
           </div>
         </div>
 
         {/* Modal Content Body */}
-        <div className="overflow-y-auto p-6 space-y-6">
+        <div className="overflow-y-auto p-6 space-y-5">
           {/* Header Row */}
           <div>
-            <div className="flex flex-wrap items-center gap-2 text-xs mb-2">
-              <span className={`px-2 py-0.5 rounded font-bold border ${ageStyle.bg} ${ageStyle.text} ${ageStyle.border}`}>
+            <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] text-muted mb-2">
+              <span className="px-1.5 py-0.5 rounded-sm bg-canvas border border-hairline text-ivory">
                 {film.age_rating}
               </span>
-              <span className="flex items-center gap-1 text-zinc-300">
-                <Clock className="h-3.5 w-3.5 text-zinc-400" />
+              <span className="flex items-center gap-1 text-ivory">
+                <Clock className="h-3 w-3 text-muted" />
                 {formatRuntime(film.runtime_minutes)}
               </span>
-              <span className="text-zinc-500">•</span>
-              <span className="text-zinc-300 flex items-center gap-1">
-                <Calendar className="h-3.5 w-3.5 text-zinc-400" />
+              <span className="text-hairline">•</span>
+              <span className="text-ivory flex items-center gap-1">
+                <Calendar className="h-3 w-3 text-muted" />
                 {film.release_year}
               </span>
-              <span className="text-zinc-500">•</span>
-              <span className="text-zinc-300 capitalize flex items-center gap-1">
-                <Globe className="h-3.5 w-3.5 text-zinc-400" />
+              <span className="text-hairline">•</span>
+              <span className="text-ivory uppercase flex items-center gap-1">
+                <Globe className="h-3 w-3 text-muted" />
                 {film.language}
               </span>
-              <span className="px-2 py-0.5 rounded font-black tracking-widest text-[9px] bg-black/60 border border-white/20 text-white">
+              <span className="px-1.5 py-0.5 rounded-sm font-bold bg-canvas border border-hairline text-signature">
                 4K UHD
               </span>
             </div>
 
-            <h2 className="text-2xl sm:text-3xl font-black font-display text-white">
+            <h2 className="font-editorial text-3xl sm:text-4xl font-normal text-ivory leading-tight">
               {film.title}
             </h2>
 
             {film.profiles?.display_name && (
-              <p className="text-xs text-amber-400 mt-1 font-medium flex items-center gap-1">
-                <Sparkles className="h-3 w-3 fill-current" />
-                <span>Director: <strong>{film.profiles.display_name}</strong></span>
+              <p className="font-editorial italic text-sm text-ivory/80 mt-1">
+                Directed by <strong className="not-italic text-ivory font-medium">{film.profiles.display_name}</strong>
               </p>
             )}
           </div>
 
           {/* Synopsis */}
-          <div className="space-y-1.5">
-            <h3 className="text-xs uppercase tracking-wider font-semibold text-zinc-400">Synopsis</h3>
-            <p className="text-sm text-zinc-200 leading-relaxed font-normal">
-              {film.synopsis || 'No synopsis provided for this title.'}
+          <div className="space-y-1">
+            <h3 className="font-mono text-[10px] uppercase tracking-widest text-muted">Curatorial Overview</h3>
+            <p className="font-sans text-xs sm:text-sm text-ivory/80 leading-[1.6]">
+              {film.synopsis || 'No curatorial overview provided for this title.'}
             </p>
           </div>
 
           {/* Genres */}
           {film.film_genres && film.film_genres.length > 0 && (
             <div className="space-y-2">
-              <h3 className="text-xs uppercase tracking-wider font-semibold text-zinc-400">Genres</h3>
-              <div className="flex flex-wrap gap-2">
+              <h3 className="font-mono text-[10px] uppercase tracking-widest text-muted">Genres</h3>
+              <div className="flex flex-wrap gap-1.5">
                 {film.film_genres.map((fg) => (
                   <span
                     key={fg.genre_id}
-                    className="px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs text-zinc-200"
+                    className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-sm bg-canvas border border-hairline text-muted"
                   >
                     {fg.genres?.name}
                   </span>
@@ -165,15 +163,15 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
             </div>
           )}
 
-          {/* Cast & Crew Credits if available */}
+          {/* Credits */}
           {film.film_credits && film.film_credits.length > 0 && (
-            <div className="space-y-2 pt-2 border-t border-white/10">
-              <h3 className="text-xs uppercase tracking-wider font-semibold text-zinc-400">Cast & Crew</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="space-y-2 pt-3 border-t border-hairline">
+              <h3 className="font-mono text-[10px] uppercase tracking-widest text-muted">Credits</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {film.film_credits.map((c) => (
-                  <div key={c.id} className="text-xs">
-                    <p className="font-semibold text-white">{c.person_name}</p>
-                    <p className="text-zinc-400 text-[11px]">{c.credit_role}</p>
+                  <div key={c.id} className="p-2 rounded-sm bg-canvas border border-hairline">
+                    <p className="text-xs font-medium text-ivory truncate">{c.person_name}</p>
+                    <p className="font-mono text-[9px] text-muted truncate uppercase">{c.credit_role}</p>
                   </div>
                 ))}
               </div>

@@ -8,66 +8,136 @@
 
 body {
   margin: 0;
-  background-color: #08090c;
-  color: #f4f4f5;
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-color: #0A0A0B;
+  color: #F2EEE6;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 ::selection {
-  background-color: #f59e0b;
+  background-color: #FF9F1C;
   color: #000000;
 }
 
-/* Custom Scrollbars */
+/* Film Grain Texture Overlay (2.5% opacity) */
+.film-grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.028'/%3E%3C/svg%3E");
+}
+
+/* Hairline Grid & Dividers */
+.hairline-divider {
+  height: 1px;
+  background: rgba(242, 238, 230, 0.12);
+  width: 100%;
+}
+
+.hairline-signature {
+  height: 1px;
+  background: rgba(255, 159, 28, 0.35);
+  width: 100%;
+}
+
+/* Typography Hierarchy */
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.15;
+}
+
+.font-display {
+  font-family: 'Bebas Neue', 'Oswald', sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.font-editorial {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  letter-spacing: -0.015em;
+  line-height: 1.18;
+}
+
+/* Hand-crafted Button Styles (Solid, Outline, Ghost) */
+.btn-primary {
+  background-color: #FF9F1C;
+  color: #000000;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 10px 22px;
+  border: 1px solid #FF9F1C;
+  transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), background-color 160ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  background-color: #f79612;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: #F2EEE6;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 10px 20px;
+  border: 1px solid rgba(242, 238, 230, 0.25);
+  transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), border-color 160ms ease, color 160ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-secondary:hover {
+  transform: translateY(-2px);
+  border-color: #F2EEE6;
+  color: #FFFFFF;
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: rgba(242, 238, 230, 0.7);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 8px 14px;
+  transition: color 160ms ease, transform 160ms ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-ghost:hover {
+  color: #F2EEE6;
+  transform: translateY(-1px);
+}
+
+/* Minimalist Editorial Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
-
 ::-webkit-scrollbar-track {
-  background: #08090c;
+  background: #0A0A0B;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
-  border-radius: 9999px;
+  background: #1A1A1D;
+  border: 1px solid rgba(242, 238, 230, 0.1);
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+  background: rgba(242, 238, 230, 0.25);
 }
 
-/* Cinematic Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* Horizontal rail scrolling hiding default bars */
+/* Clean Hide Scrollbar */
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
 .hide-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
-}
-
-/* Subtle poster glow */
-.poster-glow {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.poster-glow:hover {
-  box-shadow: 0 12px 30px -10px rgba(245, 158, 11, 0.25);
-  transform: translateY(-4px) scale(1.02);
 }
