@@ -21,9 +21,9 @@ See: `.planning/PROJECT.md` (updated 2026-10-01)
 ## Current Position
 
 Phase: 1 of 4 (Cinematic Hero Billboard)
-Plan: 0 of 2 in current phase
-Status: Ready to plan
-Last activity: 2026-10-01 — Initialized project context, requirements, and roadmap for Viewer Home Page milestone.
+Plan: 0 of 2 in current phase (01-01 and 01-02 created, ready for execution)
+Status: Ready to execute
+Last activity: 2026-10-01 — Created 01-01-PLAN.md and 01-02-PLAN.md for Phase 1.
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -47,9 +47,9 @@ Progress: [░░░░░░░░░░] 0%
 
 ### Decisions
 
-- [Project Setup]: Modeled viewer home page after Netflix/Prime Video with massive autoplaying hero trailer and hover card expansions.
-- [Database]: Leverage Supabase `watch_history` to power personal "Continue Watching" playback progress bars.
-- [Discovery]: Add sticky multi-tag filter bar for Indian languages and formats.
+- [Phase 1]: Muted background video teaser autoplay with ambient loop and sound toggle placed alongside "Play Now" and "+ My List".
+- [Phase 1]: ~80-85vh hero with dual gradient masking (left-to-right fade + bottom-to-top fade to #08090c).
+- [Phase 1]: Glassmorphic metadata badges (TPF EXCLUSIVE, 4K Ultra HD, Age Rating pill, Duration, Release Year, clickable Genre pills).
 
 ### Pending Todos
 
@@ -61,6 +61,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-01 19:19
-Stopped at: Created PROJECT.md, REQUIREMENTS.md, ROADMAP.md, and STATE.md.
+Last session: 2026-10-01 19:32
+Stopped at: Authored and committed 01-01-PLAN.md and 01-02-PLAN.md.
 Resume file: None
