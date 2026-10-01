@@ -64,52 +64,43 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
     <header
       className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
         isScrolled
-          ? 'bg-canvas border-b border-hairline py-3 shadow-2xl'
-          : 'bg-gradient-to-b from-canvas/95 via-canvas/80 to-transparent border-b border-hairline/20 py-3.5 sm:py-4'
+          ? 'bg-canvas py-3 shadow-2xl'
+          : 'bg-gradient-to-b from-canvas/95 via-canvas/80 to-transparent py-3.5 sm:py-4'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
-        {/* Editorial Masthead & Brand — Netflix-Inspired High-Impact Logo */}
+        {/* Official Brand Logo */}
         <div className="flex items-center gap-6 lg:gap-8">
           <button
             onClick={() => onSelectTab('home')}
-            className="flex items-center gap-2.5 sm:gap-3 group text-left focus:outline-none"
+            className="flex items-center group text-left focus:outline-none"
+            aria-label="TPF Cinemas Home"
           >
-            {/* Architectural Sprocket Badge */}
-            <div className="h-8 w-8 bg-graphite border border-hairline flex items-center justify-center rounded-sm transition-colors group-hover:border-signature">
-              <div className="w-2.5 h-3.5 border-y-2 border-x border-signature flex items-center justify-center">
-                <div className="w-1 h-1 bg-signature" />
-              </div>
-            </div>
-
-            <div className="flex flex-col">
-              <span className="font-display text-2xl sm:text-3xl tracking-[0.08em] text-ivory leading-none">
-                TPF <span className="text-signature">CINEMAS</span>
-              </span>
-              <span className="text-[8px] sm:text-[9px] font-mono tracking-[0.22em] text-muted uppercase mt-0.5">
-                Screening Beginners&apos; Dreams
-              </span>
-            </div>
+            <img
+              src="/tpf-cinemas-logo.png"
+              alt="TPF Cinemas - Screening The Beginner Dreams"
+              className="h-8 sm:h-9 md:h-10 w-auto object-contain transition-opacity group-hover:opacity-90"
+            />
           </button>
 
-          {/* Minimalist Editorial Nav Links */}
+          {/* Minimalist Editorial Nav Links (Clean, No Underlines) */}
           <nav className="hidden md:flex items-center gap-1">
             <button
               onClick={() => onSelectTab('home')}
-              className={`px-3 py-1.5 rounded-sm text-xs uppercase tracking-wider font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-sm text-xs uppercase tracking-wider transition-colors ${
                 currentTab === 'home'
-                  ? 'text-ivory bg-graphite border-b border-signature'
-                  : 'text-muted hover:text-ivory hover:bg-graphite/40'
+                  ? 'text-ivory font-semibold bg-graphite/60'
+                  : 'text-muted hover:text-ivory hover:bg-graphite/40 font-medium'
               }`}
             >
               Curated
             </button>
             <button
               onClick={() => onSelectTab('browse')}
-              className={`px-3 py-1.5 rounded-sm text-xs uppercase tracking-wider font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-sm text-xs uppercase tracking-wider transition-colors ${
                 currentTab === 'browse'
-                  ? 'text-ivory bg-graphite border-b border-signature'
-                  : 'text-muted hover:text-ivory hover:bg-graphite/40'
+                  ? 'text-ivory font-semibold bg-graphite/60'
+                  : 'text-muted hover:text-ivory hover:bg-graphite/40 font-medium'
               }`}
             >
               Catalogue
@@ -122,10 +113,10 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
                   onSelectTab('watchlist');
                 }
               }}
-              className={`px-3 py-1.5 rounded-sm text-xs uppercase tracking-wider font-medium flex items-center gap-1.5 transition-colors ${
+              className={`px-3 py-1.5 rounded-sm text-xs uppercase tracking-wider flex items-center gap-1.5 transition-colors ${
                 currentTab === 'watchlist'
-                  ? 'text-ivory bg-graphite border-b border-signature'
-                  : 'text-muted hover:text-ivory hover:bg-graphite/40'
+                  ? 'text-ivory font-semibold bg-graphite/60'
+                  : 'text-muted hover:text-ivory hover:bg-graphite/40 font-medium'
               }`}
             >
               <Bookmark className="h-3.5 w-3.5 text-signature" />
@@ -139,10 +130,10 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
                   onSelectTab('history');
                 }
               }}
-              className={`px-3 py-1.5 rounded-sm text-xs uppercase tracking-wider font-medium flex items-center gap-1.5 transition-colors ${
+              className={`px-3 py-1.5 rounded-sm text-xs uppercase tracking-wider flex items-center gap-1.5 transition-colors ${
                 currentTab === 'history'
-                  ? 'text-ivory bg-graphite border-b border-signature'
-                  : 'text-muted hover:text-ivory hover:bg-graphite/40'
+                  ? 'text-ivory font-semibold bg-graphite/60'
+                  : 'text-muted hover:text-ivory hover:bg-graphite/40 font-medium'
               }`}
             >
               <History className="h-3.5 w-3.5 text-muted" />
