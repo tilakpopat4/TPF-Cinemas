@@ -17,3 +17,7 @@ dist/
 Thumbs.db
 .vscode/
 .idea/
+
+# Impeccable Local
+.impeccable/config.local.json
+.impeccable/cache/
