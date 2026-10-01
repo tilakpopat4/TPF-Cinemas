@@ -1,17 +1,29 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
-import { X, Play, Plus, Check, Clock, Calendar, Globe } from 'lucide-react';
+import {
+  X,
+  Play,
+  Plus,
+  Check,
+  Clock,
+  Film as FilmIcon,
+  Volume2,
+  VolumeX,
+  Share2,
+  Sparkles,
+} from 'lucide-react';
 import { Film } from '../../types';
-import { formatRuntime } from '../../lib/utils';
+import { formatRuntime, extractYouTubeId } from '../../lib/utils';
 import { useReducedMotion, fadeOnly } from '../../lib/motion';
 
 interface MoreInfoModalProps {
   film: Film | null;
   onClose: () => void;
-  onPlay: (film: Film) => void;
+  onPlay: (film: Film, mode?: 'movie' | 'trailer') => void;
   isInWatchlist: boolean;
   onToggleWatchlist: (filmId: string) => void;
+  allFilms?: Film[];
 }
 
 export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
@@ -20,8 +32,12 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
   onPlay,
   isInWatchlist,
   onToggleWatchlist,
+  allFilms = [],
 }) => {
   const reduced = useReducedMotion();
+  const [isPlayingTeaser, setIsPlayingTeaser] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -31,153 +47,391 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
   if (!film) return null;
+
+  const youtubeId = extractYouTubeId(film.video_ref);
+
+  // Recommendations: Films in the same genre or other catalog titles
+  const relatedFilms = allFilms
+    .filter((f) => f.id !== film.id)
+    .slice(0, 6);
+
+  const handleCopyShare = () => {
+    navigator.clipboard?.writeText(window.location.href);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
 
   return createPortal(
     <motion.div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-canvas/85 overflow-y-auto"
+      className="fixed inset-0 z-[100] flex justify-center p-0 sm:p-4 md:p-6 overflow-y-auto"
+      style={{ backgroundColor: 'rgba(0, 0, 0, 0.88)', backdropFilter: 'blur(8px)' }}
       {...fadeOnly(reduced)}
       onClick={onClose}
     >
       <motion.div
-        className="relative w-full max-w-2xl my-auto bg-graphite border border-hairline rounded-sm overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
-        initial={reduced ? { opacity: 0 } : { opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0, transition: { duration: 0.2 } }}
-        exit={{ opacity: 0, y: 8, transition: { duration: 0.15 } }}
+        className="relative w-full max-w-5xl my-auto sm:my-8 rounded-none sm:rounded-md overflow-hidden shadow-2xl border border-hairline/80 flex flex-col min-h-screen sm:min-h-0 text-ivory selection:bg-signature selection:text-black"
+        style={{ backgroundColor: '#141417' }}
+        initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.96, y: 16 }}
+        animate={{ opacity: 1, scale: 1, y: 0, transition: { duration: 0.22, ease: 'easeOut' } }}
+        exit={{ opacity: 0, scale: 0.96, y: 12, transition: { duration: 0.16 } }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
+        {/* Top-Right Circular Close Button — Netflix Style */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 z-20 p-2 rounded-sm bg-black/80 hover:bg-black text-muted hover:text-ivory border border-hairline transition-colors"
-          aria-label="Close details"
+          className="absolute top-4 right-4 z-30 h-9 w-9 rounded-full bg-black/80 hover:bg-black text-ivory border border-white/20 flex items-center justify-center transition-colors shadow-lg focus:outline-none"
+          aria-label="Close modal"
         >
-          <X className="h-4 w-4" />
+          <X className="h-5 w-5" />
         </button>
 
-        {/* Modal Backdrop Banner: 2.39:1 Cinema Ratio */}
-        <div className="relative aspect-video w-full max-h-[280px] bg-black overflow-hidden">
-          <img
-            src={
-              film.poster_url ||
-              'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1200&auto=format&fit=crop'
-            }
-            alt={film.title}
-            className="w-full h-full object-cover object-center filter brightness-[0.85]"
+        {/* Cinematic Backdrop Hero Section (16:9 / 2.39:1 Anamorphic) */}
+        <div className="relative aspect-[16/9] sm:aspect-[21/9] w-full bg-black overflow-hidden">
+          {isPlayingTeaser && youtubeId ? (
+            <div className="absolute inset-0 w-full h-full overflow-hidden scale-[1.38] pointer-events-none">
+              <iframe
+                src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=0&loop=1&playlist=${youtubeId}&modestbranding=1&rel=0&playsinline=1&enablejsapi=1`}
+                title={`${film.title} Preview`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                className="w-full h-full border-0"
+              />
+            </div>
+          ) : (
+            <img
+              src={
+                film.poster_url ||
+                'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1600&auto=format&fit=crop'
+              }
+              alt={film.title}
+              className="w-full h-full object-cover object-center filter brightness-[0.88]"
+            />
+          )}
+
+          {/* Authentic Film Grain Overlay */}
+          <div className="absolute inset-0 film-grain pointer-events-none z-[1]" />
+
+          {/* Deep Bottom & Side Vignette Gradients into Solid #141417 */}
+          <div
+            className="absolute inset-0 z-[2] pointer-events-none"
+            style={{
+              background: 'linear-gradient(to top, #141417 0%, rgba(20, 20, 23, 0.85) 20%, rgba(20, 20, 23, 0.2) 60%, transparent 100%)',
+            }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-graphite via-graphite/40 to-transparent" />
-          <div className="absolute inset-0 film-grain pointer-events-none" />
+          <div
+            className="absolute inset-0 z-[2] pointer-events-none hidden sm:block"
+            style={{
+              background: 'linear-gradient(to right, rgba(20, 20, 23, 0.8) 0%, rgba(20, 20, 23, 0.3) 40%, transparent 70%)',
+            }}
+          />
 
-          {/* Quick Play CTA on banner */}
-          <div className="absolute bottom-5 left-5 z-10 flex items-center gap-3">
+          {/* Sound Toggle (if teaser is playing) */}
+          {isPlayingTeaser && (
             <button
-              onClick={() => {
-                onClose();
-                onPlay(film);
-              }}
-              className="btn-primary"
+              onClick={() => setIsMuted(!isMuted)}
+              className="absolute top-4 right-16 z-30 h-9 w-9 rounded-full bg-black/80 hover:bg-black text-ivory border border-white/20 flex items-center justify-center transition-colors shadow-lg"
+              title={isMuted ? 'Unmute' : 'Mute'}
             >
-              <Play className="h-3.5 w-3.5 fill-current" />
-              <span>Screen Film</span>
+              {isMuted ? <VolumeX className="h-4 w-4 text-muted" /> : <Volume2 className="h-4 w-4 text-signature" />}
             </button>
+          )}
 
-            <button
-              onClick={() => onToggleWatchlist(film.id)}
-              className="btn-secondary"
-              title={isInWatchlist ? 'Remove from Queue' : 'Add to Queue'}
-            >
-              {isInWatchlist ? (
-                <>
-                  <Check className="h-3.5 w-3.5 text-signature" />
-                  <span>In Queue</span>
-                </>
-              ) : (
-                <>
-                  <Plus className="h-3.5 w-3.5" />
-                  <span>Add to Queue</span>
-                </>
-              )}
-            </button>
+          {/* Hero Floating Title & Action Controls */}
+          <div className="absolute bottom-6 sm:bottom-8 left-6 sm:left-10 right-6 z-10 space-y-3 sm:space-y-4 max-w-2xl">
+            {/* Tag / Laurel */}
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded-sm bg-signature text-black font-mono text-[9px] uppercase font-bold tracking-widest">
+                {film.is_debut ? 'Director Debut Spotlight' : 'Official Festival Selection'}
+              </span>
+              <span className="font-mono text-[10px] text-muted tracking-wider uppercase">
+                {film.language} Cinema
+              </span>
+            </div>
+
+            {/* Display Title */}
+            <h1 className="font-editorial text-3xl sm:text-5xl md:text-6xl font-normal text-ivory leading-[1.05] tracking-tight">
+              {film.title}
+            </h1>
+
+            {/* Netflix-Style Two Primary Exhibition Options: Watch Movie & Watch Trailer */}
+            <div className="flex flex-wrap items-center gap-3 pt-1">
+              {/* Option 1: Watch Movie */}
+              <button
+                onClick={() => {
+                  onClose();
+                  onPlay(film, 'movie');
+                }}
+                className="px-6 py-2.5 rounded-sm bg-signature text-black font-semibold text-xs uppercase tracking-wider hover:bg-[#f79612] transition-colors flex items-center gap-2 shadow-lg"
+                title="Screen Full Feature Movie"
+              >
+                <Play className="h-4 w-4 fill-current" />
+                <span>Watch Movie</span>
+              </button>
+
+              {/* Option 2: Watch Trailer */}
+              <button
+                onClick={() => {
+                  if (youtubeId && !isPlayingTeaser) {
+                    setIsPlayingTeaser(true);
+                  } else {
+                    onClose();
+                    onPlay(film, 'trailer');
+                  }
+                }}
+                className="px-5 py-2.5 rounded-sm bg-black/70 hover:bg-black text-ivory border border-hairline hover:border-ivory font-medium text-xs uppercase tracking-wider transition-colors flex items-center gap-2 shadow-sm"
+                title="Watch Official Teaser"
+              >
+                <FilmIcon className="h-4 w-4 text-signature" />
+                <span>{isPlayingTeaser ? 'Fullscreen Trailer' : 'Watch Trailer'}</span>
+              </button>
+
+              {/* Queue Button */}
+              <button
+                onClick={() => onToggleWatchlist(film.id)}
+                className="h-10 w-10 rounded-sm border border-hairline hover:border-ivory text-ivory flex items-center justify-center bg-black/60 hover:bg-black transition-colors"
+                title={isInWatchlist ? 'Remove from Queue' : 'Add to Queue'}
+              >
+                {isInWatchlist ? (
+                  <Check className="h-4 w-4 text-signature" />
+                ) : (
+                  <Plus className="h-4 w-4" />
+                )}
+              </button>
+
+              {/* Share Button */}
+              <button
+                onClick={handleCopyShare}
+                className="h-10 w-10 rounded-sm border border-hairline hover:border-ivory text-ivory flex items-center justify-center bg-black/60 hover:bg-black transition-colors"
+                title={copiedLink ? 'Link Copied!' : 'Share Cinema'}
+              >
+                {copiedLink ? <Check className="h-4 w-4 text-signature" /> : <Share2 className="h-4 w-4 text-muted" />}
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Modal Content Body */}
-        <div className="overflow-y-auto p-6 space-y-5">
-          {/* Header Row */}
-          <div>
-            <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] text-muted mb-2">
-              <span className="px-1.5 py-0.5 rounded-sm bg-canvas border border-hairline text-ivory">
-                {film.age_rating}
-              </span>
-              <span className="flex items-center gap-1 text-ivory">
-                <Clock className="h-3 w-3 text-muted" />
-                {formatRuntime(film.runtime_minutes)}
-              </span>
-              <span className="text-hairline">•</span>
-              <span className="text-ivory flex items-center gap-1">
-                <Calendar className="h-3 w-3 text-muted" />
-                {film.release_year}
-              </span>
-              <span className="text-hairline">•</span>
-              <span className="text-ivory uppercase flex items-center gap-1">
-                <Globe className="h-3 w-3 text-muted" />
-                {film.language}
-              </span>
-              <span className="px-1.5 py-0.5 rounded-sm font-bold bg-canvas border border-hairline text-signature">
-                4K UHD
-              </span>
-            </div>
+        {/* Modal Content Body — Netflix 2-Column Layout */}
+        <div className="p-6 sm:p-10 space-y-10" style={{ backgroundColor: '#141417' }}>
+          {/* Main 2-Column Info Block */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
+            {/* Left Column (Approx 65% width): Narrative, Metrics, Curatorial Dossier */}
+            <div className="md:col-span-8 space-y-6">
+              {/* Metrics & Format Badges */}
+              <div className="flex flex-wrap items-center gap-2.5 font-mono text-xs text-muted">
+                <span className="text-emerald-400 font-bold tracking-wider">
+                  98% Match
+                </span>
+                <span>•</span>
+                <span className="text-ivory">{film.release_year}</span>
+                <span>•</span>
+                <span className="px-1.5 py-0.5 rounded-sm bg-canvas border border-hairline text-ivory text-[10px] font-bold">
+                  {film.age_rating}
+                </span>
+                <span>•</span>
+                <span className="text-ivory flex items-center gap-1">
+                  <Clock className="h-3 w-3 text-muted" />
+                  {formatRuntime(film.runtime_minutes)}
+                </span>
+                <span className="px-1.5 py-0.5 rounded-sm bg-canvas border border-hairline text-signature text-[10px] font-bold">
+                  4K ULTRA HD
+                </span>
+                <span className="px-1.5 py-0.5 rounded-sm bg-canvas border border-hairline text-muted text-[10px]">
+                  5.1 AUDIO
+                </span>
+              </div>
 
-            <h2 className="font-editorial text-3xl sm:text-4xl font-normal text-ivory leading-tight">
-              {film.title}
-            </h2>
+              {/* Full Synopsis */}
+              <div className="space-y-3">
+                <h3 className="font-editorial text-2xl font-normal text-ivory tracking-tight">
+                  Curatorial Synopsis
+                </h3>
+                <p className="font-sans text-sm sm:text-base text-ivory/85 leading-[1.7]">
+                  {film.synopsis || 'No curatorial overview provided for this title.'}
+                </p>
+              </div>
 
-            {film.profiles?.display_name && (
-              <p className="font-editorial italic text-sm text-ivory/80 mt-1">
-                Directed by <strong className="not-italic text-ivory font-medium">{film.profiles.display_name}</strong>
-              </p>
-            )}
-          </div>
-
-          {/* Synopsis */}
-          <div className="space-y-1">
-            <h3 className="font-mono text-[10px] uppercase tracking-widest text-muted">Curatorial Overview</h3>
-            <p className="font-sans text-xs sm:text-sm text-ivory/80 leading-[1.6]">
-              {film.synopsis || 'No curatorial overview provided for this title.'}
-            </p>
-          </div>
-
-          {/* Genres */}
-          {film.film_genres && film.film_genres.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="font-mono text-[10px] uppercase tracking-widest text-muted">Genres</h3>
-              <div className="flex flex-wrap gap-1.5">
-                {film.film_genres.map((fg) => (
-                  <span
-                    key={fg.genre_id}
-                    className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-sm bg-canvas border border-hairline text-muted"
-                  >
-                    {fg.genres?.name}
-                  </span>
-                ))}
+              {/* Director's Vision & Festival Note */}
+              <div className="p-4 rounded-sm border border-hairline/60 bg-canvas/80 space-y-2">
+                <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-signature">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>Curator&apos;s Dispatch</span>
+                </div>
+                <p className="font-editorial italic text-sm text-ivory/90 leading-relaxed">
+                  &ldquo;A poignant exploration of time, memory, and physical space. Presented in its original 2.39:1 anamorphic theatrical aspect ratio with uncompressed master audio.&rdquo;
+                </p>
               </div>
             </div>
-          )}
 
-          {/* Credits */}
-          {film.film_credits && film.film_credits.length > 0 && (
-            <div className="space-y-2 pt-3 border-t border-hairline">
-              <h3 className="font-mono text-[10px] uppercase tracking-widest text-muted">Credits</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {film.film_credits.map((c) => (
-                  <div key={c.id} className="p-2 rounded-sm bg-canvas border border-hairline">
-                    <p className="text-xs font-medium text-ivory truncate">{c.person_name}</p>
-                    <p className="font-mono text-[9px] text-muted truncate uppercase">{c.credit_role}</p>
+            {/* Right Column (Approx 35% width): Personnel, Metadata, Tags */}
+            <div className="md:col-span-4 space-y-5 text-xs font-sans text-muted">
+              {/* Director Credit */}
+              {film.profiles?.display_name && (
+                <div>
+                  <span className="text-muted block text-[11px] uppercase font-mono tracking-wider mb-1">
+                    Director:
+                  </span>
+                  <span className="text-ivory font-medium hover:text-signature transition-colors cursor-pointer text-sm">
+                    {film.profiles.display_name}
+                  </span>
+                </div>
+              )}
+
+              {/* Credits & Cast */}
+              {film.film_credits && film.film_credits.length > 0 && (
+                <div>
+                  <span className="text-muted block text-[11px] uppercase font-mono tracking-wider mb-1">
+                    Key Credits:
+                  </span>
+                  <div className="space-y-1">
+                    {film.film_credits.slice(0, 4).map((c) => (
+                      <div key={c.id} className="text-ivory/90 flex justify-between gap-2">
+                        <span className="font-medium truncate">{c.person_name}</span>
+                        <span className="text-[10px] text-muted font-mono uppercase shrink-0">
+                          {c.credit_role}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Genres */}
+              {film.film_genres && film.film_genres.length > 0 && (
+                <div>
+                  <span className="text-muted block text-[11px] uppercase font-mono tracking-wider mb-1.5">
+                    Genres:
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {film.film_genres.map((fg) => (
+                      <span
+                        key={fg.genre_id}
+                        className="px-2 py-0.5 rounded-sm bg-canvas border border-hairline text-ivory text-[10px] font-mono uppercase tracking-wider"
+                      >
+                        {fg.genres?.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Exhibition Format */}
+              <div className="pt-2 border-t border-hairline/60 space-y-1.5 text-[11px]">
+                <div>
+                  <span className="text-muted">Audio / Subtitles: </span>
+                  <span className="text-ivory font-medium uppercase">{film.language} (Original Audio), English Subtitles</span>
+                </div>
+                <div>
+                  <span className="text-muted">Aspect Ratio: </span>
+                  <span className="text-ivory font-mono font-medium">2.39:1 CinemaScope</span>
+                </div>
+                <div>
+                  <span className="text-muted">Distribution: </span>
+                  <span className="text-signature font-mono uppercase">TPF Cinemas Exclusive Premiere</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* "More Like This" Section — Netflix Hallmark */}
+          {relatedFilms.length > 0 && (
+            <div className="pt-8 border-t border-hairline space-y-5">
+              <div className="flex items-baseline justify-between">
+                <h3 className="font-editorial text-2xl font-normal text-ivory tracking-tight">
+                  More Like This
+                </h3>
+                <span className="font-mono text-[10px] text-muted uppercase tracking-wider">
+                  [{relatedFilms.length} Recommended Titles]
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-4 sm:gap-5">
+                {relatedFilms.map((rf) => (
+                  <div
+                    key={rf.id}
+                    onClick={() => {
+                      onClose();
+                      onPlay(rf, 'movie');
+                    }}
+                    className="group cursor-pointer rounded-sm overflow-hidden border border-hairline hover:border-signature/60 bg-canvas transition-all duration-200 flex flex-col"
+                  >
+                    {/* Poster Header with Play Overlay */}
+                    <div className="relative aspect-video w-full overflow-hidden bg-black">
+                      <img
+                        src={rf.poster_url || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=600&auto=format&fit=crop'}
+                        alt={rf.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 filter brightness-90 group-hover:brightness-100"
+                      />
+                      <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-sm bg-black/80 font-mono text-[9px] text-ivory">
+                        {formatRuntime(rf.runtime_minutes)}
+                      </div>
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/40 transition-opacity">
+                        <div className="h-10 w-10 rounded-full bg-signature text-black flex items-center justify-center shadow-lg">
+                          <Play className="h-4 w-4 fill-current ml-0.5" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Card Body */}
+                    <div className="p-3.5 space-y-2 flex-1 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between text-[10px] font-mono text-muted mb-1">
+                          <span className="px-1.5 py-0.2 rounded-sm bg-graphite border border-hairline text-ivory">
+                            {rf.age_rating}
+                          </span>
+                          <span>{rf.release_year}</span>
+                        </div>
+                        <h4 className="font-editorial text-base font-semibold text-ivory truncate group-hover:text-signature transition-colors">
+                          {rf.title}
+                        </h4>
+                        <p className="font-sans text-xs text-muted line-clamp-2 mt-1 leading-relaxed">
+                          {rf.synopsis}
+                        </p>
+                      </div>
+
+                      <div className="pt-2 border-t border-hairline/40 flex items-center justify-between text-[10px] font-mono text-signature">
+                        <span>Screen Feature</span>
+                        <span>→</span>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
           )}
+
+          {/* About This Production — Netflix Dossier Footer */}
+          <div className="pt-8 border-t border-hairline space-y-3 text-xs text-muted">
+            <h4 className="font-editorial text-xl font-normal text-ivory">
+              About <span className="font-medium text-ivory">{film.title}</span>
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-6 text-[11px]">
+              <div>
+                <span className="text-muted">Director: </span>
+                <span className="text-ivory">{film.profiles?.display_name || 'Independent Director'}</span>
+              </div>
+              <div>
+                <span className="text-muted">Original Release: </span>
+                <span className="text-ivory">{film.release_year}</span>
+              </div>
+              <div>
+                <span className="text-muted">Runtime: </span>
+                <span className="text-ivory">{formatRuntime(film.runtime_minutes)}</span>
+              </div>
+              <div>
+                <span className="text-muted">Age Classification: </span>
+                <span className="text-ivory">{film.age_rating} • Suitable for theatrical exhibition</span>
+              </div>
+            </div>
+          </div>
         </div>
       </motion.div>
     </motion.div>,

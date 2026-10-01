@@ -396,12 +396,17 @@ export default function App() {
             />
           )}
 
-          {/* More Info Details Modal */}
+          {/* Netflix-Style Cinema More Info Details Modal */}
           {moreInfoFilm && (
             <MoreInfoModal
               film={moreInfoFilm}
+              allFilms={films}
               onClose={() => setMoreInfoFilm(null)}
-              onPlay={(f) => setActiveWatchFilm(f)}
+              onPlay={(f, mode) => {
+                setMoreInfoFilm(null);
+                setActiveWatchFilm(f);
+                setActiveWatchMode(mode || 'movie');
+              }}
               isInWatchlist={moreInfoFilm ? isInWatchlist(moreInfoFilm.id) : false}
               onToggleWatchlist={toggleWatchlist}
             />
