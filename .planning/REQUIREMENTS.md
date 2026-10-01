@@ -28,6 +28,13 @@ Requirements for initial release of the Viewer Home Page.
 - [ ] **RAILS-03**: Horizontal scrollable rails for curated categories (Trending, Indie Debuts, Award Winners, Genre rails) with smooth snap scrolling, navigation chevrons, and touch swipe.
 - [ ] **RAILS-04**: Realtime synchronisation of watchlist state across cards and hero when toggled.
 
+### Custom Cinematic Video Player
+
+- [ ] **PLAYER-01**: Custom Amber-accented video control interface replacing default embed UI with custom interactive scrub bar, buffer display, and hover time preview.
+- [ ] **PLAYER-02**: Transport controls with glowing amber play/pause, 10s forward/rewind skip, keyboard hotkeys (Space, J, K, L, M, F), and center-screen pulse feedback animations.
+- [ ] **PLAYER-03**: Interactive volume control with draggable slider, mute toggle, playback speed selector (0.5x - 2.0x), and quality indicators.
+- [ ] **PLAYER-04**: Unified cinema playback engine supporting chromeless YouTube IFrame API and native HTML5/HLS streams with auto-hiding controls and custom cursor.
+
 ### Discovery & Category Filtering
 
 - [ ] **FILTER-01**: Sticky filter chips bar allowing quick filtering across film formats (All, Feature Films, Short Films) and Indian languages (Telugu, Hindi, Tamil, Malayalam, Kannada, etc.).
@@ -66,17 +73,21 @@ Which phases cover which requirements.
 | HOVER-02 | Phase 2 | Complete |
 | HOVER-03 | Phase 2 | Complete |
 | HOVER-04 | Phase 2 | Complete |
-| RAILS-01 | Phase 3 | Pending |
-| RAILS-02 | Phase 3 | Pending |
-| RAILS-03 | Phase 3 | Pending |
-| RAILS-04 | Phase 3 | Pending |
-| FILTER-01 | Phase 4 | Pending |
-| FILTER-02 | Phase 4 | Pending |
-| FILTER-03 | Phase 4 | Pending |
+| RAILS-01 | Phase 4 | Pending |
+| RAILS-02 | Phase 4 | Pending |
+| RAILS-03 | Phase 4 | Pending |
+| RAILS-04 | Phase 4 | Pending |
+| PLAYER-01 | Phase 3 | Pending |
+| PLAYER-02 | Phase 3 | Pending |
+| PLAYER-03 | Phase 3 | Pending |
+| PLAYER-04 | Phase 3 | Pending |
+| FILTER-01 | Phase 5 | Pending |
+| FILTER-02 | Phase 5 | Pending |
+| FILTER-03 | Phase 5 | Pending |
 
 **Coverage:**
-- v1 requirements: 15 total
-- Mapped to phases: 15
+- v1 requirements: 19 total
+- Mapped to phases: 19
 - Unmapped: 0
 
 ---

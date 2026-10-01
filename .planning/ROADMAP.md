@@ -43,9 +43,25 @@ Plans:
 - [x] 02-01: Build `HoverPreviewPortal` component and context with Motion spring animations and viewport edge collision detection.
 - [x] 02-02: Integrate preview video teaser playback, audio controls, and quick action controls (play, watchlist, like, more info).
 
-### Phase 3: Dynamic Content Rails & Ranked Lists
-**Goal**: Build a rich hierarchy of content rails including a personalized "Continue Watching" row and a stylized "Top 10" ranked rail.
+### Phase 3: Custom Cinematic Video Player
+**Goal**: Design and build our own custom video player engine with the platform's amber/dark cinema color palette, custom scrub bar, transport controls, and chromeless playback.
 **Depends on**: Phase 2
+**Requirements**: PLAYER-01, PLAYER-02, PLAYER-03, PLAYER-04
+**Success Criteria** (what must be TRUE):
+  1. Default third-party video player chrome is replaced with our custom designed cinema controls using the amber-500 palette.
+  2. Scrubber bar features live playback progress, buffer tracking, drag scrubbing, and hover timestamp tooltips.
+  3. Transport HUD includes glowing amber play/pause, 10s forward/rewind, volume slider, playback speed menu (0.5x-2x), and time indicators.
+  4. Comprehensive keyboard shortcuts (Space, J, K, L, M, F, I, Esc) and center-screen gesture ripple feedback.
+  5. Controls smoothly auto-hide on mouse inactivity with custom cursor states.
+**Plans**: 2 plans
+
+Plans:
+- [ ] 03-01: Build `CinematicPlayer` chromeless engine and custom Amber scrubber with buffer & hover previews.
+- [ ] 03-02: Build transport HUD controls (play/pause, volume slider, 10s skip, speed selector, keyboard hotkeys & ripples).
+
+### Phase 4: Dynamic Content Rails & Ranked Lists
+**Goal**: Build a rich hierarchy of content rails including a personalized "Continue Watching" row and a stylized "Top 10" ranked rail.
+**Depends on**: Phase 3
 **Requirements**: RAILS-01, RAILS-02, RAILS-03, RAILS-04
 **Success Criteria** (what must be TRUE):
   1. "Continue Watching" rail renders only for logged-in users with progress bars showing exact percentage watched from `watch_history`.
@@ -55,12 +71,12 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: Create `ContinueWatchingRail` with progress calculation and `Top10Rail` with stylized rank typography.
-- [ ] 03-02: Enhance `ContentRail` with smooth chevron controls, responsive touch scroll, and synchronized watchlist state.
+- [ ] 04-01: Create `ContinueWatchingRail` with progress calculation and `Top10Rail` with stylized rank typography.
+- [ ] 04-02: Enhance `ContentRail` with smooth chevron controls, responsive touch scroll, and synchronized watchlist state.
 
-### Phase 4: Discovery Filter Chips & Polish
+### Phase 5: Discovery Filter Chips & Polish
 **Goal**: Provide instant format and regional language discovery via sticky filter chips, instant search refinement, and responsive mobile adaptations.
-**Depends on**: Phase 3
+**Depends on**: Phase 4
 **Requirements**: FILTER-01, FILTER-02, FILTER-03
 **Success Criteria** (what must be TRUE):
   1. Sticky filter bar allows single or multi-select filtering across formats (Features, Shorts) and languages (Telugu, Hindi, Tamil, Malayalam, Kannada).
@@ -70,8 +86,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: Build sticky `FilterChipsBar` supporting language/format facets with animated transitions.
-- [ ] 04-02: Integrate search query filtering, empty state views, and responsive mobile touch optimizations.
+- [ ] 05-01: Build sticky `FilterChipsBar` supporting language/format facets with animated transitions.
+- [ ] 05-02: Integrate search query filtering, empty state views, and responsive mobile touch optimizations.
 
 ---
 *Roadmap defined: 2026-10-01*
