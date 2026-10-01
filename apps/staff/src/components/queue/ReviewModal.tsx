@@ -1,0 +1,520 @@
+import React, { useState } from 'react';
+import { motion } from 'motion/react';
+import { useReducedMotion, scaleModal, fadeOnly } from '../../lib/motion';
+import {
+  X,
+  Play,
+  CheckCircle2,
+  FileCheck2,
+  Globe,
+  Sparkles,
+  AlertTriangle,
+  Send,
+  Loader2,
+  Calendar,
+  User,
+  Shield,
+  Clock,
+  Film as FilmIcon,
+  Check,
+  AlertCircle,
+} from 'lucide-react';
+import { Film } from '../../types';
+import { extractYouTubeId, formatDuration, formatDate } from '../../lib/utils';
+import { DecisionBox } from './DecisionBox';
+import { supabase } from '../../lib/supabase';
+
+interface ReviewModalProps {
+  film: Film | null;
+  onClose: () => void;
+  onActionComplete: () => void;
+  isAdmin: boolean;
+}
+
+export const ReviewModal: React.FC<ReviewModalProps> = ({
+  film,
+  onClose,
+  onActionComplete,
+  isAdmin,
+}) => {
+  if (!film) return null;
+  const f = film;
+  const reduced = useReducedMotion();
+
+  const [activeTab, setActiveTab] = useState<'decision' | 'media' | 'licence'>('decision');
+  const [verifyingLicence, setVerifyingLicence] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [featuring, setFeaturing] = useState(false);
+  const [takingDown, setTakingDown] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  const videoId = extractYouTubeId(f.video_ref);
+  const licence = f.licence_agreements;
+  const isLicenceVerified = !!licence?.verified_at;
+
+  // Verify Licence RPC
+  async function handleVerifyLicence() {
+    setActionError(null);
+    try {
+      setVerifyingLicence(true);
+      const { error } = await supabase.rpc('verify_licence', {
+        p_film_id: f.id,
+      });
+      if (error) throw error;
+      onActionComplete();
+    } catch (err) {
+      console.error('Licence verification failed:', err);
+      setActionError((err as Error).message);
+    } finally {
+      setVerifyingLicence(false);
+    }
+  }
+
+  // Publish Film RPC
+  async function handlePublishFilm() {
+    setActionError(null);
+    try {
+      setPublishing(true);
+      const { error } = await supabase.rpc('publish_film', {
+        p_film_id: f.id,
+      });
+      if (error) throw error;
+      onActionComplete();
+    } catch (err) {
+      console.error('Publishing failed:', err);
+      setActionError((err as Error).message);
+    } finally {
+      setPublishing(false);
+    }
+  }
+
+  // Toggle Feature Film RPC (Admin only)
+  async function handleFeatureToggle() {
+    setActionError(null);
+    try {
+      setFeaturing(true);
+      const nextState = !f.is_featured;
+      const { error } = await supabase.rpc('feature_film', {
+        p_film_id: f.id,
+        p_featured: nextState,
+      });
+      if (error) throw error;
+      onActionComplete();
+    } catch (err) {
+      console.error('Feature toggle failed:', err);
+      setActionError((err as Error).message);
+    } finally {
+      setFeaturing(false);
+    }
+  }
+
+  // Takedown Film RPC (Admin only)
+  async function handleTakedown() {
+    const confirm = window.confirm(
+      `Are you sure you want to take down "${f.title}"? The film will be archived and unfeatured globally.`
+    );
+    if (!confirm) return;
+
+    setActionError(null);
+    try {
+      setTakingDown(true);
+      const { error } = await supabase.rpc('takedown_film', {
+        p_film_id: f.id,
+      });
+      if (error) throw error;
+      onActionComplete();
+    } catch (err) {
+      console.error('Takedown failed:', err);
+      setActionError((err as Error).message);
+    } finally {
+      setTakingDown(false);
+    }
+  }
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/90 backdrop-blur-xl"
+      {...fadeOnly(reduced)}
+    >
+      <motion.div
+        className="relative w-full max-w-6xl overflow-hidden rounded-3xl border border-white/[0.08] bg-[#0d1017] shadow-2xl flex flex-col max-h-[94vh]"
+        {...scaleModal(reduced)}
+      >
+        {/* Header Bar */}
+        <div className="flex items-center justify-between border-b border-white/[0.08] bg-[#10141c]/90 px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/15 border border-amber-500/25 text-amber-400">
+              <FilmIcon className="h-4 w-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="font-display text-base font-bold text-white tracking-tight">
+                  {f.title}
+                </h2>
+                <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-white/10 text-zinc-300">
+                  {f.status}
+                </span>
+                {f.is_featured && (
+                  <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                    Featured
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-zinc-400">
+                Submitted by {f.profiles?.display_name || 'Creator'} • {formatDate(f.created_at)}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+
+            {/* Admin Feature Toggle */}
+            {isAdmin && f.status === 'published' && (
+              <button
+                onClick={handleFeatureToggle}
+                disabled={featuring}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                  f.is_featured
+                    ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                    : 'bg-white/5 text-zinc-300 border-white/10 hover:text-white'
+                }`}
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>{f.is_featured ? 'Featured on Billboard' : 'Feature on Billboard'}</span>
+              </button>
+            )}
+
+            {/* Admin Takedown */}
+            {isAdmin && f.status === 'published' && (
+              <button
+                onClick={handleTakedown}
+                disabled={takingDown}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-colors"
+              >
+                <AlertTriangle className="h-3.5 w-3.5" />
+                <span>Takedown</span>
+              </button>
+            )}
+
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Error Alert */}
+        {actionError && (
+          <div className="mx-6 mt-4 p-3 bg-rose-950/40 border border-rose-500/30 rounded-xl text-xs text-rose-300 flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 shrink-0 text-rose-400" />
+            <span>{actionError}</span>
+          </div>
+        )}
+
+        {/* Main Workstation Body: Split Player (Left) + Decision Drawer (Right) */}
+        <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
+          {/* Left Column: Player & Quality Checklist */}
+          <div className="lg:w-3/5 overflow-y-auto p-5 sm:p-6 border-b lg:border-b-0 lg:border-r border-white/[0.08] space-y-6">
+            {/* Embedded 16:9 Video Player */}
+            <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-2xl border border-white/10">
+              {videoId ? (
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1`}
+                  title={f.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="w-full h-full border-none"
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-zinc-600">
+                  <FilmIcon className="h-12 w-12 mb-2 opacity-30" />
+                  <p className="text-xs">No video stream attached</p>
+                </div>
+              )}
+            </div>
+
+            {/* Quality & Compliance Checklist */}
+            <div className="rounded-2xl border border-white/[0.06] bg-[#10141c]/60 p-4 space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
+                <Shield className="h-3.5 w-3.5 text-amber-500" />
+                <span>Curation & Compliance Checklist</span>
+              </h4>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                {/* Poster check */}
+                <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5">
+                  <div className="flex items-center gap-1 text-[11px] text-zinc-400 mb-1">
+                    <span>Poster Artwork</span>
+                  </div>
+                  <span className={`inline-flex items-center gap-1 font-bold ${f.poster_url ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {f.poster_url ? <Check className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+                    <span>{f.poster_url ? 'Attached' : 'Missing'}</span>
+                  </span>
+                </div>
+
+                {/* Music clearance */}
+                <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5">
+                  <div className="flex items-center gap-1 text-[11px] text-zinc-400 mb-1">
+                    <span>Music Rights</span>
+                  </div>
+                  <span className={`inline-flex items-center gap-1 font-bold ${licence?.music_cleared ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {licence?.music_cleared ? <Check className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+                    <span>{licence?.music_cleared ? 'Cleared' : 'Pending'}</span>
+                  </span>
+                </div>
+
+                {/* Age classification */}
+                <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5">
+                  <div className="flex items-center gap-1 text-[11px] text-zinc-400 mb-1">
+                    <span>OTT Rating</span>
+                  </div>
+                  <span className="font-bold text-amber-400">
+                    {f.age_rating || 'Unrated'}
+                  </span>
+                </div>
+
+                {/* Licence verification */}
+                <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5">
+                  <div className="flex items-center gap-1 text-[11px] text-zinc-400 mb-1">
+                    <span>Licence Status</span>
+                  </div>
+                  <span className={`inline-flex items-center gap-1 font-bold ${isLicenceVerified ? 'text-emerald-400' : 'text-amber-400'}`}>
+                    {isLicenceVerified ? <Check className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+                    <span>{isLicenceVerified ? 'Verified' : 'Unverified'}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Workstation Drawer Tabs */}
+          <div className="lg:w-2/5 overflow-y-auto flex flex-col bg-[#0a0d14]">
+            {/* Drawer Tabs */}
+            <div className="flex border-b border-white/[0.08] bg-[#0d1017]">
+              <button
+                onClick={() => setActiveTab('decision')}
+                className={`flex-1 py-3 text-xs font-bold transition-all border-b-2 ${
+                  activeTab === 'decision'
+                    ? 'border-amber-500 text-amber-400 bg-amber-500/5'
+                    : 'border-transparent text-zinc-400 hover:text-white'
+                }`}
+              >
+                Curator Decision
+              </button>
+              <button
+                onClick={() => setActiveTab('media')}
+                className={`flex-1 py-3 text-xs font-bold transition-all border-b-2 ${
+                  activeTab === 'media'
+                    ? 'border-amber-500 text-amber-400 bg-amber-500/5'
+                    : 'border-transparent text-zinc-400 hover:text-white'
+                }`}
+              >
+                Metadata & Credits
+              </button>
+              <button
+                onClick={() => setActiveTab('licence')}
+                className={`flex-1 py-3 text-xs font-bold transition-all border-b-2 ${
+                  activeTab === 'licence'
+                    ? 'border-amber-500 text-amber-400 bg-amber-500/5'
+                    : 'border-transparent text-zinc-400 hover:text-white'
+                }`}
+              >
+                Licence Rights
+              </button>
+            </div>
+
+            {/* Tab Contents */}
+            <div className="p-5 sm:p-6 flex-1 space-y-5">
+              {/* Tab 1: Curator Decision */}
+              {activeTab === 'decision' && (
+                <div className="space-y-6 animate-fade-in">
+                  {/* Decision Box (if submitted) */}
+                  {f.status === 'submitted' ? (
+                    <DecisionBox
+                      filmId={f.id}
+                      filmTitle={f.title}
+                      onDecisionSubmitted={onActionComplete}
+                    />
+                  ) : f.status === 'approved' ? (
+                    /* If Approved: Ready to Publish */
+                    <div className="rounded-2xl border border-purple-500/30 bg-purple-950/20 p-5 space-y-4">
+                      <div className="flex items-center gap-2 text-purple-400 font-bold text-sm">
+                        <CheckCircle2 className="h-5 w-5" />
+                        <span>Curator Approved for Streaming</span>
+                      </div>
+                      <p className="text-xs text-zinc-300 leading-relaxed">
+                        This film has received curator approval. Once the legal licence agreement is verified, it can be published live to audiences worldwide.
+                      </p>
+
+                      {!isLicenceVerified ? (
+                        <div className="p-3 bg-amber-950/30 border border-amber-500/30 rounded-xl text-xs text-amber-300 flex items-center justify-between">
+                          <span>Licence agreement pending staff verification</span>
+                          <button
+                            onClick={() => setActiveTab('licence')}
+                            className="text-xs font-bold underline ml-2 shrink-0"
+                          >
+                            Verify Rights
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={handlePublishFilm}
+                          disabled={publishing}
+                          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold text-xs shadow-xl shadow-emerald-600/25 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-95"
+                        >
+                          {publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                          <span>Publish Film Live to Catalogue</span>
+                        </button>
+                      )}
+                    </div>
+                  ) : f.status === 'published' ? (
+                    /* If Published: Live Status */
+                    <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-5 space-y-3">
+                      <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+                        <CheckCircle2 className="h-5 w-5" />
+                        <span>Film is Published & Live</span>
+                      </div>
+                      <p className="text-xs text-zinc-300 leading-relaxed">
+                        This film is currently live on <strong className="text-white">tpfcinemas.com</strong>. Viewers can stream, comment, and add it to their personal watchlist.
+                      </p>
+                    </div>
+                  ) : (
+                    /* In Revision or Rejected */
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 space-y-3">
+                      <div className="flex items-center gap-2 text-rose-400 font-bold text-sm">
+                        <AlertTriangle className="h-5 w-5" />
+                        <span className="capitalize">{f.status.replace('_', ' ')}</span>
+                      </div>
+                      <p className="text-xs text-zinc-300 leading-relaxed">
+                        This film is currently locked in revision state awaiting edits from the filmmaker.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Past Reviews Feed */}
+                  {f.film_reviews && f.film_reviews.length > 0 && (
+                    <div className="space-y-3 pt-2">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                        Curation History
+                      </h4>
+                      <div className="space-y-2">
+                        {f.film_reviews.map((rev) => (
+                          <div key={rev.id} className="p-3 rounded-xl bg-white/[0.02] border border-white/5 space-y-1">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="font-bold text-white capitalize">{rev.decision}</span>
+                              <span className="text-[10px] text-zinc-500">{formatDate(rev.created_at)}</span>
+                            </div>
+                            {rev.notes && (
+                              <p className="text-xs text-zinc-400 italic">&ldquo;{rev.notes}&rdquo;</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tab 2: Metadata & Credits */}
+              {activeTab === 'media' && (
+                <div className="space-y-4 animate-fade-in text-xs">
+                  <div>
+                    <h4 className="font-bold uppercase tracking-wider text-zinc-400 text-[11px] mb-1">
+                      Synopsis
+                    </h4>
+                    <p className="text-zinc-200 leading-relaxed">{f.synopsis || 'No synopsis provided.'}</p>
+                  </div>
+
+                  {f.director_note && (
+                    <div>
+                      <h4 className="font-bold uppercase tracking-wider text-zinc-400 text-[11px] mb-1">
+                        Director&rsquo;s Note
+                      </h4>
+                      <p className="text-zinc-300 italic leading-relaxed">&ldquo;{f.director_note}&rdquo;</p>
+                    </div>
+                  )}
+
+                  {/* Credits Roster */}
+                  {f.film_credits && f.film_credits.length > 0 && (
+                    <div>
+                      <h4 className="font-bold uppercase tracking-wider text-zinc-400 text-[11px] mb-2">
+                        Cast & Crew Credits ({f.film_credits.length})
+                      </h4>
+                      <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                        {f.film_credits.map((c) => (
+                          <div key={c.id} className="flex items-center justify-between p-2 rounded-lg bg-white/[0.02] border border-white/5">
+                            <span className="font-semibold text-white">{c.person_name}</span>
+                            <span className="text-zinc-400 text-[11px]">{c.credit_role}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tab 3: Licence Rights */}
+              {activeTab === 'licence' && (
+                <div className="space-y-4 animate-fade-in text-xs">
+                  {licence ? (
+                    <div className="space-y-4">
+                      <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-zinc-400">Licence Scope</span>
+                          <span className="font-bold text-white uppercase">{licence.licence_type}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-400">Territory</span>
+                          <span className="font-bold text-white capitalize">{licence.territory}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-400">Term Duration</span>
+                          <span className="font-bold text-white">{licence.term_months} Months</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-400">Music Rights Clearance</span>
+                          <span className={`font-bold ${licence.music_cleared ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            {licence.music_cleared ? 'Cleared by Filmmaker' : 'Not Cleared'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Verification Status */}
+                      <div className="p-4 rounded-2xl border border-white/10 bg-[#121620] space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-zinc-300 font-bold">Staff Rights Verification</span>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${isLicenceVerified ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                            {isLicenceVerified ? 'Verified' : 'Pending'}
+                          </span>
+                        </div>
+
+                        {isLicenceVerified ? (
+                          <p className="text-[11px] text-zinc-400">
+                            Verified on {formatDate(licence.verified_at!)} by staff member.
+                          </p>
+                        ) : (
+                          <button
+                            onClick={handleVerifyLicence}
+                            disabled={verifyingLicence}
+                            className="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs shadow-md shadow-amber-500/20 transition-all flex items-center justify-center gap-1.5"
+                          >
+                            {verifyingLicence ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileCheck2 className="h-4 w-4" />}
+                            <span>Verify & Stamp Legal Clearance</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-zinc-500 italic text-center py-6">No licence agreement attached.</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};

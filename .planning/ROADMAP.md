@@ -6,7 +6,7 @@ Transform the TPF Cinemas viewer application (`apps/viewer`) into a world-class,
 
 ## Phases
 
-- [ ] **Phase 1: Cinematic Hero Billboard** - High-impact billboard with video teaser loop, audio mute toggle, rotating featured carousel, and rich metadata badges.
+- [x] **Phase 1: Cinematic Hero Billboard** - High-impact billboard with video teaser loop, audio mute toggle, rotating featured carousel, and rich metadata badges.
 - [ ] **Phase 2: Netflix-Style Hover Previews** - Smooth desktop card hover expansion displaying video teaser, synopsis snippet, age rating, and quick actions without layout reflow.
 - [ ] **Phase 3: Dynamic Content Rails & Ranked Lists** - "Continue Watching" rail with watched-progress bars from `watch_history`, "Top 10 in India" ranked badges, and smooth horizontal scrolling rails.
 - [ ] **Phase 4: Discovery Filter Chips & Polish** - Sticky category and language filter bar (Telugu, Hindi, Tamil, Short Films, Feature Films), instant search filtering, and mobile responsive touch polish.
@@ -25,8 +25,8 @@ Transform the TPF Cinemas viewer application (`apps/viewer`) into a world-class,
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: Build enhanced `HeroBillboard` component with background trailer iframe/video playback, sound controls, and metadata badges.
-- [ ] 01-02: Connect Hero CTAs to `WatchModal`, `useWatchlist`, and implement carousel rotation between featured titles.
+- [x] 01-01: Build enhanced `HeroBillboard` component with background trailer iframe/video playback, sound controls, and metadata badges.
+- [x] 01-02: Connect Hero CTAs to `WatchModal`, `useWatchlist`, and implement carousel rotation between featured titles.
 
 ### Phase 2: Netflix-Style Hover Previews
 **Goal**: Implement smooth, delayed-hover card expansion showing video teaser snippets, synopsis, and quick-action overlay buttons.

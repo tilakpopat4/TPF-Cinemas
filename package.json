@@ -1,0 +1,37 @@
+{
+  "name": "tpf-cinemas",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TPF Cinemas - OTT Platform Monorepo",
+  "scripts": {
+    "dev:backend": "npm --prefix backend run dev",
+    "build:backend": "npm --prefix backend run build",
+    "typecheck:backend": "npm --prefix backend run typecheck",
+    "dev:studio": "npm --prefix apps/studio run dev",
+    "build:studio": "npm --prefix apps/studio run build",
+    "typecheck:studio": "npm --prefix apps/studio run build",
+    "dev:staff": "npm --prefix apps/staff run dev",
+    "build:staff": "npm --prefix apps/staff run build",
+    "typecheck:staff": "npm --prefix apps/staff run build",
+    "dev:viewer": "npm --prefix apps/viewer run dev",
+    "build:viewer": "npm --prefix apps/viewer run build",
+    "typecheck:viewer": "npm --prefix apps/viewer run build"
+  },
+  "workspaces": [
+    "backend",
+    "apps/studio",
+    "apps/staff",
+    "apps/viewer"
+  ],
+  "keywords": [
+    "ott",
+    "streaming",
+    "hono",
+    "cloudflare-workers",
+    "supabase",
+    "astro",
+    "react"
+  ],
+  "author": "TPF Cinemas Team",
+  "license": "UNLICENSED"
+}

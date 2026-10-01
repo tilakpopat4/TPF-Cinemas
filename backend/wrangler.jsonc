@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tpf-cinemas-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-02-14",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "ENVIRONMENT": "development",
+    "SUPABASE_URL": "https://bzfjxdioaehqdiibzsak.supabase.co"
+  }
+  // Secrets to set via `wrangler secret put <KEY>`:
+  // - SUPABASE_ANON_KEY
+  // - SUPABASE_SERVICE_ROLE_KEY
+  // - CLOUDFLARE_ZONE_ID
+  // - CLOUDFLARE_API_TOKEN
+  // - RESEND_API_KEY
+  // - WEBHOOK_SECRET
+}

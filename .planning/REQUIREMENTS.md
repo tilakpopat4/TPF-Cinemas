@@ -9,10 +9,10 @@ Requirements for initial release of the Viewer Home Page.
 
 ### Cinematic Hero Billboard
 
-- [ ] **HERO-01**: Massive cinematic billboard displaying featured film with video/trailer teaser playback and audio mute/unmute toggle.
-- [ ] **HERO-02**: Dynamic hero carousel supporting rotating featured titles with subtle cross-fade transitions and backdrop poster loading.
-- [ ] **HERO-03**: Film metadata badges rendered prominently on hero (Resolution 4K/HD, Age Rating `U`/`UA13+`/`A`, duration, release year, and genre tags).
-- [ ] **HERO-04**: Primary action buttons: Prominent "Play Now" launching player modal, dynamic "+ My List" watchlist toggle, and "More Info" trigger.
+- [x] **HERO-01**: Massive cinematic billboard displaying featured film with video/trailer teaser playback and audio mute/unmute toggle.
+- [x] **HERO-02**: Dynamic hero carousel supporting rotating featured titles with subtle cross-fade transitions and backdrop poster loading.
+- [x] **HERO-03**: Film metadata badges rendered prominently on hero (Resolution 4K/HD, Age Rating `U`/`UA13+`/`A`, duration, release year, and genre tags).
+- [x] **HERO-04**: Primary action buttons: Prominent "Play Now" launching player modal, dynamic "+ My List" watchlist toggle, and "More Info" trigger.
 
 ### Netflix-Style Hover Previews
 
@@ -58,10 +58,10 @@ Which phases cover which requirements.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| HERO-01 | Phase 1 | Pending |
-| HERO-02 | Phase 1 | Pending |
-| HERO-03 | Phase 1 | Pending |
-| HERO-04 | Phase 1 | Pending |
+| HERO-01 | Phase 1 | Complete |
+| HERO-02 | Phase 1 | Complete |
+| HERO-03 | Phase 1 | Complete |
+| HERO-04 | Phase 1 | Complete |
 | HOVER-01 | Phase 2 | Pending |
 | HOVER-02 | Phase 2 | Pending |
 | HOVER-03 | Phase 2 | Pending |

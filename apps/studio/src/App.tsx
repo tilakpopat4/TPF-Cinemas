@@ -1,0 +1,189 @@
+import React, { useState } from 'react';
+import { Film as FilmIcon, Plus, Loader2, RefreshCw } from 'lucide-react';
+import { useAuth } from './hooks/useAuth';
+import { useFilms } from './hooks/useFilms';
+import { useGenres } from './hooks/useGenres';
+import { Film } from './types';
+import { StudioHeader } from './components/layout/StudioHeader';
+import { StatsOverview } from './components/dashboard/StatsOverview';
+import { OnboardingBanner } from './components/dashboard/OnboardingBanner';
+import { FilmsList } from './components/dashboard/FilmsList';
+import { FeedbackModal } from './components/dashboard/FeedbackModal';
+import { FilmEditorModal } from './components/editor/FilmEditorModal';
+import { AuthModal } from './components/auth/AuthModal';
+
+export const App: React.FC = () => {
+  const { user, profile, isFilmmakerOrAdmin, loading: authLoading, becomeFilmmaker, signOut, refreshProfile } = useAuth();
+  const { films, loading: filmsLoading, refreshFilms } = useFilms(user?.id);
+  const { genres } = useGenres();
+
+  // Modals state
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editingFilm, setEditingFilm] = useState<Film | null>(null);
+  const [feedbackFilm, setFeedbackFilm] = useState<Film | null>(null);
+
+  // Filter tab state
+  const [filterTab, setFilterTab] = useState<'all' | 'drafts' | 'review' | 'published'>('all');
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#090b10] text-slate-300">
+        <Loader2 className="h-10 w-10 text-rose-500 animate-spin mb-3" />
+        <p className="text-sm font-medium">Loading TPF Filmmaker Studio...</p>
+      </div>
+    );
+  }
+
+  // Not signed in
+  if (!user) {
+    return <AuthModal onSuccess={refreshProfile} />;
+  }
+
+  // Filtered films list
+  const filteredFilms = films.filter((f) => {
+    if (filterTab === 'drafts') return f.status === 'draft' || f.status === 'changes_requested';
+    if (filterTab === 'review') return f.status === 'submitted' || f.status === 'approved';
+    if (filterTab === 'published') return f.status === 'published';
+    return true;
+  });
+
+  return (
+    <div className="min-h-screen bg-[#090b10] text-slate-100 flex flex-col">
+      {/* Header */}
+      <StudioHeader
+        profile={profile}
+        email={user.email}
+        isFilmmaker={isFilmmakerOrAdmin}
+        onNewFilm={() => {
+          setEditingFilm(null);
+          setEditorOpen(true);
+        }}
+        onSignOut={signOut}
+      />
+
+      {/* Main Container */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Onboarding Banner for Viewers */}
+        {!isFilmmakerOrAdmin && (
+          <OnboardingBanner onBecomeFilmmaker={becomeFilmmaker} />
+        )}
+
+        {isFilmmakerOrAdmin && (
+          <>
+            {/* Top Stats Overview */}
+            <StatsOverview films={films} />
+
+            {/* Controls Bar & Filter Tabs */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/10 pb-4 mb-6">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setFilterTab('all')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                    filterTab === 'all'
+                      ? 'bg-white/10 text-white'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  All Submissions ({films.length})
+                </button>
+                <button
+                  onClick={() => setFilterTab('drafts')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                    filterTab === 'drafts'
+                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  Drafts & Revisions ({films.filter((f) => f.status === 'draft' || f.status === 'changes_requested').length})
+                </button>
+                <button
+                  onClick={() => setFilterTab('review')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                    filterTab === 'review'
+                      ? 'bg-sky-500/10 text-sky-400 border border-sky-500/20'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  In Review ({films.filter((f) => f.status === 'submitted' || f.status === 'approved').length})
+                </button>
+                <button
+                  onClick={() => setFilterTab('published')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                    filterTab === 'published'
+                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  Live ({films.filter((f) => f.status === 'published').length})
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <button
+                  onClick={refreshFilms}
+                  title="Refresh films list"
+                  className="p-2 rounded-lg border border-white/10 bg-white/5 text-slate-400 hover:text-white transition-colors"
+                >
+                  <RefreshCw className={`h-4 w-4 ${filmsLoading ? 'animate-spin text-rose-500' : ''}`} />
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingFilm(null);
+                    setEditorOpen(true);
+                  }}
+                  className="btn btn-primary btn-sm flex items-center gap-1.5 shadow-md shadow-rose-600/20"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Submit Film</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Films Content */}
+            {filmsLoading && films.length === 0 ? (
+              <div className="py-20 text-center">
+                <Loader2 className="h-8 w-8 text-rose-500 animate-spin mx-auto mb-2" />
+                <p className="text-xs text-slate-400">Loading submissions...</p>
+              </div>
+            ) : (
+              <FilmsList
+                films={filteredFilms}
+                onEdit={(film) => {
+                  setEditingFilm(film);
+                  setEditorOpen(true);
+                }}
+                onViewFeedback={(film) => setFeedbackFilm(film)}
+                onRefresh={refreshFilms}
+              />
+            )}
+          </>
+        )}
+      </main>
+
+      {/* Editor Modal */}
+      {editorOpen && (
+        <FilmEditorModal
+          film={editingFilm}
+          onClose={() => setEditorOpen(false)}
+          onSaved={refreshFilms}
+          userId={user.id}
+          availableGenres={genres}
+        />
+      )}
+
+      {/* Curator Feedback Modal */}
+      {feedbackFilm && (
+        <FeedbackModal
+          film={feedbackFilm}
+          onClose={() => setFeedbackFilm(null)}
+          onEdit={(film) => {
+            setFeedbackFilm(null);
+            setEditingFilm(film);
+            setEditorOpen(true);
+          }}
+        />
+      )}
+    </div>
+  );
+};
+export default App;
