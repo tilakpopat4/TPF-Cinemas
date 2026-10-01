@@ -14,15 +14,51 @@ colors:
   text-secondary: "#a1a1aa"
   text-muted: "#71717a"
   accent-rose: "#e11d48"
+  pure-black: "#000000"
+  zinc-950: "#09090b"
+  zinc-900: "#18181b"
+  zinc-800: "#27272a"
+  zinc-700: "#3f3f46"
+  zinc-600: "#52525b"
+  zinc-500: "#71717a"
+  zinc-400: "#a1a1aa"
+  zinc-300: "#d4d4d8"
+  zinc-200: "#e4e4e7"
+  zinc-100: "#f4f4f5"
 typography:
   display:
     fontFamily: "Outfit, system-ui, sans-serif"
+    fontSize: "36px"
     fontWeight: 700
     letterSpacing: "-0.02em"
+  h1:
+    fontSize: "28px"
+    fontWeight: 700
+  h2:
+    fontSize: "20px"
+    fontWeight: 700
+  h3:
+    fontSize: "16px"
+    fontWeight: 600
   body:
     fontFamily: "Inter, system-ui, sans-serif"
     fontSize: "14px"
     lineHeight: "1.5"
+  small:
+    fontSize: "12px"
+    lineHeight: "1.4"
+  caption:
+    fontSize: "11px"
+    lineHeight: "1.3"
+  micro:
+    fontSize: "10px"
+    lineHeight: "1.2"
+  badge:
+    fontSize: "9px"
+    lineHeight: "1.1"
+  nano:
+    fontSize: "8px"
+    lineHeight: "1"
   mono:
     fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
 rounded:

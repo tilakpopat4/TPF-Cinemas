@@ -70,7 +70,7 @@ export default function App() {
 
   return (
     <HoverPreviewProvider>
-      <div className="min-h-screen bg-[#08090c] text-zinc-100 flex flex-col selection:bg-amber-500 selection:text-black">
+      <div className="min-h-screen bg-[#08090c] text-white flex flex-col">
       {/* Navigation Header */}
       <ViewerHeader
         currentTab={currentTab}
