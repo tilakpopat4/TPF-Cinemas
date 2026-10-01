@@ -14,6 +14,7 @@ import { WatchModal } from './components/player/WatchModal';
 import { MoreInfoModal } from './components/player/MoreInfoModal';
 import { ViewerAuthModal } from './components/auth/ViewerAuthModal';
 import { HoverPreviewProvider } from './context/HoverPreviewContext';
+import { LanguageProvider } from './context/LanguageContext';
 import { HoverPreviewPortal } from './components/catalog/HoverPreviewPortal';
 import { Film as FilmType } from './types';
 
@@ -70,7 +71,8 @@ export default function App() {
   );
 
   return (
-    <HoverPreviewProvider>
+    <LanguageProvider>
+      <HoverPreviewProvider>
       <div className="min-h-screen bg-canvas text-ivory flex flex-col font-sans selection:bg-signature selection:text-black">
         {/* Navigation Header (Hidden in Theater Mode) */}
         {!activeWatchFilm && (
@@ -429,5 +431,6 @@ export default function App() {
         />
       </div>
     </HoverPreviewProvider>
+    </LanguageProvider>
   );
 }

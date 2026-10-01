@@ -88,7 +88,8 @@ export const HoverPreviewPortal: React.FC<HoverPreviewPortalProps> = ({
         onMouseLeave={portalLeave}
       >
         <motion.div
-          className="rounded-sm overflow-hidden bg-graphite border border-hairline shadow-2xl text-ivory"
+          className="rounded-sm overflow-hidden border border-hairline shadow-2xl text-ivory"
+          style={{ backgroundColor: '#1A1A1D' }}
           initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1, transition: { duration: 0.16, ease: 'easeOut' } }}
           exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.1 } }}
@@ -103,9 +104,9 @@ export const HoverPreviewPortal: React.FC<HoverPreviewPortalProps> = ({
               }`}
             />
 
-            {/* Embedded Teaser Loop */}
+            {/* Embedded Teaser Loop — Scaled to 138% to cleanly crop YouTube title bars and watermark chrome */}
             {youtubeId && delayedVideoMount && !hasVideoError && (
-              <div className="absolute inset-0 pointer-events-none overflow-hidden scale-110">
+              <div className="absolute inset-0 pointer-events-none overflow-hidden scale-[1.38]">
                 <iframe
                   ref={iframeRef}
                   src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${youtubeId}&modestbranding=1&rel=0&playsinline=1&enablejsapi=1`}

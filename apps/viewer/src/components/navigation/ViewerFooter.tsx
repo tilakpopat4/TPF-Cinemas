@@ -1,36 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Globe, ChevronDown, Check, Phone, Mail, ShieldCheck } from 'lucide-react';
+import { useLanguage, SUPPORTED_LANGUAGES } from '../../context/LanguageContext';
 
 interface ViewerFooterProps {
   onSelectTab?: (tab: 'home' | 'browse' | 'watchlist' | 'history') => void;
   onOpenAuth?: () => void;
 }
 
-const LANGUAGES = [
-  { code: 'en', name: 'English' },
-  { code: 'hi', name: 'हिन्दी (Hindi)' },
-  { code: 'ta', name: 'தமிழ் (Tamil)' },
-  { code: 'te', name: 'తెలుగు (Telugu)' },
-  { code: 'bn', name: 'বাংলা (Bengali)' },
-  { code: 'ml', name: 'മലയാളം (Malayalam)' },
-  { code: 'es', name: 'Español' },
-  { code: 'fr', name: 'Français' },
-];
-
 export const ViewerFooter: React.FC<ViewerFooterProps> = ({
   onSelectTab,
   onOpenAuth,
 }) => {
-  const [selectedLanguage, setSelectedLanguage] = useState(LANGUAGES[0]);
+  const { currentLanguage, setLanguage, isTranslating } = useLanguage();
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [activeModalInfo, setActiveModalInfo] = useState<{ title: string; content: string } | null>(null);
+
+  const langContainerRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (langContainerRef.current && !langContainerRef.current.contains(e.target as Node)) {
+        setIsLangOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleLinkClick = (title: string, content: string) => {
     setActiveModalInfo({ title, content });
   };
 
   return (
-    <footer className="border-t border-hairline bg-canvas text-muted text-xs selection:bg-signature selection:text-black">
+    <footer className="border-t border-hairline bg-canvas text-muted text-xs selection:bg-signature selection:text-black relative z-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 space-y-10">
         {/* Support & Contact Prompt — Direct Netflix Pattern */}
         <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
@@ -204,32 +207,46 @@ export const ViewerFooter: React.FC<ViewerFooterProps> = ({
           </ul>
         </div>
 
-        {/* Language Selector — Matching Netflix's outlined box pattern */}
-        <div className="relative inline-block text-left">
+        {/* Live Google Language Selector — Direct Netflix Outlined Box Pattern */}
+        <div className="relative inline-block text-left" ref={langContainerRef}>
           <button
             onClick={() => setIsLangOpen(!isLangOpen)}
-            className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-sm bg-black/60 border border-hairline hover:border-ivory/50 text-ivory text-xs font-sans transition-colors focus:outline-none focus:border-signature"
-            aria-label="Select Language"
+            className={`flex items-center gap-2.5 px-3.5 py-2 rounded-sm bg-black/70 border border-hairline hover:border-ivory/50 text-ivory text-xs font-sans transition-colors focus:outline-none focus:border-signature ${
+              isTranslating ? 'animate-pulse border-signature' : ''
+            }`}
+            aria-label="Select Language (Live Google Translator)"
           >
-            <Globe className="h-3.5 w-3.5 text-muted" />
-            <span>{selectedLanguage.name}</span>
-            <ChevronDown className="h-3.5 w-3.5 text-muted ml-1" />
+            <Globe className="h-3.5 w-3.5 text-signature" />
+            <span className="font-medium">{currentLanguage.nativeName}</span>
+            <span className="text-[10px] text-muted">({currentLanguage.name})</span>
+            <ChevronDown className={`h-3.5 w-3.5 text-muted ml-1 transition-transform ${isLangOpen ? 'rotate-180' : ''}`} />
           </button>
 
+          {/* 100% Solid Opaque Dropdown Container with Max-Height & Zero Background Bleed */}
           {isLangOpen && (
-            <div className="absolute left-0 bottom-full mb-2 w-48 rounded-sm bg-graphite border border-hairline shadow-2xl py-1 z-30 font-sans">
-              {LANGUAGES.map((lang) => (
+            <div
+              className="absolute left-0 bottom-full mb-2 w-56 rounded-sm border border-hairline/80 shadow-2xl py-1 z-50 font-sans max-h-64 overflow-y-auto"
+              style={{ backgroundColor: '#141417' }}
+            >
+              <div className="px-3 py-1.5 border-b border-hairline/60 text-[10px] uppercase font-mono tracking-wider text-muted flex items-center justify-between">
+                <span>Translate Website</span>
+                <span className="text-[9px] text-signature">Live</span>
+              </div>
+              {SUPPORTED_LANGUAGES.map((lang) => (
                 <button
                   key={lang.code}
                   onClick={() => {
-                    setSelectedLanguage(lang);
+                    setLanguage(lang);
                     setIsLangOpen(false);
                   }}
                   className="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between text-ivory hover:bg-canvas transition-colors"
                 >
-                  <span>{lang.name}</span>
-                  {selectedLanguage.code === lang.code && (
-                    <Check className="h-3 w-3 text-signature" />
+                  <span className="flex items-center gap-2">
+                    <span className="font-medium">{lang.nativeName}</span>
+                    <span className="text-[10px] text-muted">({lang.name})</span>
+                  </span>
+                  {currentLanguage.code === lang.code && (
+                    <Check className="h-3.5 w-3.5 text-signature" />
                   )}
                 </button>
               ))}
@@ -256,7 +273,10 @@ export const ViewerFooter: React.FC<ViewerFooterProps> = ({
       {/* Info Modal for Link Dialogs */}
       {activeModalInfo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-          <div className="bg-graphite border border-hairline rounded-sm max-w-md w-full p-6 space-y-4 shadow-2xl text-ivory">
+          <div
+            className="border border-hairline rounded-sm max-w-md w-full p-6 space-y-4 shadow-2xl text-ivory"
+            style={{ backgroundColor: '#141417' }}
+          >
             <div className="flex items-center justify-between border-b border-hairline pb-3">
               <h3 className="font-display text-xl tracking-wider text-ivory uppercase">
                 {activeModalInfo.title}

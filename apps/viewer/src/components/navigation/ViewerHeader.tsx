@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, Bookmark, History, LogIn, LogOut, X, Globe, ChevronDown, Check } from 'lucide-react';
 import { Profile, AppRole } from '../../types';
 import { useReducedMotion } from '../../lib/motion';
+import { useLanguage, SUPPORTED_LANGUAGES } from '../../context/LanguageContext';
 
 interface ViewerHeaderProps {
   currentTab: 'home' | 'browse' | 'watchlist' | 'history';
@@ -16,15 +17,6 @@ interface ViewerHeaderProps {
   onSignOut: () => void;
 }
 
-const LANGUAGES = [
-  { code: 'en', name: 'English' },
-  { code: 'hi', name: 'हिन्दी' },
-  { code: 'ta', name: 'தமிழ்' },
-  { code: 'bn', name: 'বাংলা' },
-  { code: 'ml', name: 'മലയാളം' },
-  { code: 'es', name: 'Español' },
-];
-
 export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
   currentTab,
   onSelectTab,
@@ -37,11 +29,14 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
   onSignOut,
 }) => {
   const reduced = useReducedMotion();
+  const { currentLanguage, setLanguage, isTranslating } = useLanguage();
   const [isScrolled, setIsScrolled] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState(LANGUAGES[0]);
   const [showLangMenu, setShowLangMenu] = useState(false);
+
+  const langMenuRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -49,6 +44,20 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Close menus when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (langMenuRef.current && !langMenuRef.current.contains(e.target as Node)) {
+        setShowLangMenu(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setShowUserMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   return (
@@ -142,7 +151,7 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
           </nav>
         </div>
 
-        {/* Right Actions: Search, Netflix-Style Language Selector & Auth */}
+        {/* Right Actions: Search, Netflix-Style Live Google Language Selector & Auth */}
         <div className="flex items-center gap-2.5 sm:gap-3">
           {/* Expandable Search Input */}
           <div className="relative">
@@ -187,32 +196,44 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
             </AnimatePresence>
           </div>
 
-          {/* Language Selector Dropdown — Direct Netflix Pattern */}
-          <div className="relative">
+          {/* Live Google Translator Dropdown — Solid Opaque, Multi-Lingual */}
+          <div className="relative" ref={langMenuRef}>
             <button
               onClick={() => setShowLangMenu(!showLangMenu)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm bg-black/60 border border-hairline hover:border-ivory/50 text-ivory text-xs font-sans transition-colors focus:outline-none"
-              title="Select Language"
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm bg-black/70 border border-hairline hover:border-ivory/50 text-ivory text-xs font-sans transition-colors focus:outline-none ${
+                isTranslating ? 'animate-pulse border-signature' : ''
+              }`}
+              title="Change Website Language (Live Google Translator)"
             >
-              <Globe className="h-3.5 w-3.5 text-muted" />
-              <span className="hidden sm:inline">{selectedLanguage.name}</span>
-              <ChevronDown className="h-3 w-3 text-muted" />
+              <Globe className="h-3.5 w-3.5 text-signature" />
+              <span className="hidden sm:inline font-medium">{currentLanguage.nativeName}</span>
+              <ChevronDown className={`h-3 w-3 text-muted transition-transform ${showLangMenu ? 'rotate-180' : ''}`} />
             </button>
 
             {showLangMenu && (
-              <div className="absolute right-0 mt-1.5 w-36 rounded-sm bg-graphite border border-hairline shadow-2xl py-1 z-50 font-sans">
-                {LANGUAGES.map((lang) => (
+              <div
+                className="absolute right-0 mt-1.5 w-48 rounded-sm border border-hairline/80 shadow-2xl py-1 z-50 font-sans max-h-72 overflow-y-auto"
+                style={{ backgroundColor: '#141417' }}
+              >
+                <div className="px-3 py-1.5 border-b border-hairline/60 text-[10px] uppercase font-mono tracking-wider text-muted flex items-center justify-between">
+                  <span>Translate Website</span>
+                  <span className="text-[9px] text-signature">Live</span>
+                </div>
+                {SUPPORTED_LANGUAGES.map((lang) => (
                   <button
                     key={lang.code}
                     onClick={() => {
-                      setSelectedLanguage(lang);
+                      setLanguage(lang);
                       setShowLangMenu(false);
                     }}
-                    className="w-full text-left px-3 py-1.5 text-xs flex items-center justify-between text-ivory hover:bg-canvas transition-colors"
+                    className="w-full text-left px-3 py-2 text-xs flex items-center justify-between text-ivory hover:bg-canvas transition-colors"
                   >
-                    <span>{lang.name}</span>
-                    {selectedLanguage.code === lang.code && (
-                      <Check className="h-3 w-3 text-signature" />
+                    <span className="flex items-center gap-2">
+                      <span className="font-medium">{lang.nativeName}</span>
+                      <span className="text-[10px] text-muted">({lang.name})</span>
+                    </span>
+                    {currentLanguage.code === lang.code && (
+                      <Check className="h-3.5 w-3.5 text-signature" />
                     )}
                   </button>
                 ))}
@@ -222,7 +243,7 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
 
           {/* User Profile / Netflix-Style Signature CTA Button */}
           {user ? (
-            <div className="relative">
+            <div className="relative" ref={userMenuRef}>
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
                 className="flex items-center gap-2 px-2.5 py-1.5 rounded-sm bg-graphite hover:bg-[#232328] border border-hairline transition-colors focus:outline-none"
@@ -239,7 +260,8 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
               <AnimatePresence>
                 {showUserMenu && (
                   <motion.div
-                    className="absolute right-0 mt-2 w-56 bg-graphite border border-hairline rounded-sm p-2 z-50 shadow-2xl"
+                    className="absolute right-0 mt-2 w-56 rounded-sm border border-hairline p-2 z-50 shadow-2xl"
+                    style={{ backgroundColor: '#141417' }}
                     initial={reduced ? { opacity: 0 } : { opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0, transition: { duration: 0.15 } }}
                     exit={{ opacity: 0, y: -4, transition: { duration: 0.1 } }}
