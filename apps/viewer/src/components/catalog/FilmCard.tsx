@@ -1,8 +1,7 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { Play, Plus, Check, Clock, X } from 'lucide-react';
 import { Film } from '../../types';
 import { formatRuntime } from '../../lib/utils';
-import { useHoverPreview } from '../../context/HoverPreviewContext';
 
 interface FilmCardProps {
   film: Film;
@@ -25,31 +24,12 @@ export const FilmCard: React.FC<FilmCardProps> = ({
   rankIndex,
   onDismiss,
 }) => {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const { activeFilm, isOpen, triggerEnter, triggerLeave } = useHoverPreview();
-  const isHoveredInPortal = isOpen && activeFilm?.id === film.id;
   const totalSeconds = (film.runtime_minutes || 1) * 60;
   const progressPercent = Math.min(100, Math.round((progressSeconds / totalSeconds) * 100));
   const remainingMinutes = Math.max(1, Math.ceil((totalSeconds - progressSeconds) / 60));
 
-  const handleMouseEnter = () => {
-    if (typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-      if (cardRef.current) {
-        const rect = cardRef.current.getBoundingClientRect();
-        triggerEnter(film, rect);
-      }
-    }
-  };
-
-  const handleMouseLeave = () => {
-    triggerLeave();
-  };
-
   return (
     <div
-      ref={cardRef}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
       className={`group relative flex-none w-48 sm:w-56 md:w-60 cursor-pointer select-none outline-none transition-all duration-200 ${
         rankIndex !== undefined ? 'ml-6 sm:ml-9 md:ml-11' : ''
       }`}
@@ -73,9 +53,7 @@ export const FilmCard: React.FC<FilmCardProps> = ({
       {/* Poster Container: Sharp 2px corners, graphite backing, hairline border */}
       <div
         onClick={() => onPlay(film)}
-        className={`relative aspect-[2/3] w-full rounded-sm overflow-hidden bg-graphite border border-hairline group-hover:border-signature/50 transition-colors shadow-lg z-10 ${
-          isHoveredInPortal ? 'opacity-0 pointer-events-none' : 'opacity-100 hover:-translate-y-1'
-        }`}
+        className="relative aspect-[2/3] w-full rounded-sm overflow-hidden bg-graphite border border-hairline group-hover:border-signature/50 transition-all duration-300 group-hover:-translate-y-1 shadow-lg z-10"
       >
         <img
           src={film.poster_url || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=600&auto=format&fit=crop'}
@@ -174,7 +152,7 @@ export const FilmCard: React.FC<FilmCardProps> = ({
       </div>
 
       {/* Card Typography below poster */}
-      <div className={`mt-2.5 px-0.5 z-10 relative ${isHoveredInPortal ? 'opacity-0' : 'opacity-100'}`}>
+      <div className="mt-2.5 px-0.5 z-10 relative">
         <h3
           onClick={() => onPlay(film)}
           className="font-editorial text-base sm:text-lg font-semibold text-ivory truncate group-hover:text-signature transition-colors leading-tight"

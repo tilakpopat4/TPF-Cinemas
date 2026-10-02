@@ -15,9 +15,7 @@ import { FilmCard } from './components/catalog/FilmCard';
 import { WatchModal } from './components/player/WatchModal';
 import { MoreInfoModal } from './components/player/MoreInfoModal';
 import { ViewerAuthModal } from './components/auth/ViewerAuthModal';
-import { HoverPreviewProvider } from './context/HoverPreviewContext';
 import { LanguageProvider } from './context/LanguageContext';
-import { HoverPreviewPortal } from './components/catalog/HoverPreviewPortal';
 import { Film as FilmType } from './types';
 
 export default function App() {
@@ -79,7 +77,6 @@ export default function App() {
 
   return (
     <LanguageProvider>
-      <HoverPreviewProvider>
       <div className="min-h-screen bg-canvas text-ivory flex flex-col font-sans selection:bg-signature selection:text-black">
         {/* Navigation Header (Hidden in Theater Mode) */}
         {!activeWatchFilm && (
@@ -441,20 +438,6 @@ export default function App() {
           onClose={() => setShowAuthModal(false)}
         />
 
-        {/* Netflix-Style Hover Preview Portal */}
-        <HoverPreviewPortal
-          onPlay={(f) => setActiveWatchFilm(f)}
-          isInWatchlist={isInWatchlist}
-          onToggleWatchlist={toggleWatchlist}
-          onMoreInfo={(f) => setMoreInfoFilm(f)}
-          onSelectGenre={(g) => {
-            setSelectedGenre(g);
-            setCurrentTab('browse');
-          }}
-          getProgress={getProgress}
-          onDismissFromHistory={dismissFromHistory}
-        />
-
         {/* Netflix-Inspired Curatorial Footer */}
         <ViewerFooter
           onSelectTab={(tab) => {
@@ -464,7 +447,6 @@ export default function App() {
           onOpenAuth={() => setShowAuthModal(true)}
         />
       </div>
-    </HoverPreviewProvider>
     </LanguageProvider>
   );
 }
