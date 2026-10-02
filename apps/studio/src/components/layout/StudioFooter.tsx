@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Globe, ChevronDown, Check, Phone, Mail, ShieldCheck } from 'lucide-react';
 import { useLanguage, SUPPORTED_LANGUAGES } from '../../context/LanguageContext';
-import { getPortalUrl } from '../../lib/portalNav';
 
 interface StudioFooterProps {
   onOpenSubmission?: () => void;
@@ -52,33 +51,6 @@ export const StudioFooter: React.FC<StudioFooterProps> = ({ onOpenSubmission }) 
               <span>submissions@tpfcinemas.com</span>
             </a>
           </div>
-        </div>
-
-        {/* Universal Portal Hub Switcher */}
-        <div className="flex flex-wrap items-center gap-3 sm:gap-4 py-3 border-y border-hairline/60 text-xs">
-          <span className="font-mono uppercase text-[10px] tracking-wider text-muted font-semibold">
-            Universal Portals:
-          </span>
-          <a
-            href={getPortalUrl('cinema')}
-            className="text-ivory hover:text-signature transition-colors font-medium flex items-center gap-1.5"
-          >
-            <span>Audience Cinema</span>
-          </a>
-          <span className="text-hairline">•</span>
-          <a
-            href={getPortalUrl('studio')}
-            className="text-signature font-semibold hover:underline flex items-center gap-1.5"
-          >
-            <span>Filmmaker Studio</span>
-          </a>
-          <span className="text-hairline">•</span>
-          <a
-            href={getPortalUrl('staff')}
-            className="text-ivory hover:text-signature transition-colors font-medium flex items-center gap-1.5"
-          >
-            <span>Staff & Curator Console</span>
-          </a>
         </div>
 
         {/* 4-Column Structured Link Grid */}
@@ -237,12 +209,17 @@ export const StudioFooter: React.FC<StudioFooterProps> = ({ onOpenSubmission }) 
               </button>
             </li>
             <li>
-              <a
-                href={getPortalUrl('cinema')}
-                className="hover:underline hover:text-signature transition-colors text-left inline-block"
+              <button
+                onClick={() =>
+                  handleLinkClick(
+                    'Exclusive Curatorial Premieres',
+                    'Films accepted to TPF Cinemas premiere globally with specialized curated laurels, high-fidelity audio exhibition, and dedicated debut auteur features.'
+                  )
+                }
+                className="hover:underline hover:text-signature transition-colors text-left"
               >
-                Audience Cinema Portal
-              </a>
+                Only on TPF Cinemas
+              </button>
             </li>
           </ul>
 

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Globe, ChevronDown, Check, Phone, Mail, ShieldCheck } from 'lucide-react';
 import { useLanguage, SUPPORTED_LANGUAGES } from '../../context/LanguageContext';
-import { getPortalUrl } from '../../lib/portalNav';
 
 interface ViewerFooterProps {
   onSelectTab?: (tab: 'home' | 'browse' | 'watchlist' | 'history') => void;
@@ -56,33 +55,6 @@ export const ViewerFooter: React.FC<ViewerFooterProps> = ({
               <span>curators@tpfcinemas.com</span>
             </a>
           </div>
-        </div>
-
-        {/* Universal Portal Hub Switcher */}
-        <div className="flex flex-wrap items-center gap-3 sm:gap-4 py-3 border-y border-hairline/60 text-xs">
-          <span className="font-mono uppercase text-[10px] tracking-wider text-muted font-semibold">
-            Universal Portals:
-          </span>
-          <a
-            href={getPortalUrl('cinema')}
-            className="text-signature font-semibold hover:underline flex items-center gap-1.5"
-          >
-            <span>Audience Cinema</span>
-          </a>
-          <span className="text-hairline">•</span>
-          <a
-            href={getPortalUrl('studio')}
-            className="text-ivory hover:text-signature transition-colors font-medium flex items-center gap-1.5"
-          >
-            <span>Filmmaker Studio</span>
-          </a>
-          <span className="text-hairline">•</span>
-          <a
-            href={getPortalUrl('staff')}
-            className="text-ivory hover:text-signature transition-colors font-medium flex items-center gap-1.5"
-          >
-            <span>Staff & Curator Console</span>
-          </a>
         </div>
 
         {/* 4-Column Structured Link Grid */}

@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, LogOut, Globe, ChevronDown, Check, Film, ShieldCheck } from 'lucide-react';
+import { Plus, LogOut, Globe, ChevronDown, Check } from 'lucide-react';
 import { Profile } from '../../types';
 import { useLanguage, SUPPORTED_LANGUAGES } from '../../context/LanguageContext';
-import { getPortalUrl } from '../../lib/portalNav';
 
 interface StudioHeaderProps {
   profile: Profile | null;
@@ -66,48 +65,19 @@ export const StudioHeader: React.FC<StudioHeaderProps> = ({
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
-        {/* Official Brand Logo & Universal Portal Nav */}
-        <div className="flex items-center gap-5 sm:gap-7">
+        {/* Official Brand Logo & Nav */}
+        <div className="flex items-center gap-6 lg:gap-10">
           <div className="flex items-center gap-3">
-            <a
-              href={getPortalUrl('cinema')}
-              className="flex items-center group text-left focus:outline-none"
-              aria-label="TPF Cinemas Home"
-            >
+            <div className="flex items-center group text-left">
               <img
                 src="/tpf-cinemas-logo.png"
                 alt="TPF Cinemas - Screening The Beginner Dreams"
                 className="h-9 sm:h-11 md:h-12 w-auto object-contain transition-transform group-hover:scale-[1.02]"
               />
-            </a>
+            </div>
             <span className="hidden md:inline-block px-2 py-0.5 rounded-sm bg-rose-500/10 border border-rose-500/30 text-rose-400 font-mono text-[9px] uppercase tracking-wider font-semibold">
               STUDIO
             </span>
-          </div>
-
-          {/* Universal Cross-Portal Hub Switcher */}
-          <div className="hidden lg:flex items-center border border-hairline/60 rounded-sm bg-black/40 p-0.5 text-[11px] font-mono uppercase tracking-wider">
-            <a
-              href={getPortalUrl('cinema')}
-              className="px-2.5 py-1 rounded-sm text-muted hover:text-ivory hover:bg-graphite/60 transition-colors"
-              title="Audience Streaming Portal"
-            >
-              Cinema
-            </a>
-            <a
-              href={getPortalUrl('studio')}
-              className="px-2.5 py-1 rounded-sm bg-signature text-black font-bold shadow-sm"
-              title="Filmmaker Studio & Submissions"
-            >
-              Studio
-            </a>
-            <a
-              href={getPortalUrl('staff')}
-              className="px-2.5 py-1 rounded-sm text-muted hover:text-ivory hover:bg-graphite/60 transition-colors"
-              title="Staff & Curation Console"
-            >
-              Staff
-            </a>
           </div>
 
           {/* Contextual Subnav / Filter links if onFilterChange provided */}
@@ -250,28 +220,7 @@ export const StudioHeader: React.FC<StudioHeaderProps> = ({
                     </span>
                   </div>
 
-                  {/* Cross-Portal Switcher Links */}
-                  <div className="py-1">
-                    <div className="px-3 py-1 text-[10px] uppercase font-mono tracking-wider text-muted">
-                      Portals
-                    </div>
-                    <a
-                      href={getPortalUrl('cinema')}
-                      className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-ivory hover:bg-canvas rounded-sm transition-colors"
-                    >
-                      <Film className="h-3.5 w-3.5 text-signature" />
-                      <span>Audience Cinema</span>
-                    </a>
-                    <a
-                      href={getPortalUrl('staff')}
-                      className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-ivory hover:bg-canvas rounded-sm transition-colors"
-                    >
-                      <ShieldCheck className="h-3.5 w-3.5 text-amber-400" />
-                      <span>Staff Console</span>
-                    </a>
-                  </div>
-
-                  <div className="pt-1 border-t border-hairline">
+                  <div className="pt-1">
                     <button
                       onClick={() => {
                         setShowMenu(false);

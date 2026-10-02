@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Bookmark, History, LogIn, LogOut, X, Globe, ChevronDown, Check, Video, ShieldCheck } from 'lucide-react';
+import { Search, Bookmark, History, LogIn, LogOut, X, Globe, ChevronDown, Check } from 'lucide-react';
 import { Profile, AppRole } from '../../types';
 import { useReducedMotion } from '../../lib/motion';
 import { useLanguage, SUPPORTED_LANGUAGES } from '../../context/LanguageContext';
-import { getPortalUrl } from '../../lib/portalNav';
 
 interface ViewerHeaderProps {
   currentTab: 'home' | 'browse' | 'watchlist' | 'history';
@@ -70,49 +69,19 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
-        {/* Official Brand Logo & Universal Portal Nav */}
-        <div className="flex items-center gap-5 sm:gap-7">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => onSelectTab('home')}
-              className="flex items-center group text-left focus:outline-none"
-              aria-label="TPF Cinemas Home"
-            >
-              <img
-                src="/tpf-cinemas-logo.png"
-                alt="TPF Cinemas - Screening The Beginner Dreams"
-                className="h-9 sm:h-11 md:h-12 w-auto object-contain transition-transform group-hover:scale-[1.02]"
-              />
-            </button>
-            <span className="hidden md:inline-block px-2 py-0.5 rounded-sm bg-signature/10 border border-signature/30 text-signature font-mono text-[9px] uppercase tracking-wider font-semibold">
-              CINEMA
-            </span>
-          </div>
-
-          {/* Universal Cross-Portal Hub Switcher */}
-          <div className="hidden lg:flex items-center border border-hairline/60 rounded-sm bg-black/40 p-0.5 text-[11px] font-mono uppercase tracking-wider">
-            <a
-              href={getPortalUrl('cinema')}
-              className="px-2.5 py-1 rounded-sm bg-signature text-black font-bold shadow-sm"
-              title="Audience Streaming Portal"
-            >
-              Cinema
-            </a>
-            <a
-              href={getPortalUrl('studio')}
-              className="px-2.5 py-1 rounded-sm text-muted hover:text-ivory hover:bg-graphite/60 transition-colors"
-              title="Filmmaker Studio & Submissions"
-            >
-              Studio
-            </a>
-            <a
-              href={getPortalUrl('staff')}
-              className="px-2.5 py-1 rounded-sm text-muted hover:text-ivory hover:bg-graphite/60 transition-colors"
-              title="Staff & Curation Console"
-            >
-              Staff
-            </a>
-          </div>
+        {/* Official Brand Logo & Nav */}
+        <div className="flex items-center gap-6 lg:gap-10">
+          <button
+            onClick={() => onSelectTab('home')}
+            className="flex items-center group text-left focus:outline-none"
+            aria-label="TPF Cinemas Home"
+          >
+            <img
+              src="/tpf-cinemas-logo.png"
+              alt="TPF Cinemas - Screening The Beginner Dreams"
+              className="h-9 sm:h-11 md:h-12 w-auto object-contain transition-transform group-hover:scale-[1.02]"
+            />
+          </button>
 
           {/* Minimalist Editorial Nav Links */}
           <nav className="hidden md:flex items-center gap-1">
@@ -319,27 +288,6 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
                         <History className="h-3.5 w-3.5 text-muted" />
                         <span>Watch History</span>
                       </button>
-                    </div>
-
-                    {/* Quick Portal Switcher */}
-                    <div className="py-1 border-t border-hairline/60">
-                      <div className="px-3 py-1 text-[10px] uppercase font-mono tracking-wider text-muted">
-                        Switch Portal
-                      </div>
-                      <a
-                        href={getPortalUrl('studio')}
-                        className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-ivory hover:bg-canvas rounded-sm transition-colors"
-                      >
-                        <Video className="h-3.5 w-3.5 text-rose-400" />
-                        <span>Filmmaker Studio</span>
-                      </a>
-                      <a
-                        href={getPortalUrl('staff')}
-                        className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-ivory hover:bg-canvas rounded-sm transition-colors"
-                      >
-                        <ShieldCheck className="h-3.5 w-3.5 text-amber-400" />
-                        <span>Staff Console</span>
-                      </a>
                     </div>
 
                     <div className="pt-1 border-t border-hairline">
