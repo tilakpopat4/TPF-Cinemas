@@ -36,6 +36,53 @@ export function extractYouTubeId(urlOrId: string): string {
   return (match && match[2].length === 11) ? match[2] : trimmed;
 }
 
+export interface FilmArtworks {
+  portrait: string;
+  landscape: string;
+}
+
+export function getFilmArtworks(
+  filmOrUrl?: { poster_url?: string | null; backdrop_url?: string | null } | string | null
+): FilmArtworks {
+  const fallbackPortrait = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=800&auto=format&fit=crop';
+  const fallbackLandscape = 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1600&auto=format&fit=crop';
+
+  if (!filmOrUrl) {
+    return { portrait: fallbackPortrait, landscape: fallbackLandscape };
+  }
+
+  let rawPoster: string | null = null;
+  let rawBackdrop: string | null = null;
+
+  if (typeof filmOrUrl === 'string') {
+    rawPoster = filmOrUrl;
+  } else {
+    rawPoster = filmOrUrl.poster_url || null;
+    rawBackdrop = filmOrUrl.backdrop_url || null;
+  }
+
+  let portrait = rawPoster || '';
+  let landscape = rawBackdrop || '';
+
+  if (rawPoster && rawPoster.trim().startsWith('{')) {
+    try {
+      const parsed = JSON.parse(rawPoster);
+      if (parsed.portrait) portrait = parsed.portrait;
+      if (parsed.landscape) landscape = parsed.landscape;
+    } catch {
+      // not JSON, keep as is
+    }
+  }
+
+  if (!portrait && landscape) portrait = landscape;
+  if (!landscape && portrait) landscape = portrait;
+
+  return {
+    portrait: portrait || fallbackPortrait,
+    landscape: landscape || fallbackLandscape,
+  };
+}
+
 export function getAgeRatingColor(rating: string): { bg: string; text: string; border: string } {
   switch (rating) {
     case 'U':

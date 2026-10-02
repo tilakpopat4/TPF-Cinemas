@@ -103,31 +103,31 @@ export const AmberScrubber: React.FC<AmberScrubberProps> = ({
       {/* Timecode Hover Stamp */}
       {(isHovering || isDragging) && (
         <div
-          className="absolute -top-7 px-2 py-0.5 rounded-sm bg-graphite border border-hairline font-mono text-[10px] text-signature pointer-events-none -translate-x-1/2 z-30 shadow-lg"
+          className="absolute -top-7 px-2.5 py-0.5 rounded-full bg-black/90 text-amber-400 font-mono text-[10px] pointer-events-none -translate-x-1/2 z-30 shadow-lg border border-white/10"
           style={{ left: `${isDragging ? progressPercent : (hoverX / (trackRef.current?.offsetWidth || 1)) * 100}%` }}
         >
           {formatScrubberTime(isDragging ? currentTime : hoverTime)}
         </div>
       )}
 
-      {/* Main Track Rail (Architectural 2px hairline, expands to 4px on hover) */}
-      <div className="relative w-full h-[2px] group-hover/scrubber:h-[4px] bg-graphite transition-all duration-150 overflow-hidden">
-        {/* Buffered Track (Ivory 15%) */}
+      {/* Main Track Rail */}
+      <div className="relative w-full h-[3px] group-hover/scrubber:h-[5px] rounded-full bg-white/20 transition-all duration-150 overflow-hidden">
+        {/* Buffered Track */}
         <div
-          className="absolute left-0 top-0 h-full bg-ivory/15"
+          className="absolute left-0 top-0 h-full bg-white/20"
           style={{ width: `${buffered}%` }}
         />
 
-        {/* Played Progress Track (Solid Electric Amber #FF9F1C, No gradients) */}
+        {/* Played Progress Track */}
         <div
-          className="absolute left-0 top-0 h-full bg-signature"
+          className="absolute left-0 top-0 h-full bg-amber-500"
           style={{ width: `${progressPercent}%` }}
         />
       </div>
 
-      {/* Scrubber Knob Thumb: Sharp 2px Square */}
+      {/* Scrubber Knob Thumb: Smooth Rounded Knob */}
       <div
-        className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 h-3.5 w-3.5 bg-signature border border-black shadow-md transition-transform duration-100 pointer-events-none ${
+        className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 h-3.5 w-3.5 rounded-full bg-amber-500 ring-2 ring-black shadow-lg transition-transform duration-100 pointer-events-none ${
           isHovering || isDragging ? 'scale-100' : 'scale-0'
         }`}
         style={{ left: `${progressPercent}%` }}

@@ -92,8 +92,8 @@ export const HoverPreviewPortal: React.FC<HoverPreviewPortalProps> = ({
         onMouseLeave={portalLeave}
       >
         <motion.div
-          className="rounded-sm overflow-hidden border border-hairline shadow-2xl text-ivory"
-          style={{ backgroundColor: '#1A1A1D' }}
+          className="rounded-xl overflow-hidden border border-white/[0.12] shadow-[0_24px_56px_rgba(0,0,0,0.95)] text-ivory"
+          style={{ backgroundColor: '#0A0A0B' }}
           initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1, transition: { duration: 0.16, ease: 'easeOut' } }}
           exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.1 } }}
@@ -101,7 +101,7 @@ export const HoverPreviewPortal: React.FC<HoverPreviewPortalProps> = ({
           {/* Anamorphic 2.39:1 Preview Media Container */}
           <div className="relative aspect-video w-full overflow-hidden bg-black">
             <img
-              src={activeFilm.poster_url || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=800&auto=format&fit=crop'}
+              src={activeFilm.backdrop_url || activeFilm.poster_url || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800&auto=format&fit=crop'}
               alt={activeFilm.title}
               className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
                 isVideoReady ? 'opacity-0' : 'opacity-100'
@@ -169,20 +169,20 @@ export const HoverPreviewPortal: React.FC<HoverPreviewPortalProps> = ({
                     closeImmediately();
                     onPlay(activeFilm);
                   }}
-                  className="h-8 px-3 rounded-sm bg-signature text-black flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider hover:bg-[#f79612] transition-colors"
+                  className="h-8.5 px-3.5 rounded-lg bg-signature hover:bg-signature-hover text-black flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider transition-all duration-200 shadow-[0_2px_12px_rgba(229,169,59,0.3)] hover:scale-[1.02] active:scale-[0.98]"
                   title="Screen Film"
                 >
-                  <Play className="h-3.5 w-3.5 fill-current" />
+                  <Play className="h-3.5 w-3.5 fill-current ml-0.5" />
                   <span>Play</span>
                 </button>
 
                 {/* Queue Button */}
                 <button
                   onClick={() => onToggleWatchlist(activeFilm.id)}
-                  className={`h-8 w-8 rounded-sm border flex items-center justify-center transition-colors ${
+                  className={`h-8.5 w-8.5 rounded-lg border flex items-center justify-center transition-all ${
                     inWatchlist
-                      ? 'bg-signature text-black border-signature'
-                      : 'bg-graphite border-hairline text-ivory hover:border-ivory'
+                      ? 'bg-signature text-black border-signature shadow-[0_0_10px_rgba(229,169,59,0.35)]'
+                      : 'bg-white/[0.06] border-white/15 text-ivory hover:border-white/40'
                   }`}
                   title={inWatchlist ? 'Remove from Queue' : 'Add to Queue'}
                 >
@@ -196,7 +196,7 @@ export const HoverPreviewPortal: React.FC<HoverPreviewPortalProps> = ({
                       onDismissFromHistory(activeFilm.id);
                       closeImmediately();
                     }}
-                    className="h-8 w-8 rounded-sm border border-hairline bg-graphite hover:bg-black text-muted hover:text-white flex items-center justify-center transition-colors"
+                    className="h-8.5 w-8.5 rounded-lg border border-white/10 bg-white/[0.04] hover:bg-black text-muted hover:text-white flex items-center justify-center transition-colors"
                     title="Remove from Continue Watching"
                   >
                     <X className="h-3.5 w-3.5" />
@@ -210,7 +210,7 @@ export const HoverPreviewPortal: React.FC<HoverPreviewPortalProps> = ({
                   closeImmediately();
                   onMoreInfo(activeFilm);
                 }}
-                className="h-8 px-2.5 rounded-sm bg-graphite hover:bg-[#25252b] border border-hairline text-muted hover:text-ivory flex items-center gap-1 text-[11px] transition-colors"
+                className="h-8.5 px-3 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-muted hover:text-ivory flex items-center gap-1 text-[11px] font-mono uppercase tracking-wider transition-colors"
                 title="Curatorial Notes"
               >
                 <span>Details</span>

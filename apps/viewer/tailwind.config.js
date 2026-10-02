@@ -7,12 +7,20 @@ export default {
   theme: {
     extend: {
       colors: {
-        canvas: '#0A0A0B',
-        graphite: '#1A1A1D',
-        ivory: '#F2EEE6',
-        signature: '#FF9F1C',
-        muted: '#8E8E93',
-        hairline: 'rgba(242, 238, 230, 0.12)',
+        canvas: '#07080A',
+        graphite: '#12141A',
+        surface: {
+          DEFAULT: '#161922',
+          elevated: '#1E222E',
+        },
+        ivory: '#F5F5F7',
+        signature: {
+          DEFAULT: '#E5A93C',
+          hover: '#F5B748',
+          muted: 'rgba(229, 169, 59, 0.15)',
+        },
+        muted: '#9CA3AF',
+        hairline: 'rgba(245, 245, 247, 0.08)',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],

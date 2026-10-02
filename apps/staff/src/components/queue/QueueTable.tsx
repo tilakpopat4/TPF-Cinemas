@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Film as FilmIcon, Sparkles, Eye, CheckCircle2, Clock, AlertTriangle, FileCheck2, ArrowRight } from 'lucide-react';
+import { Search, Film as FilmIcon, Sparkles, Eye, CheckCircle2, Clock, AlertTriangle, FileCheck2, ArrowRight, Lock } from 'lucide-react';
 import { Film } from '../../types';
 import { formatDuration, formatDate } from '../../lib/utils';
 
@@ -37,7 +37,15 @@ export const QueueTable: React.FC<QueueTableProps> = ({ films, onSelectFilm }) =
   const publishedCount = films.filter((f) => f.status === 'published').length;
   const changesCount = films.filter((f) => f.status === 'changes_requested').length;
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, ipHold?: boolean) => {
+    if (ipHold) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30">
+          <Lock className="h-3 w-3" />
+          IP Hold
+        </span>
+      );
+    }
     switch (status) {
       case 'published':
         return (
@@ -328,7 +336,7 @@ export const QueueTable: React.FC<QueueTableProps> = ({ films, onSelectFilm }) =
                         )}
                       </td>
 
-                      <td className="px-4 py-3.5">{getStatusBadge(film.status)}</td>
+                      <td className="px-4 py-3.5">{getStatusBadge(film.status, film.ip_hold)}</td>
 
                       <td className="px-4 py-3.5">
                         <p className="text-zinc-200 font-medium">{formatDuration(film.runtime_minutes || 0)}</p>

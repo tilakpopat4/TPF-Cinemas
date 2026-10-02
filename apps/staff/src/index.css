@@ -8,23 +8,23 @@
    ===================================================================== */
 
 :root {
-  --bg-base: #07090e;
-  --bg-surface: #0f131c;
-  --bg-surface-elevated: #161b26;
-  --bg-surface-hover: #1e2433;
+  --bg-base: #07080A;
+  --bg-surface: #0c0d14;
+  --bg-surface-elevated: #12141a;
+  --bg-surface-hover: #181b24;
 
   --border-subtle: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.16);
 
-  --accent-amber: #f59e0b;
-  --accent-amber-hover: #fbbf24;
+  --accent-amber: #E5A93C;
+  --accent-amber-hover: #F5B748;
   --accent-emerald: #10b981;
   --accent-rose: #f43f5e;
   --accent-sky: #38bdf8;
 
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-primary: #F5F5F7;
+  --text-secondary: #9CA3AF;
+  --text-muted: #6b7280;
 
   --font-display: 'Outfit', sans-serif;
   --font-body: 'Plus Jakarta Sans', sans-serif;
@@ -253,4 +253,34 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(245, 158, 11, 0.12);
   color: #f59e0b;
   border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+/* Official OTT Legal Format Print Styles */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #111111 !important;
+    overflow: visible !important;
+  }
+
+  header, footer, nav, .no-print {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  #rights-undertaking-doc {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    color: #111111 !important;
+    background: #ffffff !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 14mm 14mm 14mm 14mm;
+  }
 }

@@ -83,6 +83,7 @@ export interface Film {
   release_year: number | null;
   age_rating: AgeRating | null;
   poster_url: string | null;
+  backdrop_url?: string | null;
   video_provider: VideoProvider;
   video_ref: string | null;
   is_debut: boolean;
@@ -96,6 +97,9 @@ export interface Film {
   film_credits?: FilmCredit[];
   film_reviews?: FilmReview[];
   licence_agreements?: LicenceAgreement;
+  ip_hold?: boolean;
+  ip_hold_reason?: string | null;
+  ip_hold_at?: string | null;
 }
 
 export interface AuditLogItem {

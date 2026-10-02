@@ -64,7 +64,8 @@ create table public.films (
   language        text not null,
   release_year    smallint check (release_year between 1990 and 2100),
   age_rating      public.age_rating,
-  poster_url      text,
+  poster_url      text,                       -- Portrait artwork (2:3) or JSON encoded artworks
+  backdrop_url    text,                       -- Landscape backdrop artwork (16:9)
   video_provider  public.video_provider not null default 'youtube',
   video_ref       text,                       -- YouTube video ID or Mux playback ID
   is_debut        boolean not null default false,   -- self-declared, curators verify

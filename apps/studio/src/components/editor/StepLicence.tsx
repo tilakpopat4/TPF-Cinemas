@@ -1,17 +1,19 @@
 import React from 'react';
-import { ShieldCheck, FileText, CheckSquare, Info } from 'lucide-react';
+import { ShieldCheck, FileText, CheckSquare, Printer } from 'lucide-react';
 import { LicenceAgreement } from '../../types';
 
 interface StepLicenceProps {
   licence: Partial<LicenceAgreement>;
   onChange: (updates: Partial<LicenceAgreement>) => void;
   filmTitle: string;
+  onPreviewDeed?: () => void;
 }
 
 export const StepLicence: React.FC<StepLicenceProps> = ({
   licence,
   onChange,
   filmTitle,
+  onPreviewDeed,
 }) => {
   return (
     <div className="space-y-6 animate-fade-in">
@@ -31,6 +33,31 @@ export const StepLicence: React.FC<StepLicenceProps> = ({
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Official Deed Preview & Print Prompt */}
+      <div className="rounded-xl border border-emerald-500/25 bg-emerald-950/20 p-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
+            <FileText className="h-4 w-4" />
+          </div>
+          <div>
+            <h5 className="text-xs font-bold text-white">Official OTT Rights Undertaking & Deed</h5>
+            <p className="text-[11px] text-zinc-400">
+              Formally structured legal document ready for printing or PDF filing.
+            </p>
+          </div>
+        </div>
+        {onPreviewDeed && (
+          <button
+            type="button"
+            onClick={onPreviewDeed}
+            className="px-3.5 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0"
+          >
+            <Printer className="h-3.5 w-3.5" />
+            <span>Preview & Print Deed</span>
+          </button>
+        )}
       </div>
 
       {/* Licence Parameters */}

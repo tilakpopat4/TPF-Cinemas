@@ -12,10 +12,12 @@ import {
   VolumeX,
   Share2,
   Sparkles,
+  Flag,
 } from 'lucide-react';
 import { Film } from '../../types';
 import { formatRuntime, extractYouTubeId } from '../../lib/utils';
 import { useReducedMotion, fadeOnly } from '../../lib/motion';
+import { ReportCopyrightModal } from '../legal/ReportCopyrightModal';
 
 interface MoreInfoModalProps {
   film: Film | null;
@@ -38,6 +40,7 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
   const [isPlayingTeaser, setIsPlayingTeaser] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [showReport, setShowReport] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -71,7 +74,7 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
-  return createPortal(
+  const portal = createPortal(
     <motion.div
       className="fixed inset-0 z-[100] flex justify-center p-0 sm:p-4 md:p-6 overflow-y-auto"
       style={{ backgroundColor: 'rgba(0, 0, 0, 0.88)', backdropFilter: 'blur(8px)' }}
@@ -109,8 +112,8 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
           ) : (
             <img
               src={
-                film.poster_url ||
-                'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1600&auto=format&fit=crop'
+                film.backdrop_url || film.poster_url ||
+                'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1600&auto=format&fit=crop'
               }
               alt={film.title}
               className="w-full h-full object-cover object-center filter brightness-[0.88]"
@@ -170,7 +173,7 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
                   onClose();
                   onPlay(film, 'movie');
                 }}
-                className="px-6 py-2.5 rounded-sm bg-signature text-black font-semibold text-xs uppercase tracking-wider hover:bg-[#f79612] transition-colors flex items-center gap-2 shadow-lg"
+                className="px-6 py-2.5 rounded-full bg-amber-500 text-black font-bold text-xs uppercase tracking-wider hover:bg-amber-400 transition-all flex items-center gap-2 shadow-lg shadow-amber-500/25 active:scale-95 border-none"
                 title="Screen Full Feature Movie"
               >
                 <Play className="h-4 w-4 fill-current" />
@@ -187,21 +190,21 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
                     onPlay(film, 'trailer');
                   }
                 }}
-                className="px-5 py-2.5 rounded-sm bg-black/70 hover:bg-black text-ivory border border-hairline hover:border-ivory font-medium text-xs uppercase tracking-wider transition-colors flex items-center gap-2 shadow-sm"
+                className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md font-medium text-xs uppercase tracking-wider transition-all flex items-center gap-2 active:scale-95 border-none"
                 title="Watch Official Teaser"
               >
-                <FilmIcon className="h-4 w-4 text-signature" />
+                <FilmIcon className="h-4 w-4 text-amber-400" />
                 <span>{isPlayingTeaser ? 'Fullscreen Trailer' : 'Watch Trailer'}</span>
               </button>
 
               {/* Queue Button */}
               <button
                 onClick={() => onToggleWatchlist(film.id)}
-                className="h-10 w-10 rounded-sm border border-hairline hover:border-ivory text-ivory flex items-center justify-center bg-black/60 hover:bg-black transition-colors"
+                className="h-10 w-10 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md flex items-center justify-center transition-all active:scale-95 border-none"
                 title={isInWatchlist ? 'Remove from Queue' : 'Add to Queue'}
               >
                 {isInWatchlist ? (
-                  <Check className="h-4 w-4 text-signature" />
+                  <Check className="h-4 w-4 text-amber-400" />
                 ) : (
                   <Plus className="h-4 w-4" />
                 )}
@@ -210,10 +213,10 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
               {/* Share Button */}
               <button
                 onClick={handleCopyShare}
-                className="h-10 w-10 rounded-sm border border-hairline hover:border-ivory text-ivory flex items-center justify-center bg-black/60 hover:bg-black transition-colors"
+                className="h-10 w-10 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md flex items-center justify-center transition-all active:scale-95 border-none"
                 title={copiedLink ? 'Link Copied!' : 'Share Cinema'}
               >
-                {copiedLink ? <Check className="h-4 w-4 text-signature" /> : <Share2 className="h-4 w-4 text-muted" />}
+                {copiedLink ? <Check className="h-4 w-4 text-amber-400" /> : <Share2 className="h-4 w-4 text-zinc-400" />}
               </button>
             </div>
           </div>
@@ -233,7 +236,7 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
                 <span>•</span>
                 <span className="text-ivory">{film.release_year}</span>
                 <span>•</span>
-                <span className="px-1.5 py-0.5 rounded-sm bg-canvas border border-hairline text-ivory text-[10px] font-bold">
+                <span className="px-2 py-0.5 rounded-full bg-white/10 text-white text-[10px] font-bold border-none">
                   {film.age_rating}
                 </span>
                 <span>•</span>
@@ -241,10 +244,10 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
                   <Clock className="h-3 w-3 text-muted" />
                   {formatRuntime(film.runtime_minutes)}
                 </span>
-                <span className="px-1.5 py-0.5 rounded-sm bg-canvas border border-hairline text-signature text-[10px] font-bold">
+                <span className="px-2 py-0.5 rounded-full bg-white/10 text-amber-400 text-[10px] font-bold border-none">
                   4K ULTRA HD
                 </span>
-                <span className="px-1.5 py-0.5 rounded-sm bg-canvas border border-hairline text-muted text-[10px]">
+                <span className="px-2 py-0.5 rounded-full bg-white/10 text-zinc-300 text-[10px] border-none">
                   5.1 AUDIO
                 </span>
               </div>
@@ -431,10 +434,33 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
                 <span className="text-ivory">{film.age_rating} • Suitable for theatrical exhibition</span>
               </div>
             </div>
+
+            {/* Copyright Report Button */}
+            <div className="pt-3 border-t border-white/[0.06]">
+              <button
+                onClick={() => setShowReport(true)}
+                className="flex items-center gap-1.5 text-[10px] text-zinc-500 hover:text-rose-400 transition-colors group"
+              >
+                <Flag className="h-3 w-3 group-hover:text-rose-400" />
+                <span>Report Copyright Infringement</span>
+              </button>
+              <p className="text-[9px] text-zinc-600 mt-1">
+                Indian Copyright Act 1957 · IT Act 2000 §79
+              </p>
+            </div>
           </div>
         </div>
       </motion.div>
     </motion.div>,
     document.body
+  );
+
+  return (
+    <>
+      {portal}
+      {showReport && (
+        <ReportCopyrightModal film={film} onClose={() => setShowReport(false)} />
+      )}
+    </>
   );
 };

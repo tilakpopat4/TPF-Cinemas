@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Globe, ChevronDown, Check, Phone, Mail, ShieldCheck } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Globe, ChevronDown, Check, Phone, Mail, ShieldCheck, X } from 'lucide-react';
 import { useLanguage, SUPPORTED_LANGUAGES } from '../../context/LanguageContext';
 
 interface ViewerFooterProps {
@@ -40,19 +41,19 @@ export const ViewerFooter: React.FC<ViewerFooterProps> = ({
           <div className="flex flex-wrap items-center gap-2">
             <span>Questions or curatorial inquiries?</span>
             <a
-              href="tel:0008009191743"
+              href="tel:+917874903810"
               className="text-ivory hover:text-signature transition-colors underline underline-offset-4 flex items-center gap-1.5"
             >
               <Phone className="h-3.5 w-3.5 text-signature" />
-              <span>Call 000-800-919-1743</span>
+              <span>Call +91 78749 03810</span>
             </a>
             <span className="hidden sm:inline text-hairline">•</span>
             <a
-              href="mailto:curators@tpfcinemas.com"
+              href="mailto:work.tilakpopatfilms@gmail.com"
               className="text-ivory hover:text-signature transition-colors underline underline-offset-4 flex items-center gap-1.5"
             >
               <Mail className="h-3.5 w-3.5 text-signature" />
-              <span>curators@tpfcinemas.com</span>
+              <span>work.tilakpopatfilms@gmail.com</span>
             </a>
           </div>
         </div>
@@ -192,7 +193,7 @@ export const ViewerFooter: React.FC<ViewerFooterProps> = ({
             </li>
             <li>
               <button
-                onClick={() => handleLinkClick('Contact Curatorial Board', 'Direct submissions and archival inquiries can be addressed to our lead programming desk at programming@tpfcinemas.com.')}
+                onClick={() => handleLinkClick('Contact Curatorial Board', 'Direct submissions and archival inquiries can be addressed to our lead programming desk at work.tilakpopatfilms@gmail.com.')}
                 className="hover:underline hover:text-ivory transition-colors text-left"
               >
                 Contact Us
@@ -213,9 +214,8 @@ export const ViewerFooter: React.FC<ViewerFooterProps> = ({
         <div className="relative inline-block text-left" ref={langContainerRef}>
           <button
             onClick={() => setIsLangOpen(!isLangOpen)}
-            className={`flex items-center gap-2.5 px-3.5 py-2 rounded-sm bg-black/70 border border-hairline hover:border-ivory/50 text-ivory text-xs font-sans transition-colors focus:outline-none focus:border-signature ${
-              isTranslating ? 'animate-pulse border-signature' : ''
-            }`}
+            className={`flex items-center gap-2.5 px-3.5 py-2 rounded-sm bg-black/70 border border-hairline hover:border-ivory/50 text-ivory text-xs font-sans transition-colors focus:outline-none focus:border-signature ${isTranslating ? 'animate-pulse border-signature' : ''
+              }`}
             aria-label="Select Language (Live Google Translator)"
           >
             <Globe className="h-3.5 w-3.5 text-signature" />
@@ -259,51 +259,68 @@ export const ViewerFooter: React.FC<ViewerFooterProps> = ({
         {/* Regional Tag — Netflix India Pattern */}
         <div className="space-y-3 pt-2">
           <p className="text-xs text-muted font-sans font-medium">
-            TPF Cinemas India & International
+            TPF Cinemas
           </p>
 
           {/* Security / Curatorial Protection Disclaimer — Inspired by Netflix reCAPTCHA notice */}
           <div className="flex items-center gap-2 text-[11px] text-muted/70 font-mono">
             <ShieldCheck className="h-3.5 w-3.5 text-signature/70 shrink-0" />
             <p>
-              Screening Beginners&apos; Dreams. This platform is protected by cryptographic DRM and curatorial integrity standards.
+              Made With ❤️ For Cinephiles.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Info Modal for Link Dialogs */}
-      {activeModalInfo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+      {/* Info Modal for Link Dialogs — Portaled to document.body with maximum z-index */}
+      {activeModalInfo &&
+        createPortal(
           <div
-            className="border border-hairline rounded-sm max-w-md w-full p-6 space-y-4 shadow-2xl text-ivory"
-            style={{ backgroundColor: '#141417' }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-md animate-fade-in"
+            onClick={() => setActiveModalInfo(null)}
           >
-            <div className="flex items-center justify-between border-b border-hairline pb-3">
-              <h3 className="font-display text-xl tracking-wider text-ivory uppercase">
-                {activeModalInfo.title}
-              </h3>
-              <button
-                onClick={() => setActiveModalInfo(null)}
-                className="text-muted hover:text-ivory text-sm px-2 py-1 rounded-sm border border-hairline hover:bg-canvas"
-              >
-                ✕
-              </button>
+            <div
+              className="relative w-full max-w-lg rounded-2xl border border-white/[0.12] bg-[#0A0A0B] p-6 sm:p-7 shadow-[0_24px_64px_rgba(0,0,0,0.95)] text-ivory space-y-5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start justify-between border-b border-white/[0.08] pb-4">
+                <div>
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-signature font-semibold">
+                    TPF Curatorial Dispatch
+                  </span>
+                  <h3 className="font-editorial text-2xl sm:text-3xl font-medium tracking-tight text-ivory mt-0.5">
+                    {activeModalInfo.title}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setActiveModalInfo(null)}
+                  className="text-muted hover:text-ivory h-8 w-8 rounded-lg border border-white/10 hover:bg-white/[0.06] flex items-center justify-center transition-colors shrink-0"
+                  aria-label="Close dialog"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <p className="font-sans text-xs sm:text-sm text-ivory/85 leading-relaxed font-normal">
+                {activeModalInfo.content}
+              </p>
+
+              <div className="pt-2 flex items-center justify-between border-t border-white/[0.06]">
+                <div className="flex items-center gap-1.5 text-[11px] font-mono text-muted">
+                  <ShieldCheck className="h-3.5 w-3.5 text-signature" />
+                  <span>Curatorial Verification</span>
+                </div>
+                <button
+                  onClick={() => setActiveModalInfo(null)}
+                  className="px-5 py-2 rounded-lg bg-signature hover:bg-signature-hover text-black font-semibold text-xs uppercase tracking-wider transition-all shadow-[0_2px_12px_rgba(229,169,59,0.3)] hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  Dismiss
+                </button>
+              </div>
             </div>
-            <p className="font-sans text-xs text-ivory/80 leading-relaxed">
-              {activeModalInfo.content}
-            </p>
-            <div className="pt-2 flex justify-end">
-              <button
-                onClick={() => setActiveModalInfo(null)}
-                className="px-4 py-1.5 rounded-sm bg-signature text-black font-semibold text-xs uppercase tracking-wider hover:bg-[#f79612] transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </footer>
   );
 };

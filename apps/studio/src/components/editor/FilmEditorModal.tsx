@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { useReducedMotion, easeMinimal, scaleModal, fadeOnly, springSnappy } from '../../lib/motion';
 import { X, Check, ArrowRight, ArrowLeft, Save, Send, Loader2, Sparkles, Eye, Film as FilmIcon, Clock } from 'lucide-react';
@@ -8,7 +9,8 @@ import { StepMedia } from './StepMedia';
 import { StepCredits } from './StepCredits';
 import { StepLicence } from './StepLicence';
 import { supabase } from '../../lib/supabase';
-import { formatDuration } from '../../lib/utils';
+import { formatDuration, getFilmArtworks } from '../../lib/utils';
+import { RightsUndertakingModal } from '../legal/RightsUndertakingModal';
 
 interface FilmEditorModalProps {
   film: Film | null;
@@ -20,7 +22,7 @@ interface FilmEditorModalProps {
 
 const STEPS = [
   { title: 'Film Metadata', subtitle: 'Title, synopsis & rating' },
-  { title: 'Poster & Stream', subtitle: 'Artwork & YouTube ref' },
+  { title: 'Artworks & Stream', subtitle: 'Portrait + Landscape + YouTube' },
   { title: 'Cast & Credits', subtitle: 'Genres & creative team' },
   { title: 'Legal Licence', subtitle: 'Terms & music clearance' },
 ];
@@ -49,6 +51,7 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
     release_year: 2026,
     age_rating: 'UA13+',
     poster_url: null,
+    backdrop_url: null,
     video_ref: '',
     video_provider: 'youtube',
     is_debut: false,
@@ -64,6 +67,7 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
     music_cleared: false,
     terms_version: 'v1.0',
   });
+  const [showRightsDeed, setShowRightsDeed] = useState(false);
 
   // Populate if editing existing film
   useEffect(() => {
@@ -137,6 +141,7 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
               video_provider: filmData.video_provider || 'youtube',
               video_ref: filmData.video_ref?.trim() || null,
               poster_url: filmData.poster_url || null,
+              backdrop_url: filmData.backdrop_url || null,
               is_debut: !!filmData.is_debut,
             })
             .select('id')
@@ -179,6 +184,7 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
             video_provider: filmData.video_provider,
             video_ref: filmData.video_ref?.trim() || null,
             poster_url: filmData.poster_url || null,
+            backdrop_url: filmData.backdrop_url || null,
             is_debut: !!filmData.is_debut,
           })
           .eq('id', savedFilmId);
@@ -261,7 +267,10 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
       // If submitting to curators right away
       if (andSubmit) {
         if (!filmData.poster_url) {
-          throw new Error('Please upload a film poster before submitting for curation.');
+          throw new Error('Please upload the Portrait Poster (2:3) before submitting for curation.');
+        }
+        if (!filmData.backdrop_url) {
+          throw new Error('Please upload the Landscape Banner (16:9) before submitting for curation. Both artworks are compulsory.');
         }
         if (!filmData.video_ref) {
           throw new Error('Please link a valid YouTube video stream before submitting for curation.');
@@ -288,9 +297,9 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
   // Selected genre names for live preview
   const selectedGenreObjects = availableGenres.filter((g) => selectedGenres.includes(g.id));
 
-  return (
+  return createPortal(
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/90 backdrop-blur-xl"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 bg-black/90 backdrop-blur-xl"
       {...fadeOnly(reduced)}
     >
       <motion.div
@@ -424,6 +433,7 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
                     licence={licence}
                     filmTitle={filmData.title || 'Untitled Film'}
                     onChange={(updated) => setLicence((prev) => ({ ...prev, ...updated }))}
+                    onPreviewDeed={() => setShowRightsDeed(true)}
                   />
                 )}
               </motion.div>
@@ -433,13 +443,13 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
           {/* Right: Live Audience Preview Drawer */}
           {showPreview && (
             <div className="hidden lg:flex w-72 border-l border-white/[0.08] bg-[#0a0d14] p-5 flex-col justify-between shrink-0">
-              <div>
-                <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-400 mb-3">
+              <div className="space-y-4">
+                <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-400">
                   <Sparkles className="h-3.5 w-3.5" />
                   <span>Audience Preview</span>
                 </div>
 
-                {/* Simulated Movie Tile */}
+                {/* Portrait Card */}
                 <div className="rounded-2xl overflow-hidden border border-white/10 bg-[#121620] shadow-xl">
                   <div className="relative aspect-[2/3] w-full bg-black/80 overflow-hidden">
                     {filmData.poster_url ? (
@@ -451,7 +461,7 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
                     ) : (
                       <div className="flex h-full w-full flex-col items-center justify-center text-zinc-600 p-4 text-center">
                         <FilmIcon className="h-10 w-10 mb-2 opacity-30" />
-                        <span className="text-[11px]">Poster preview will appear here</span>
+                        <span className="text-[11px]">Portrait poster will appear here</span>
                       </div>
                     )}
 
@@ -488,10 +498,20 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
                     )}
                   </div>
                 </div>
-              </div>
 
-              <div className="pt-4 border-t border-white/[0.06] text-[11px] text-zinc-500">
-                Live card updates as you fill details across steps.
+                {/* Landscape Preview */}
+                <div className="space-y-1.5">
+                  <p className="text-[11px] text-zinc-500">Landscape Banner (16:9)</p>
+                  <div className="rounded-lg overflow-hidden aspect-video border border-white/10 bg-black/60">
+                    {filmData.backdrop_url ? (
+                      <img src={filmData.backdrop_url} alt="Landscape" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-zinc-600 text-[10px]">
+                        Landscape will appear here
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -539,7 +559,7 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
               <motion.button
                 type="button"
                 onClick={() => handleSave(true)}
-                disabled={saving || !licence.music_cleared}
+                disabled={saving || !licence.music_cleared || !filmData.poster_url || !filmData.backdrop_url}
                 className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 disabled:opacity-40 text-white shadow-xl shadow-rose-600/30 transition-colors"
                 whileTap={reduced ? {} : { scale: 0.97, transition: springSnappy }}
               >
@@ -554,6 +574,35 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
           </div>
         </div>
       </motion.div>
-    </motion.div>
+
+      {/* Official OTT Rights Deed & Undertaking Modal */}
+      {showRightsDeed && (
+        <RightsUndertakingModal
+          film={{
+            ...(film || (filmData as Film)),
+            id: film?.id || 'draft-preview',
+            title: filmData.title || 'Untitled Film',
+            language: filmData.language || 'Original',
+            runtime_minutes: filmData.runtime_minutes || 0,
+            release_year: filmData.release_year || new Date().getFullYear(),
+            age_rating: filmData.age_rating || 'U',
+            created_at: film?.created_at || new Date().toISOString(),
+            licence_agreements: {
+              film_id: film?.id || 'draft-preview',
+              filmmaker_id: userId,
+              licence_type: 'non_exclusive',
+              territory: 'Worldwide (Non-exclusive)',
+              term_months: licence.term_months || 24,
+              music_cleared: licence.music_cleared ?? false,
+              terms_version: 'v1.0',
+              agreement_path: null,
+              signed_at: new Date().toISOString(),
+            },
+          }}
+          onClose={() => setShowRightsDeed(false)}
+        />
+      )}
+    </motion.div>,
+    document.body
   );
 };

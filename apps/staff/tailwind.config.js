@@ -7,22 +7,26 @@ export default {
   theme: {
     extend: {
       colors: {
-        canvas: '#0A0A0B',
-        graphite: '#1A1A1D',
-        ivory: '#F2EEE6',
-        signature: '#FF9F1C',
-        muted: '#8E8E93',
-        hairline: 'rgba(242, 238, 230, 0.12)',
-        background: '#08090c',
+        canvas: '#07080A',
+        graphite: '#12141A',
+        ivory: '#F5F5F7',
+        signature: {
+          DEFAULT: '#E5A93C',
+          hover: '#F5B748',
+          muted: 'rgba(229, 169, 59, 0.15)',
+        },
+        muted: '#9CA3AF',
+        hairline: 'rgba(245, 245, 247, 0.08)',
+        background: '#07080A',
         surface: {
           50: '#1e2430',
           100: '#161a23',
-          200: '#10141c',
-          300: '#0d1017',
-          DEFAULT: '#0d1017',
+          200: '#12141a',
+          300: '#0c0d14',
+          DEFAULT: '#0c0d14',
         },
         cinema: {
-          gold: '#FF9F1C',
+          gold: '#E5A93C',
           amber: '#f59e0b',
           red: '#e50914',
           crimson: '#dc2626',

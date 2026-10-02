@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Play,
@@ -86,8 +87,8 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
           {/* Still Backdrop Poster with Cinema Fidelity Lighting */}
           <img
             src={
-              currentFilm.poster_url ||
-              'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1600&auto=format&fit=crop'
+              (currentFilm.backdrop_url || currentFilm.poster_url) ||
+              'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1600&auto=format&fit=crop'
             }
             alt={currentFilm.title}
             className="w-full h-full object-cover object-center filter brightness-[0.85] transition-opacity duration-500 opacity-100"
@@ -184,21 +185,21 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
             </p>
 
             {/* Action Buttons: Explicit 2 Options (Movie & Trailer) */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
+            <div className="flex flex-wrap items-center gap-3 pt-3">
               {/* Option 1: Watch Movie (Primary) */}
               <button
                 onClick={() => onPlay(currentFilm, 'movie')}
-                className="px-5 py-2.5 rounded-sm bg-signature text-black font-semibold text-xs uppercase tracking-wider hover:bg-[#f79612] transition-colors flex items-center gap-2 shadow-md"
+                className="px-6 py-3 rounded-lg bg-signature hover:bg-signature-hover text-black font-semibold text-xs uppercase tracking-wider transition-all duration-200 flex items-center gap-2 shadow-[0_4px_20px_rgba(229,169,59,0.35)] hover:scale-[1.02] active:scale-[0.98]"
                 title="Watch Full Feature Movie"
               >
-                <Play className="h-4 w-4 fill-current" />
+                <Play className="h-4 w-4 fill-current ml-0.5" />
                 <span>Watch Movie</span>
               </button>
 
               {/* Option 2: Watch Trailer (Secondary) */}
               <button
                 onClick={() => onPlay(currentFilm, 'trailer')}
-                className="px-4.5 py-2.5 rounded-sm bg-graphite/70 hover:bg-graphite text-ivory border border-hairline hover:border-ivory font-medium text-xs uppercase tracking-wider transition-colors flex items-center gap-2 shadow-sm"
+                className="px-5 py-3 rounded-lg bg-white/[0.08] hover:bg-white/[0.14] text-ivory border border-white/[0.15] hover:border-white/[0.3] font-medium text-xs uppercase tracking-wider transition-all duration-200 flex items-center gap-2 shadow-sm backdrop-blur-sm hover:scale-[1.02] active:scale-[0.98]"
                 title="Watch Official Trailer"
               >
                 <FilmIcon className="h-4 w-4 text-signature" />
@@ -208,7 +209,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
               {/* Add to Queue */}
               <button
                 onClick={() => onToggleWatchlist(currentFilm.id)}
-                className="px-4 py-2.5 rounded-sm border border-hairline hover:border-ivory text-ivory text-xs uppercase tracking-wider font-medium flex items-center gap-1.5 bg-graphite/40 hover:bg-graphite/70 transition-colors"
+                className="px-4.5 py-3 rounded-lg border border-white/[0.12] hover:border-white/[0.25] text-ivory text-xs uppercase tracking-wider font-medium flex items-center gap-1.5 bg-black/40 hover:bg-black/60 transition-all duration-200 backdrop-blur-sm"
               >
                 {inList ? (
                   <>
@@ -227,7 +228,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
               {onMoreInfo && (
                 <button
                   onClick={() => onMoreInfo(currentFilm)}
-                  className="px-3.5 py-2.5 rounded-sm text-muted hover:text-ivory text-xs uppercase tracking-wider flex items-center gap-1.5 hover:bg-graphite/40 transition-colors"
+                  className="px-3.5 py-3 rounded-lg text-muted hover:text-ivory text-xs uppercase tracking-wider flex items-center gap-1.5 hover:bg-white/[0.06] transition-all duration-200"
                   title="Curatorial Notes & Credits"
                 >
                   <Info className="h-3.5 w-3.5" />
@@ -271,79 +272,85 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
       )}
 
       {/* Option Selection Dialog: Shown when user clicks title or general format selector */}
-      {showFormatModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fade-in">
+      {showFormatModal &&
+        createPortal(
           <div
-            className="rounded-sm border border-hairline p-6 max-w-md w-full shadow-2xl space-y-5 text-ivory"
-            style={{ backgroundColor: '#141417' }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-md animate-fade-in"
+            onClick={() => setShowFormatModal(false)}
           >
-            <div className="flex items-center justify-between border-b border-hairline pb-3">
-              <div>
-                <span className="font-mono text-[9px] uppercase tracking-widest text-signature block">
-                  Select Playback Option
-                </span>
-                <h3 className="font-editorial text-2xl font-normal text-ivory mt-0.5">
-                  {currentFilm.title}
-                </h3>
+            <div
+              className="relative w-full max-w-md rounded-2xl border border-white/[0.12] bg-[#0A0A0B] p-6 sm:p-7 shadow-[0_24px_64px_rgba(0,0,0,0.95)] text-ivory space-y-5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start justify-between border-b border-white/[0.08] pb-4">
+                <div>
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-signature font-semibold">
+                    Select Screening Mode
+                  </span>
+                  <h3 className="font-editorial text-2xl sm:text-3xl font-medium tracking-tight text-ivory mt-0.5">
+                    {currentFilm.title}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setShowFormatModal(false)}
+                  className="text-muted hover:text-ivory h-8 w-8 rounded-lg border border-white/10 hover:bg-white/[0.06] flex items-center justify-center transition-colors shrink-0"
+                  aria-label="Close dialog"
+                >
+                  ✕
+                </button>
               </div>
-              <button
-                onClick={() => setShowFormatModal(false)}
-                className="text-muted hover:text-ivory text-sm px-2 py-1 rounded-sm border border-hairline hover:bg-canvas"
-              >
-                ✕
-              </button>
+
+              <p className="font-sans text-xs sm:text-sm text-ivory/80 leading-relaxed font-normal">
+                Choose your screening format below. Playback is optimized for lossless cinema fidelity:
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                {/* Option: Trailer */}
+                <button
+                  onClick={() => {
+                    setShowFormatModal(false);
+                    onPlay(currentFilm, 'trailer');
+                  }}
+                  className="p-4 rounded-xl border border-white/[0.10] hover:border-signature/60 bg-white/[0.03] hover:bg-white/[0.08] flex flex-col items-center text-center gap-2.5 group transition-all duration-200"
+                >
+                  <div className="h-11 w-11 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center text-ivory group-hover:text-signature group-hover:border-signature/50 transition-colors">
+                    <FilmIcon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <span className="font-semibold text-xs uppercase tracking-wider text-ivory block">
+                      Watch Trailer
+                    </span>
+                    <span className="font-mono text-[10px] text-muted block mt-0.5">
+                      Official Teaser
+                    </span>
+                  </div>
+                </button>
+
+                {/* Option: Movie */}
+                <button
+                  onClick={() => {
+                    setShowFormatModal(false);
+                    onPlay(currentFilm, 'movie');
+                  }}
+                  className="p-4 rounded-xl border border-signature bg-signature hover:bg-signature-hover text-black flex flex-col items-center text-center gap-2.5 transition-all duration-200 shadow-[0_4px_20px_rgba(229,169,59,0.3)] hover:scale-[1.02]"
+                >
+                  <div className="h-11 w-11 rounded-lg bg-black/20 flex items-center justify-center text-black">
+                    <Play className="h-5 w-5 fill-current ml-0.5" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-xs uppercase tracking-wider block">
+                      Watch Movie
+                    </span>
+                    <span className="font-mono text-[10px] text-black/80 block mt-0.5">
+                      {formatRuntime(currentFilm.runtime_minutes)}
+                    </span>
+                  </div>
+                </button>
+              </div>
             </div>
-
-            <p className="font-sans text-xs text-muted leading-relaxed">
-              Choose your screening format below. Video playback will not start until an option is selected:
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-              {/* Option: Trailer */}
-              <button
-                onClick={() => {
-                  setShowFormatModal(false);
-                  onPlay(currentFilm, 'trailer');
-                }}
-                className="p-4 rounded-sm border border-hairline hover:border-signature bg-graphite/60 hover:bg-graphite flex flex-col items-center text-center gap-2.5 group transition-colors"
-              >
-                <div className="h-10 w-10 rounded-sm bg-black/60 border border-hairline flex items-center justify-center text-ivory group-hover:text-signature group-hover:border-signature transition-colors">
-                  <FilmIcon className="h-5 w-5" />
-                </div>
-                <div>
-                  <span className="font-semibold text-xs uppercase tracking-wider text-ivory block">
-                    Watch Trailer
-                  </span>
-                  <span className="font-mono text-[10px] text-muted block mt-0.5">
-                    Official Teaser
-                  </span>
-                </div>
-              </button>
-
-              {/* Option: Movie */}
-              <button
-                onClick={() => {
-                  setShowFormatModal(false);
-                  onPlay(currentFilm, 'movie');
-                }}
-                className="p-4 rounded-sm border border-signature bg-signature text-black hover:bg-[#f79612] flex flex-col items-center text-center gap-2.5 transition-colors shadow-md"
-              >
-                <div className="h-10 w-10 rounded-sm bg-black/20 flex items-center justify-center text-black">
-                  <Play className="h-5 w-5 fill-current" />
-                </div>
-                <div>
-                  <span className="font-bold text-xs uppercase tracking-wider block">
-                    Watch Movie
-                  </span>
-                  <span className="font-mono text-[10px] text-black/80 block mt-0.5">
-                    {formatRuntime(currentFilm.runtime_minutes)}
-                  </span>
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

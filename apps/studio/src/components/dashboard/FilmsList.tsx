@@ -12,10 +12,13 @@ import {
   CheckCircle,
   AlertCircle,
   FileCheck2,
+  Lock,
+  AlertTriangle,
 } from 'lucide-react';
 import { Film } from '../../types';
 import { formatDuration, formatDate } from '../../lib/utils';
 import { supabase } from '../../lib/supabase';
+import { RightsUndertakingModal } from '../legal/RightsUndertakingModal';
 
 interface FilmsListProps {
   films: Film[];
@@ -34,6 +37,7 @@ export const FilmsList: React.FC<FilmsListProps> = ({
   const [search, setSearch] = useState('');
   const [submittingId, setSubmittingId] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [rightsModalFilm, setRightsModalFilm] = useState<Film | null>(null);
 
   // Filter by search query
   const filteredFilms = films.filter((f) => {
@@ -52,8 +56,8 @@ export const FilmsList: React.FC<FilmsListProps> = ({
     setSubmitError(null);
 
     // Pre-flight checks on client side
-    if (!film.video_ref || !film.poster_url) {
-      setSubmitError(`"${film.title}" requires both a poster image and a video link before submitting.`);
+    if (!film.video_ref || !film.poster_url || !film.backdrop_url) {
+      setSubmitError(`"${film.title}" requires a portrait poster, landscape banner, and a video link before submitting.`);
       setSubmittingId(null);
       return;
     }
@@ -79,7 +83,15 @@ export const FilmsList: React.FC<FilmsListProps> = ({
     }
   }
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, ipHold?: boolean) => {
+    if (ipHold) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30">
+          <Lock className="h-3 w-3" />
+          IP Hold
+        </span>
+      );
+    }
     switch (status) {
       case 'published':
         return (
@@ -215,11 +227,11 @@ export const FilmsList: React.FC<FilmsListProps> = ({
                 key={film.id}
                 className="group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0f131c]/90 backdrop-blur-md shadow-lg transition-all hover:border-white/20 hover:shadow-2xl flex flex-col"
               >
-                {/* Poster Banner */}
+                {/* Poster Banner — uses landscape backdrop when available, falls back to portrait */}
                 <div className="relative aspect-[16/9] w-full overflow-hidden bg-black/60 border-b border-white/[0.06]">
-                  {film.poster_url ? (
+                  {(film.backdrop_url || film.poster_url) ? (
                     <img
-                      src={film.poster_url}
+                      src={film.backdrop_url || film.poster_url!}
                       alt={film.title}
                       className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
                     />
@@ -235,7 +247,7 @@ export const FilmsList: React.FC<FilmsListProps> = ({
 
                   {/* Top Badges */}
                   <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
-                    <div>{getStatusBadge(film.status)}</div>
+                    <div>{getStatusBadge(film.status, film.ip_hold)}</div>
                     {film.is_debut && (
                       <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-amber-500 text-black shadow-md">
                         Debut
@@ -255,6 +267,21 @@ export const FilmsList: React.FC<FilmsListProps> = ({
                         {film.age_rating}
                       </span>
                     </div>
+
+                    {film.ip_hold && (
+                      <div className="mt-2.5 p-3 rounded-xl bg-rose-500/10 border border-rose-500/25 text-xs text-rose-300 space-y-1">
+                        <div className="flex items-center gap-1.5 font-bold text-rose-400">
+                          <AlertTriangle className="h-3.5 w-3.5" />
+                          <span>Copyright IP Hold Active</span>
+                        </div>
+                        <p className="text-[11px] text-zinc-300">
+                          {film.ip_hold_reason || 'Withheld from public catalogue following a copyright complaint under IT Act 2000 §79.'}
+                        </p>
+                        <p className="text-[10px] text-zinc-400">
+                          Contact <a href="mailto:legal@tpfcinemas.com" className="underline text-rose-300 hover:text-white">legal@tpfcinemas.com</a> within 14 days with proof of rights.
+                        </p>
+                      </div>
+                    )}
 
                     {film.status === 'changes_requested' && (
                       <div className="mt-2.5 p-2 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[11px] text-amber-300 flex items-center justify-between gap-2">
@@ -324,6 +351,17 @@ export const FilmsList: React.FC<FilmsListProps> = ({
                         </button>
                       )}
 
+                      {/* Official Rights Undertaking & Legal Deed */}
+                      {film.licence_agreements && (
+                        <button
+                          onClick={() => setRightsModalFilm(film)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 transition-colors"
+                          title="View & Print Official Legal Deed of Rights & Undertaking"
+                        >
+                          <FileCheck2 className="h-3.5 w-3.5" />
+                          <span>Rights Deed</span>
+                        </button>
+                      )}
                     </div>
 
                     {/* Submit Button */}
@@ -385,15 +423,19 @@ export const FilmsList: React.FC<FilmsListProps> = ({
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3.5">{getStatusBadge(film.status)}</td>
+                      <td className="px-4 py-3.5">{getStatusBadge(film.status, film.ip_hold)}</td>
                       <td className="px-4 py-3.5">{formatDuration(film.runtime_minutes || 0)}</td>
                       <td className="px-4 py-3.5 capitalize">{film.language}</td>
                       <td className="px-4 py-3.5">
                         {film.licence_agreements ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400">
+                          <button
+                            onClick={() => setRightsModalFilm(film)}
+                            className="inline-flex items-center gap-1.5 text-[11px] text-emerald-400 hover:text-emerald-300 font-medium px-2.5 py-1 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 transition-colors"
+                            title="Click to view & print official OTT Rights Undertaking"
+                          >
                             <FileCheck2 className="h-3.5 w-3.5" />
-                            <span>Signed</span>
-                          </span>
+                            <span>Signed (Print)</span>
+                          </button>
                         ) : (
                           <span className="text-[11px] text-amber-400">Pending</span>
                         )}
@@ -401,6 +443,15 @@ export const FilmsList: React.FC<FilmsListProps> = ({
                       <td className="px-4 py-3.5 text-zinc-500 text-[11px]">{formatDate(film.created_at)}</td>
                       <td className="px-5 py-3.5 text-right">
                         <div className="flex items-center justify-end gap-2">
+                          {film.licence_agreements && (
+                            <button
+                              onClick={() => setRightsModalFilm(film)}
+                              className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/25 transition-colors"
+                              title="Print Official Legal Rights Undertaking"
+                            >
+                              <FileCheck2 className="h-3.5 w-3.5" />
+                            </button>
+                          )}
                           {(film.status === 'draft' || film.status === 'changes_requested') && (
                             <>
                               <button
@@ -432,6 +483,14 @@ export const FilmsList: React.FC<FilmsListProps> = ({
             </table>
           </div>
         </div>
+      )}
+
+      {/* Official OTT Format Legal Rights Undertaking Modal */}
+      {rightsModalFilm && (
+        <RightsUndertakingModal
+          film={rightsModalFilm}
+          onClose={() => setRightsModalFilm(null)}
+        />
       )}
     </div>
   );

@@ -213,24 +213,24 @@ export const WatchModal: React.FC<WatchModalProps> = ({
         <div className="flex items-center gap-3 sm:gap-4 truncate mr-4">
           <button
             onClick={onClose}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-sm bg-graphite hover:bg-[#25252b] text-ivory border border-hairline transition-colors shrink-0"
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-all shrink-0 active:scale-95 border-none"
             title="Back to Catalogue (Esc)"
           >
             <ArrowLeft className="h-4 w-4" />
             <span className="hidden sm:inline font-mono text-xs uppercase tracking-wider">Back</span>
           </button>
 
-          <div className="h-4 w-px bg-hairline hidden sm:block shrink-0" />
+          <div className="h-4 w-px bg-white/15 hidden sm:block shrink-0" />
 
           <div className="truncate">
             <div className="flex items-center gap-2 truncate">
-              <span className="px-1.5 py-0.5 rounded-sm font-mono text-[9px] uppercase tracking-wider bg-graphite border border-hairline text-ivory shrink-0">
+              <span className="px-2 py-0.5 rounded-full font-mono text-[9px] uppercase tracking-wider bg-white/10 text-white/80 shrink-0">
                 {film.age_rating}
               </span>
-              <span className={`px-2 py-0.5 rounded-sm font-mono text-[9px] uppercase tracking-wider shrink-0 ${
+              <span className={`px-2.5 py-0.5 rounded-full font-mono text-[9px] uppercase tracking-wider shrink-0 ${
                 mode === 'trailer'
-                  ? 'bg-signature text-black font-bold'
-                  : 'bg-canvas border border-hairline text-ivory font-medium'
+                  ? 'bg-amber-500 text-black font-bold'
+                  : 'bg-white/10 text-white font-medium'
               }`}>
                 {mode === 'trailer' ? 'Official Trailer' : 'Full Feature'}
               </span>
@@ -258,14 +258,14 @@ export const WatchModal: React.FC<WatchModalProps> = ({
         </div>
 
         {/* Right: Quick Actions */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2.5 shrink-0">
           {/* Watchlist Toggle */}
           <button
             onClick={() => onToggleWatchlist(film.id)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-sm font-mono text-xs uppercase tracking-wider border transition-colors ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-mono text-xs uppercase tracking-wider transition-all backdrop-blur-md active:scale-95 border-none ${
               isInWatchlist
-                ? 'bg-signature text-black border-signature font-bold'
-                : 'bg-graphite hover:bg-[#25252b] border-hairline text-ivory'
+                ? 'bg-amber-500 text-black font-bold shadow-lg shadow-amber-500/20'
+                : 'bg-white/10 hover:bg-white/20 text-white'
             }`}
             title={isInWatchlist ? 'Remove from Queue' : 'Add to Queue'}
           >
@@ -276,10 +276,10 @@ export const WatchModal: React.FC<WatchModalProps> = ({
           {/* Details Drawer Toggle */}
           <button
             onClick={() => setShowDetailsDrawer(!showDetailsDrawer)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-sm font-mono text-xs uppercase tracking-wider border transition-colors ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-mono text-xs uppercase tracking-wider transition-all backdrop-blur-md active:scale-95 border-none ${
               showDetailsDrawer
-                ? 'bg-signature text-black border-signature font-bold'
-                : 'bg-graphite hover:bg-[#25252b] border-hairline text-ivory'
+                ? 'bg-amber-500 text-black font-bold shadow-lg shadow-amber-500/20'
+                : 'bg-white/10 hover:bg-white/20 text-white'
             }`}
             title="Curatorial Notes & Discussion (I)"
           >
@@ -290,7 +290,7 @@ export const WatchModal: React.FC<WatchModalProps> = ({
           {/* Browser Fullscreen Toggle */}
           <button
             onClick={toggleFullscreen}
-            className="p-1.5 rounded-sm bg-graphite hover:bg-[#25252b] text-muted hover:text-ivory border border-hairline transition-colors hidden sm:flex items-center justify-center"
+            className="h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-all backdrop-blur-md hidden sm:flex items-center justify-center active:scale-95 border-none"
             title={isFullscreen ? 'Exit Fullscreen (F)' : 'Fullscreen (F)'}
           >
             {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
@@ -299,7 +299,7 @@ export const WatchModal: React.FC<WatchModalProps> = ({
           {/* Close Player */}
           <button
             onClick={onClose}
-            className="p-1.5 rounded-sm bg-graphite hover:bg-red-950/60 text-muted hover:text-red-300 border border-hairline transition-colors"
+            className="h-8 w-8 rounded-full bg-white/10 hover:bg-rose-500/30 text-white/80 hover:text-rose-300 transition-all backdrop-blur-md flex items-center justify-center active:scale-95 border-none"
             title="Close Player (Esc)"
           >
             <X className="h-4 w-4" />
@@ -347,7 +347,7 @@ export const WatchModal: React.FC<WatchModalProps> = ({
               </div>
               <button
                 onClick={() => setShowDetailsDrawer(false)}
-                className="p-1 rounded-sm text-muted hover:text-ivory hover:bg-canvas transition-colors"
+                className="h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white flex items-center justify-center transition-colors"
                 title="Close Notes Drawer (Esc)"
               >
                 <X className="h-4 w-4" />
@@ -367,7 +367,7 @@ export const WatchModal: React.FC<WatchModalProps> = ({
               </div>
 
               {/* Metadata Badges */}
-              <div className="p-3 rounded-sm bg-canvas border border-hairline space-y-2 font-mono text-xs">
+              <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/[0.08] space-y-2.5 font-mono text-xs">
                 <div className="flex items-center justify-between text-muted">
                   <span>Runtime</span>
                   <span className="text-ivory">{formatRuntime(film.runtime_minutes)}</span>
@@ -382,10 +382,10 @@ export const WatchModal: React.FC<WatchModalProps> = ({
                 </div>
                 <div className="flex items-center justify-between text-muted">
                   <span>Age Rating</span>
-                  <span className="text-signature">{film.age_rating}</span>
+                  <span className="text-amber-400 font-bold">{film.age_rating}</span>
                 </div>
                 {film.is_debut && (
-                  <div className="pt-1.5 border-t border-hairline text-signature text-[10px] tracking-wider uppercase">
+                  <div className="pt-2 border-t border-white/[0.08] text-amber-400 text-[10px] tracking-wider uppercase font-semibold">
                     • Official First-Time Director Debut
                   </div>
                 )}
@@ -396,7 +396,7 @@ export const WatchModal: React.FC<WatchModalProps> = ({
                 <h4 className="font-mono text-[10px] font-bold uppercase tracking-widest text-muted mb-2">
                   Filmmaker
                 </h4>
-                <div className="p-3 rounded-sm bg-canvas border border-hairline">
+                <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/[0.08]">
                   <p className="font-editorial text-base font-semibold text-ivory">
                     {film.profiles?.display_name || 'Independent Director'}
                   </p>
@@ -419,7 +419,7 @@ export const WatchModal: React.FC<WatchModalProps> = ({
                   </h4>
                   <div className="grid grid-cols-2 gap-2">
                     {film.film_credits.map((c) => (
-                      <div key={c.id} className="p-2 rounded-sm bg-canvas border border-hairline">
+                      <div key={c.id} className="p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08]">
                         <p className="text-xs font-medium text-ivory truncate">{c.person_name}</p>
                         <p className="font-mono text-[9px] text-muted truncate uppercase tracking-wider">{c.credit_role}</p>
                       </div>

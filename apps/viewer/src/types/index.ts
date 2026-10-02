@@ -40,6 +40,7 @@ export interface Film {
   video_provider: VideoProvider;
   video_ref: string;
   poster_url: string;
+  backdrop_url?: string | null;
   is_featured: boolean;
   is_debut: boolean;
   status: FilmStatus;
@@ -49,6 +50,9 @@ export interface Film {
   profiles?: Profile | null;
   film_genres?: { genre_id: number; genres: Genre }[];
   film_credits?: FilmCredit[];
+  ip_hold?: boolean;
+  ip_hold_reason?: string | null;
+  ip_hold_at?: string | null;
 }
 
 export interface WatchlistEntry {

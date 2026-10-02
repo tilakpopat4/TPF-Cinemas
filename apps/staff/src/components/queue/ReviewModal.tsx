@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
 import { useReducedMotion, scaleModal, fadeOnly } from '../../lib/motion';
 import {
@@ -18,11 +19,16 @@ import {
   Film as FilmIcon,
   Check,
   AlertCircle,
+  Printer,
+  Lock,
+  Unlock,
+  Flag,
 } from 'lucide-react';
 import { Film } from '../../types';
 import { extractYouTubeId, formatDuration, formatDate } from '../../lib/utils';
 import { DecisionBox } from './DecisionBox';
 import { supabase } from '../../lib/supabase';
+import { RightsUndertakingModal } from '../legal/RightsUndertakingModal';
 
 interface ReviewModalProps {
   film: Film | null;
@@ -41,12 +47,15 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
   const f = film;
   const reduced = useReducedMotion();
 
-  const [activeTab, setActiveTab] = useState<'decision' | 'media' | 'licence'>('decision');
+  const [activeTab, setActiveTab] = useState<'decision' | 'media' | 'licence' | 'ip_hold'>('decision');
   const [verifyingLicence, setVerifyingLicence] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [featuring, setFeaturing] = useState(false);
   const [takingDown, setTakingDown] = useState(false);
+  const [applyingHold, setApplyingHold] = useState(false);
+  const [holdReason, setHoldReason] = useState(f.ip_hold_reason || '');
   const [actionError, setActionError] = useState<string | null>(null);
+  const [showRightsDeed, setShowRightsDeed] = useState(false);
 
   const videoId = extractYouTubeId(f.video_ref);
   const licence = f.licence_agreements;
@@ -131,9 +140,36 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
     }
   }
 
-  return (
+  // IP Hold toggle (Admin only)
+  async function handleIpHold(hold: boolean) {
+    if (hold && !holdReason.trim()) {
+      setActionError('Please enter a reason for the IP hold before applying it.');
+      return;
+    }
+    setActionError(null);
+    try {
+      setApplyingHold(true);
+      const { error } = await supabase
+        .from('films')
+        .update({
+          ip_hold: hold,
+          ip_hold_reason: hold ? holdReason.trim() : null,
+          ip_hold_at: hold ? new Date().toISOString() : null,
+        })
+        .eq('id', f.id);
+      if (error) throw error;
+      onActionComplete();
+    } catch (err) {
+      console.error('IP Hold failed:', err);
+      setActionError((err as Error).message);
+    } finally {
+      setApplyingHold(false);
+    }
+  }
+
+  return createPortal(
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/90 backdrop-blur-xl"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 bg-black/90 backdrop-blur-xl"
       {...fadeOnly(reduced)}
     >
       <motion.div
@@ -157,6 +193,12 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                 {f.is_featured && (
                   <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30">
                     Featured
+                  </span>
+                )}
+                {f.ip_hold && (
+                  <span className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                    <Lock className="h-2.5 w-2.5" />
+                    IP Hold
                   </span>
                 )}
               </div>
@@ -193,6 +235,21 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
               >
                 <AlertTriangle className="h-3.5 w-3.5" />
                 <span>Takedown</span>
+              </button>
+            )}
+
+            {/* Admin IP Hold */}
+            {isAdmin && (
+              <button
+                onClick={() => setActiveTab('ip_hold')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                  f.ip_hold
+                    ? 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                    : 'bg-white/5 text-zinc-300 border-white/10 hover:text-rose-300 hover:border-rose-500/20'
+                }`}
+              >
+                {f.ip_hold ? <Lock className="h-3.5 w-3.5" /> : <Flag className="h-3.5 w-3.5" />}
+                <span>{f.ip_hold ? 'On IP Hold' : 'IP Hold'}</span>
               </button>
             )}
 
@@ -243,14 +300,25 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
               </h4>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                {/* Poster check */}
+                {/* Portrait Poster check */}
                 <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5">
                   <div className="flex items-center gap-1 text-[11px] text-zinc-400 mb-1">
-                    <span>Poster Artwork</span>
+                    <span>Portrait Poster (2:3)</span>
                   </div>
                   <span className={`inline-flex items-center gap-1 font-bold ${f.poster_url ? 'text-emerald-400' : 'text-rose-400'}`}>
                     {f.poster_url ? <Check className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
                     <span>{f.poster_url ? 'Attached' : 'Missing'}</span>
+                  </span>
+                </div>
+
+                {/* Landscape Backdrop check */}
+                <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5">
+                  <div className="flex items-center gap-1 text-[11px] text-zinc-400 mb-1">
+                    <span>Landscape Banner (16:9)</span>
+                  </div>
+                  <span className={`inline-flex items-center gap-1 font-bold ${f.backdrop_url ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {f.backdrop_url ? <Check className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+                    <span>{f.backdrop_url ? 'Attached' : 'Missing'}</span>
                   </span>
                 </div>
 
@@ -323,6 +391,18 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
               >
                 Licence Rights
               </button>
+              {isAdmin && (
+                <button
+                  onClick={() => setActiveTab('ip_hold')}
+                  className={`flex-1 py-3 text-xs font-bold transition-all border-b-2 ${
+                    activeTab === 'ip_hold'
+                      ? 'border-rose-500 text-rose-400 bg-rose-500/5'
+                      : 'border-transparent text-zinc-400 hover:text-rose-300'
+                  }`}
+                >
+                  {f.ip_hold ? '🔒 IP Hold' : '⚑ IP Hold'}
+                </button>
+              )}
             </div>
 
             {/* Tab Contents */}
@@ -420,6 +500,49 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
               {/* Tab 2: Metadata & Credits */}
               {activeTab === 'media' && (
                 <div className="space-y-4 animate-fade-in text-xs">
+
+                  {/* ── Artwork Audit Panel ── */}
+                  <div>
+                    <h4 className="font-bold uppercase tracking-wider text-zinc-400 text-[11px] mb-2.5">
+                      Theatrical Artworks
+                    </h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Portrait Poster */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] text-zinc-400 font-semibold">Portrait Poster (2:3)</span>
+                          {f.poster_url
+                            ? <span className="text-emerald-400 text-[10px] font-bold">✓ Provided</span>
+                            : <span className="text-rose-400 text-[10px] font-bold">⚠ Missing</span>
+                          }
+                        </div>
+                        <div className="aspect-[2/3] w-full max-w-[120px] rounded-lg overflow-hidden border border-white/10 bg-black/60">
+                          {f.poster_url
+                            ? <img src={f.poster_url} alt="Portrait Poster" className="w-full h-full object-cover" />
+                            : <div className="w-full h-full flex items-center justify-center text-zinc-600 text-[10px]">No portrait</div>
+                          }
+                        </div>
+                      </div>
+
+                      {/* Landscape Backdrop */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] text-zinc-400 font-semibold">Landscape Banner (16:9)</span>
+                          {f.backdrop_url
+                            ? <span className="text-emerald-400 text-[10px] font-bold">✓ Provided</span>
+                            : <span className="text-rose-400 text-[10px] font-bold">⚠ Missing</span>
+                          }
+                        </div>
+                        <div className="aspect-video w-full rounded-lg overflow-hidden border border-white/10 bg-black/60">
+                          {f.backdrop_url
+                            ? <img src={f.backdrop_url} alt="Landscape Backdrop" className="w-full h-full object-cover" />
+                            : <div className="w-full h-full flex items-center justify-center text-zinc-600 text-[10px]">No landscape</div>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div>
                     <h4 className="font-bold uppercase tracking-wider text-zinc-400 text-[11px] mb-1">
                       Synopsis
@@ -505,16 +628,127 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                           </button>
                         )}
                       </div>
+                      {/* Print Official OTT Rights Deed & Undertaking */}
+                      <div className="p-4 rounded-2xl border border-emerald-500/20 bg-emerald-950/20 flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
+                            <FileCheck2 className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <span className="text-xs font-bold text-white block">Official OTT Rights Deed</span>
+                            <span className="text-[11px] text-zinc-400 block">Print formal deed & chain of title undertaking</span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setShowRightsDeed(true)}
+                          className="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center gap-1.5 transition-colors shadow-sm"
+                        >
+                          <Printer className="h-3.5 w-3.5" />
+                          <span>Print Deed</span>
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <p className="text-zinc-500 italic text-center py-6">No licence agreement attached.</p>
                   )}
                 </div>
               )}
+
+              {/* Tab 4: IP Hold */}
+              {activeTab === 'ip_hold' && (
+                <div className="space-y-5 animate-fade-in">
+                  {/* Current Status Banner */}
+                  <div className={`rounded-2xl border p-4 flex items-start gap-3 ${
+                    f.ip_hold
+                      ? 'bg-rose-500/10 border-rose-500/30'
+                      : 'bg-emerald-500/8 border-emerald-500/20'
+                  }`}>
+                    <div className={`flex h-9 w-9 items-center justify-center rounded-xl shrink-0 ${
+                      f.ip_hold ? 'bg-rose-500/20 text-rose-400' : 'bg-emerald-500/15 text-emerald-400'
+                    }`}>
+                      {f.ip_hold ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+                    </div>
+                    <div>
+                      <p className={`text-sm font-bold ${ f.ip_hold ? 'text-rose-300' : 'text-emerald-300' }`}>
+                        {f.ip_hold ? 'Film is currently on IP Hold' : 'Film is not on IP Hold'}
+                      </p>
+                      <p className="text-[11px] text-zinc-400 mt-0.5">
+                        {f.ip_hold
+                          ? `Applied: ${f.ip_hold_at ? new Date(f.ip_hold_at).toLocaleString('en-IN') : 'Unknown'}`
+                          : 'No active copyright complaint hold on this film.'}
+                      </p>
+                      {f.ip_hold && f.ip_hold_reason && (
+                        <p className="text-[11px] text-zinc-300 mt-1.5 italic">Reason: {f.ip_hold_reason}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Legal Context */}
+                  <div className="rounded-xl bg-white/[0.02] border border-white/[0.06] p-4 text-xs text-zinc-400 space-y-1.5">
+                    <p className="text-zinc-300 font-semibold text-[11px] uppercase tracking-wider">IT Act 2000 §79 — Safe Harbour Protocol</p>
+                    <ul className="list-disc list-inside space-y-1 pl-1">
+                      <li>IP Hold immediately hides the film from all public viewers</li>
+                      <li>Filmmaker receives 14 days to submit counter-notice</li>
+                      <li>If no counter-notice: permanently archive the film</li>
+                      <li>All actions are logged for judicial record</li>
+                    </ul>
+                  </div>
+
+                  {/* Reason Input */}
+                  <div>
+                    <label className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider mb-1.5 block">
+                      Hold Reason / Complaint Reference <span className="text-rose-400">*</span>
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={holdReason}
+                      onChange={(e) => setHoldReason(e.target.value)}
+                      placeholder="e.g. Copyright claim by [Complainant Name] — Report ID [REF]. Original work: [Title]. Violation: [Type]."
+                      className="w-full resize-none rounded-xl bg-white/[0.03] border border-white/10 px-4 py-3 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-rose-500/40 transition-colors leading-relaxed"
+                    />
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-3">
+                    {!f.ip_hold ? (
+                      <button
+                        onClick={() => handleIpHold(true)}
+                        disabled={applyingHold || !holdReason.trim()}
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 disabled:opacity-40 text-white shadow-lg shadow-rose-600/20 transition-colors"
+                      >
+                        {applyingHold ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Lock className="h-3.5 w-3.5" />}
+                        Apply IP Hold
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleIpHold(false)}
+                        disabled={applyingHold}
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white shadow-lg shadow-emerald-600/20 transition-colors"
+                      >
+                        {applyingHold ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Unlock className="h-3.5 w-3.5" />}
+                        Lift IP Hold
+                      </button>
+                    )}
+                    <p className="text-[10px] text-zinc-500">
+                      {f.ip_hold ? 'Lifting hold will restore film to its previous status.' : 'Applying hold will immediately hide the film from public.'}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </motion.div>
-    </motion.div>
+
+      {/* Official OTT Format Legal Rights Undertaking Modal */}
+      {showRightsDeed && (
+        <RightsUndertakingModal
+          film={f}
+          onClose={() => setShowRightsDeed(false)}
+        />
+      )}
+    </motion.div>,
+    document.body
   );
 };

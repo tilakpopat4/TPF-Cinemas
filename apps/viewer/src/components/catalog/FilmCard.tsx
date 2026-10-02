@@ -50,32 +50,32 @@ export const FilmCard: React.FC<FilmCardProps> = ({
         </div>
       )}
 
-      {/* Poster Container: Sharp 2px corners, graphite backing, hairline border */}
+      {/* Poster Container: Refined rounded-xl, graphite backing, luxury border & shadow */}
       <div
         onClick={() => onPlay(film)}
-        className="relative aspect-[2/3] w-full rounded-sm overflow-hidden bg-graphite border border-hairline group-hover:border-signature/50 transition-all duration-300 group-hover:-translate-y-1 shadow-lg z-10"
+        className="relative aspect-[2/3] w-full rounded-xl overflow-hidden bg-[#12141a] border border-white/[0.08] group-hover:border-signature/50 transition-all duration-300 group-hover:-translate-y-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.6)] group-hover:shadow-[0_16px_36px_rgba(0,0,0,0.85)] z-10"
       >
         <img
           src={film.poster_url || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=600&auto=format&fit=crop'}
           alt={film.title}
           loading="lazy"
-          className="w-full h-full object-cover filter brightness-[0.92] group-hover:brightness-100 transition-all duration-300"
+          className="w-full h-full object-cover filter brightness-[0.92] group-hover:brightness-100 transition-all duration-300 group-hover:scale-105"
         />
 
         {/* Minimalist Top Stamp / Debut Ribbon */}
         {film.is_debut && (
-          <div className="absolute top-2 left-2 z-10">
-            <span className="px-1.5 py-0.5 text-[8px] font-mono font-bold uppercase tracking-widest bg-signature text-black rounded-none">
+          <div className="absolute top-2.5 left-2.5 z-10">
+            <span className="px-2 py-0.5 text-[8px] font-mono font-bold uppercase tracking-widest bg-signature text-black rounded-md shadow-sm">
               Debut
             </span>
           </div>
         )}
 
         {/* Hover Quick Actions Overlay */}
-        <div className="absolute inset-0 bg-canvas/80 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-200 flex flex-col justify-between p-3">
+        <div className="absolute inset-0 bg-black/75 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-200 flex flex-col justify-between p-3.5">
           {/* Top Row: Rating Badge & Action Buttons */}
           <div className="flex items-center justify-between">
-            <span className="px-1.5 py-0.5 text-[9px] font-mono uppercase bg-graphite border border-hairline text-ivory">
+            <span className="px-2 py-0.5 text-[9px] font-mono uppercase bg-black/60 border border-white/10 text-ivory rounded-md">
               {film.age_rating}
             </span>
 
@@ -87,7 +87,7 @@ export const FilmCard: React.FC<FilmCardProps> = ({
                     e.stopPropagation();
                     onDismiss(film.id);
                   }}
-                  className="p-1.5 rounded-sm bg-graphite/90 hover:bg-black text-muted hover:text-white border border-hairline transition-colors"
+                  className="p-1.5 rounded-lg bg-black/60 hover:bg-black text-muted hover:text-white border border-white/10 transition-colors"
                   title="Remove from Continue Watching"
                 >
                   <X className="h-3.5 w-3.5" />
@@ -100,10 +100,10 @@ export const FilmCard: React.FC<FilmCardProps> = ({
                   e.stopPropagation();
                   onToggleWatchlist(film.id);
                 }}
-                className={`p-1.5 rounded-sm border transition-colors ${
+                className={`p-1.5 rounded-lg border transition-all ${
                   isInWatchlist
-                    ? 'bg-signature text-black border-signature'
-                    : 'bg-graphite text-ivory border-hairline hover:border-ivory'
+                    ? 'bg-signature text-black border-signature shadow-[0_0_12px_rgba(229,169,59,0.35)]'
+                    : 'bg-black/60 text-ivory border-white/15 hover:border-white/40'
                 }`}
                 title={isInWatchlist ? 'Remove from Queue' : 'Add to Queue'}
               >
@@ -112,13 +112,13 @@ export const FilmCard: React.FC<FilmCardProps> = ({
             </div>
           </div>
 
-          {/* Center: Play Trigger */}
+          {/* Center: Play Trigger (Circular Luxury Gold Accent) */}
           <div className="self-center">
             <div
-              className="h-10 w-10 bg-signature text-black flex items-center justify-center rounded-sm transition-transform group-hover:scale-105"
+              className="h-12 w-12 bg-signature text-black flex items-center justify-center rounded-full shadow-[0_4px_20px_rgba(229,169,59,0.45)] transition-transform duration-200 group-hover:scale-110 active:scale-95 cursor-pointer"
               onClick={() => onPlay(film)}
             >
-              <Play className="h-4 w-4 fill-current ml-0.5" />
+              <Play className="h-4.5 w-4.5 fill-current ml-0.5" />
             </div>
           </div>
 
@@ -144,7 +144,7 @@ export const FilmCard: React.FC<FilmCardProps> = ({
         {progressSeconds > 0 && (
           <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-black/80 z-20">
             <div
-              className="h-full bg-signature shadow-[0_0_8px_rgba(245,158,11,0.6)]"
+              className="h-full bg-signature shadow-[0_0_8px_rgba(229,169,59,0.6)]"
               style={{ width: `${progressPercent}%` }}
             />
           </div>

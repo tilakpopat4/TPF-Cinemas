@@ -17,6 +17,7 @@ const SAMPLE_FILMS: Film[] = [
     video_provider: 'youtube',
     video_ref: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
     poster_url: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=900&auto=format&fit=crop',
+    backdrop_url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=1600&auto=format&fit=crop',
     is_featured: true,
     is_debut: true,
     status: 'published',
@@ -52,6 +53,7 @@ const SAMPLE_FILMS: Film[] = [
     video_provider: 'youtube',
     video_ref: 'https://www.youtube.com/watch?v=L_LUpnjgPso',
     poster_url: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=900&auto=format&fit=crop',
+    backdrop_url: 'https://images.unsplash.com/photo-1490750967868-88df5691cc5e?q=80&w=1600&auto=format&fit=crop',
     is_featured: false,
     is_debut: false,
     status: 'published',
@@ -78,7 +80,7 @@ const SAMPLE_FILMS: Film[] = [
     filmmaker_id: '00000000-0000-0000-0000-000000000000',
     title: 'Letters from Old Delhi',
     slug: 'letters-from-old-delhi',
-    synopsis: 'A lyrical exploration of Chandni Chowk through handwritten postcards found in an abandoned calligrapher’s studio before demolition.',
+    synopsis: 'A lyrical exploration of Chandni Chowk through handwritten postcards found in an abandoned calligrapher\'s studio before demolition.',
     runtime_minutes: 29,
     release_year: 2024,
     language: 'Hindi / Urdu',
@@ -86,6 +88,7 @@ const SAMPLE_FILMS: Film[] = [
     video_provider: 'youtube',
     video_ref: 'https://www.youtube.com/watch?v=ScMzIvxBSi4',
     poster_url: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=900&auto=format&fit=crop',
+    backdrop_url: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?q=80&w=1600&auto=format&fit=crop',
     is_featured: true,
     is_debut: false,
     status: 'published',
@@ -118,7 +121,8 @@ const SAMPLE_FILMS: Film[] = [
     age_rating: 'U',
     video_provider: 'youtube',
     video_ref: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    poster_url: 'https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?q=80&w=900&auto=format&fit=crop',
+    poster_url: 'https://images.unsplash.com/photo-1548013146-72479768bada?q=80&w=900&auto=format&fit=crop',
+    backdrop_url: 'https://images.unsplash.com/photo-1519834785169-98be25ec3f84?q=80&w=1600&auto=format&fit=crop',
     is_featured: false,
     is_debut: true,
     status: 'published',
@@ -153,6 +157,7 @@ const SAMPLE_FILMS: Film[] = [
     video_provider: 'youtube',
     video_ref: 'https://www.youtube.com/watch?v=L_LUpnjgPso',
     poster_url: 'https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900&auto=format&fit=crop',
+    backdrop_url: 'https://images.unsplash.com/photo-1574717024192-64dad02cf1b5?q=80&w=1600&auto=format&fit=crop',
     is_featured: false,
     is_debut: true,
     status: 'published',
@@ -204,6 +209,7 @@ export function useCatalogue() {
           )
         `)
         .eq('status', 'published')
+        .eq('ip_hold', false)
         .order('published_at', { ascending: false });
 
       if (filmsErr) throw filmsErr;

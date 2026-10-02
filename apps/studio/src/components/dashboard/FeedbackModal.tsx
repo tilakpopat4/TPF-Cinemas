@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { X, MessageSquareQuote, Calendar, UserCheck } from 'lucide-react';
 import { Film } from '../../types';
 import { formatDate } from '../../lib/utils';
@@ -18,9 +19,9 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ film, onClose, onE
   const latestReview = sortedReviews[0] ?? null;
   const previousReviews = sortedReviews.slice(1);
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-rose-500/30 bg-[#11141d] shadow-2xl max-h-[90vh] flex flex-col">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+      <div className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-white/[0.12] bg-[#0c0d14] shadow-[0_24px_64px_rgba(0,0,0,0.95)] max-h-[90vh] flex flex-col text-ivory">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 px-6 py-4 bg-white/5 shrink-0">
           <div className="flex items-center gap-2">
@@ -106,6 +107,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ film, onClose, onE
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
