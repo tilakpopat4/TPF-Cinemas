@@ -3,36 +3,36 @@ gsd_state_version: '1.0'
 status: executing
 progress:
   total_phases: 8
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 16
-  completed_plans: 8
-  percent: 50
+  completed_plans: 10
+  percent: 63
 ---
 
 # Project State
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-10-01)
+See: `.planning/PROJECT.md` (updated 2026-10-02)
 
 **Core value:** Deliver an immersive, lightning-fast streaming and discovery experience for independent films, where viewers can seamlessly explore, preview, and watch films with zero friction.
-**Current focus:** Phase 5 — Discovery Filter Chips & Polish
+**Current focus:** Phase 6 Complete (Filmmaker Studio & Submission Pipeline)
 
 ## Current Position
 
-Phase: 4 of 5 (Dynamic Content Rails & Ranked Lists) — Completed
-Plan: 2 of 2 in Phase 4 (04-01 and 04-02 completed)
-Status: Phase 4 Complete; Ready for Phase 5
-Last activity: 2026-10-02 — Executed 04-01 and 04-02 for Phase 4 (Continue Watching rail with dismiss action, Top 10 in India ranked rail, boundary chevrons, and watchlist sync).
+Phase: 6 of 8 (Filmmaker Studio & Submission Pipeline) — Completed
+Plan: 2 of 2 in Phase 6 (06-01 and 06-02 completed)
+Status: Phase 6 Complete; Ready for Phase 7 (Staff Curation Console) or Phase 5 (Viewer Polish)
+Last activity: 2026-10-02 — Executed 06-01 and 06-02 for Phase 6 (Submission wizard validation, poster upload & YouTube stream screening preview, digital licence agreement signing, creator dashboard status tabs, and review history revision flow).
 
-Progress: [████████░░] 80%
+Progress: [██████████░░] 63%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
+- Total plans completed: 10
 - Average duration: ~15 min
-- Total execution time: ~2 hours
+- Total execution time: ~2.5 hours
 
 **By Phase:**
 
@@ -43,6 +43,9 @@ Progress: [████████░░] 80%
 | Phase 3: Custom Cinematic Video Player | 2/2 | 30m | 15m |
 | Phase 4: Dynamic Content Rails & Ranked Lists | 2/2 | 30m | 15m |
 | Phase 5: Discovery Filter Chips & Polish | 0/2 | - | - |
+| Phase 6: Filmmaker Studio & Submission Pipeline | 2/2 | 30m | 15m |
+| Phase 7: Staff Curation Console & Moderation Queue | 0/2 | - | - |
+| Phase 8: Admin Governance, Roles & Audit Logging | 0/2 | - | - |
 
 ## Accumulated Context
 
@@ -54,17 +57,22 @@ Progress: [████████░░] 80%
 - [Phase 4]: Top 10 rail uses giant outline numerals (1-10) overlapping poster left edge, styled in metallic silver with dark semi-transparent fill and amber glow on hover.
 - [Phase 4]: Continue Watching qualifies in-progress films between 15s and 90% completion, with explicit 'X' dismiss action syncing to Supabase watch_history.
 - [Phase 4]: Rail navigation chevrons auto-hide at scroll container boundaries and step 80% of container width.
+- [Phase 6]: Character counter boundary alerts (>1400/1500 chars) for synopsis and director notes.
+- [Phase 6]: YouTube Shorts URLs (/shorts/VIDEO_ID) supported in video link extractor alongside standard watch and youtu.be links.
+- [Phase 6]: Pre-submission client validation verifies poster, video, and music clearance declaration before calling submit_film RPC.
+- [Phase 6]: FeedbackModal sorts reviews chronologically (latest first) and provides expandable history of prior curation review rounds.
 
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
-None yet.
+None.
 
 ## Session Continuity
 
-Last session: 2026-10-02 09:46
-Stopped at: Phase 4 executed and verified; ready for Phase 5 (Discovery Filter Chips & Polish).
-Resume file: .planning/phases/TPF-04-dynamic-content-rails-ranked-lists/04-02-SUMMARY.md
+Last session: 2026-10-02 10:10
+Stopped at: Phase 6 executed and verified; ready for Phase 7 (Staff Curation Console) or Phase 5 (Viewer Filter Chips).
+Resume file: .planning/phases/TPF-06-filmmaker-studio-submission-pipeline/06-02-SUMMARY.md
+

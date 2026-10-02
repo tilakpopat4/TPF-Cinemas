@@ -69,7 +69,11 @@ export const StepDetails: React.FC<StepDetailsProps> = ({ formData, onChange }) 
           placeholder="Brief storyline and hook for the audience..."
           className="form-textarea"
         />
-        <div className="text-right text-[11px] text-slate-500">
+        <div className={`text-right text-[11px] ${
+          (formData.synopsis || '').length > 1400
+            ? 'text-amber-400 font-semibold'
+            : 'text-slate-500'
+        }`}>
           {(formData.synopsis || '').length} / 1500
         </div>
       </div>
@@ -85,6 +89,13 @@ export const StepDetails: React.FC<StepDetailsProps> = ({ formData, onChange }) 
           placeholder="What inspired you to make this film? Your vision and creative background..."
           className="form-textarea"
         />
+        <div className={`text-right text-[11px] ${
+          (formData.director_note || '').length > 1400
+            ? 'text-amber-400 font-semibold'
+            : 'text-slate-500'
+        }`}>
+          {(formData.director_note || '').length} / 1500
+        </div>
       </div>
 
       {/* Technical Specifications */}

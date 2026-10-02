@@ -196,7 +196,15 @@ export const FilmsList: React.FC<FilmsListProps> = ({
       </div>
 
       {/* Content Rendering: Grid vs Table */}
-      {viewMode === 'grid' ? (
+      {filteredFilms.length === 0 ? (
+        <div className="rounded-2xl border border-white/[0.08] bg-[#0f131c]/60 p-12 text-center my-4 backdrop-blur-md">
+          <FilmIcon className="h-8 w-8 mx-auto text-zinc-500 mb-2 opacity-50" />
+          <h3 className="text-sm font-bold text-white font-display">No submissions match this view</h3>
+          <p className="mt-1 text-xs text-zinc-400">
+            Try adjusting your search query or switching to another filter tab above.
+          </p>
+        </div>
+      ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredFilms.map((film) => {
             const isSubmitting = submittingId === film.id;
@@ -248,7 +256,19 @@ export const FilmsList: React.FC<FilmsListProps> = ({
                       </span>
                     </div>
 
-                    <p className="mt-1 text-xs text-zinc-400 line-clamp-2 leading-relaxed">
+                    {film.status === 'changes_requested' && (
+                      <div className="mt-2.5 p-2 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[11px] text-amber-300 flex items-center justify-between gap-2">
+                        <span className="font-medium">Curator requested changes</span>
+                        <button
+                          onClick={() => onViewFeedback(film)}
+                          className="font-bold underline text-amber-200 hover:text-white"
+                        >
+                          View Notes
+                        </button>
+                      </div>
+                    )}
+
+                    <p className="mt-2 text-xs text-zinc-400 line-clamp-2 leading-relaxed">
                       {film.synopsis || 'No synopsis provided yet.'}
                     </p>
 

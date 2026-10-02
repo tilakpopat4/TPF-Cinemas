@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Users, Check } from 'lucide-react';
+import { Plus, Trash2, Users, Check, ChevronUp, ChevronDown } from 'lucide-react';
 import { FilmCredit, Genre } from '../../types';
 
 interface StepCreditsProps {
@@ -49,11 +49,31 @@ export const StepCredits: React.FC<StepCreditsProps> = ({
     onCreditsChange(credits.filter((_, i) => i !== index));
   }
 
+  function handleMoveCredit(index: number, direction: 'up' | 'down') {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= credits.length) return;
+    const reordered = [...credits];
+    const [moved] = reordered.splice(index, 1);
+    reordered.splice(targetIndex, 0, moved);
+    onCreditsChange(reordered.map((c, i) => ({ ...c, sort_order: i })));
+  }
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Genre selection chips */}
       <div>
-        <label className="form-label mb-2 block">Select Genres (Pick 1 to 3) *</label>
+        <div className="flex items-center justify-between mb-2">
+          <label className="form-label mb-0 block">Select Genres (Pick 1 to 3) *</label>
+          <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+            selectedGenreIds.length >= 3
+              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+              : selectedGenreIds.length > 0
+              ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+              : 'bg-white/5 text-slate-400'
+          }`}>
+            {selectedGenreIds.length} / 3 selected
+          </span>
+        </div>
         <div className="flex flex-wrap gap-2">
           {availableGenres.map((genre) => {
             const isSelected = selectedGenreIds.includes(genre.id);
@@ -136,14 +156,34 @@ export const StepCredits: React.FC<StepCreditsProps> = ({
                   <span className="text-slate-400 ml-2">as</span>
                   <span className="text-rose-400 font-medium ml-1.5">{credit.credit_role}</span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveCredit(idx)}
-                  className="text-slate-500 hover:text-rose-400 p-1 rounded transition-colors"
-                  title="Remove Credit"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    disabled={idx === 0}
+                    onClick={() => handleMoveCredit(idx, 'up')}
+                    className="text-slate-500 hover:text-white disabled:opacity-20 p-1 rounded transition-colors"
+                    title="Move Up"
+                  >
+                    <ChevronUp className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={idx === credits.length - 1}
+                    onClick={() => handleMoveCredit(idx, 'down')}
+                    className="text-slate-500 hover:text-white disabled:opacity-20 p-1 rounded transition-colors"
+                    title="Move Down"
+                  >
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveCredit(idx)}
+                    className="text-slate-500 hover:text-rose-400 p-1 rounded transition-colors ml-1"
+                    title="Remove Credit"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>

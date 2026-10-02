@@ -15,7 +15,7 @@ Deliver a complete cinematic streaming and management ecosystem:
 - [x] **Phase 3: Custom Cinematic Video Player** - Custom Amber scrubber, chromeless engine, transport HUD, shortcuts & gestures.
 - [x] **Phase 4: Dynamic Content Rails & Ranked Lists** - "Continue Watching" rail with watched-progress bars from `watch_history`, "Top 10 in India" ranked badges, and smooth horizontal scrolling rails.
 - [ ] **Phase 5: Discovery Filter Chips & Polish** - Sticky category and language filter bar (Telugu, Hindi, Tamil, Short Films, Feature Films), instant search filtering, and mobile responsive touch polish.
-- [ ] **Phase 6: Filmmaker Studio & Submission Pipeline** - Creator onboarding, multi-step submission wizard, media uploads & video preview validation, digital licence signing, and submission dashboard with revision tracking.
+- [x] **Phase 6: Filmmaker Studio & Submission Pipeline** - Creator onboarding, multi-step submission wizard, media uploads & video preview validation, digital licence signing, and submission dashboard with revision tracking.
 - [ ] **Phase 7: Staff Curation Console & Moderation Queue** - Realtime submission review queue, screening preview player, curator decision box (`review_film` RPC with mandatory feedback notes), licence verification (`verify_licence` RPC), and one-click publishing (`publish_film` RPC).
 - [ ] **Phase 8: Admin Governance, Roles & Audit Logging** - Platform role management (`set_user_role` RPC with self-demote safety checks), searchable real-time audit log stream, and emergency film takedown (`takedown_film` RPC) & featured toggles (`feature_film` RPC).
 
@@ -111,8 +111,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 06-01: Build and verify submission wizard steps (metadata, media upload & video preview validation, credits, licence signing).
-- [ ] 06-02: Connect creator dashboard with status tabs, feedback modal, film stats, and revision re-submission flow.
+- [x] 06-01: Build and verify submission wizard steps (metadata, media upload & video preview validation, credits, licence signing).
+- [x] 06-02: Connect creator dashboard with status tabs, feedback modal, film stats, and revision re-submission flow.
 
 ### Phase 7: Staff Curation Console & Moderation Queue
 **Goal**: Empower curators in `apps/staff` to review submitted films, screening playback, verify licences, provide mandatory feedback, and publish approved titles.

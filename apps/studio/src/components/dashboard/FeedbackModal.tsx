@@ -12,15 +12,17 @@ interface FeedbackModalProps {
 export const FeedbackModal: React.FC<FeedbackModalProps> = ({ film, onClose, onEdit }) => {
   if (!film) return null;
 
-  const latestReview = film.film_reviews && film.film_reviews.length > 0
-    ? film.film_reviews[film.film_reviews.length - 1]
-    : null;
+  const sortedReviews = film.film_reviews
+    ? [...film.film_reviews].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    : [];
+  const latestReview = sortedReviews[0] ?? null;
+  const previousReviews = sortedReviews.slice(1);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-rose-500/30 bg-[#11141d] shadow-2xl">
+      <div className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-rose-500/30 bg-[#11141d] shadow-2xl max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/10 px-6 py-4 bg-white/5">
+        <div className="flex items-center justify-between border-b border-white/10 px-6 py-4 bg-white/5 shrink-0">
           <div className="flex items-center gap-2">
             <MessageSquareQuote className="h-5 w-5 text-rose-500" />
             <h3 className="text-lg font-bold text-white font-display">Curation Feedback</h3>
@@ -34,7 +36,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ film, onClose, onE
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto flex-1">
           <div className="mb-4">
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
               Film Submission
@@ -51,14 +53,34 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ film, onClose, onE
             </div>
           </div>
 
-          <div className="rounded-xl border border-rose-500/20 bg-rose-950/20 p-4 mb-6">
+          <div className="rounded-xl border border-rose-500/20 bg-rose-950/20 p-4 mb-4">
             <h5 className="text-xs font-bold uppercase tracking-wider text-rose-400 mb-2">
-              Curator Notes & Instructions
+              Latest Curator Notes & Instructions
             </h5>
             <p className="text-sm text-slate-200 whitespace-pre-wrap leading-relaxed">
               {latestReview?.notes || 'No specific notes provided. Please ensure all video and licence details match platform guidelines.'}
             </p>
           </div>
+
+          {/* Previous reviews accordion if multiple */}
+          {previousReviews.length > 0 && (
+            <div className="mb-4 space-y-2">
+              <h6 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                Prior Review History ({previousReviews.length})
+              </h6>
+              <div className="space-y-2 max-h-40 overflow-y-auto rounded-xl border border-white/10 bg-white/[0.02] p-3 divide-y divide-white/5">
+                {previousReviews.map((pr, idx) => (
+                  <div key={pr.id || idx} className="pt-2 first:pt-0 text-xs">
+                    <div className="flex items-center justify-between text-slate-400 text-[10px] mb-1">
+                      <span className="font-semibold uppercase text-slate-300">{pr.decision.replace('_', ' ')}</span>
+                      <span>{formatDate(pr.created_at)}</span>
+                    </div>
+                    <p className="text-slate-300 text-xs">{pr.notes || 'No notes'}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {film.status === 'changes_requested' && (
             <p className="text-xs text-slate-400 mb-6">

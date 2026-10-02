@@ -206,6 +206,15 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
 
       // If submitting to curators right away
       if (andSubmit) {
+        if (!filmData.poster_url) {
+          throw new Error('Please upload a film poster before submitting for curation.');
+        }
+        if (!filmData.video_ref) {
+          throw new Error('Please link a valid YouTube video stream before submitting for curation.');
+        }
+        if (!licence.music_cleared) {
+          throw new Error('The mandatory music clearance declaration must be accepted before submitting.');
+        }
         const { error: submitErr } = await supabase.rpc('submit_film', {
           p_film_id: savedFilmId,
         });

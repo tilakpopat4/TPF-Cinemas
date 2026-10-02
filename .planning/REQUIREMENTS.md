@@ -43,10 +43,10 @@ Requirements for initial release of the Viewer Home Page.
 
 ### Filmmaker Studio & Submission Pipeline
 
-- [ ] **STUDIO-01**: Multi-step submission wizard with real-time validation across title, slug, language, runtime, synopsis, director's note, debut indicator, age rating, genres, and credits.
-- [ ] **STUDIO-02**: Poster image upload handling and YouTube video ID validation with live test preview screening before submission.
-- [ ] **STUDIO-03**: Digital non-exclusive licence agreement execution (Schedule A & C, music clearance declaration, terms versioning, record persistence in `licence_agreements`).
-- [ ] **STUDIO-04**: Creator submission dashboard with status filters (Drafts, In Review, Live), curator feedback review modal, and revision re-submission flow via `submit_film()` RPC.
+- [x] **STUDIO-01**: Multi-step submission wizard with real-time validation across title, slug, language, runtime, synopsis, director's note, debut indicator, age rating, genres, and credits.
+- [x] **STUDIO-02**: Poster image upload handling and YouTube video ID validation with live test preview screening before submission.
+- [x] **STUDIO-03**: Digital non-exclusive licence agreement execution (Schedule A & C, music clearance declaration, terms versioning, record persistence in `licence_agreements`).
+- [x] **STUDIO-04**: Creator submission dashboard with status filters (Drafts, In Review, Live), curator feedback review modal, and revision re-submission flow via `submit_film()` RPC.
 
 ### Staff Curation Console & Moderation Queue
 
@@ -104,10 +104,10 @@ Which phases cover which requirements.
 | FILTER-01 | Phase 5 | Pending |
 | FILTER-02 | Phase 5 | Pending |
 | FILTER-03 | Phase 5 | Pending |
-| STUDIO-01 | Phase 6 | Pending |
-| STUDIO-02 | Phase 6 | Pending |
-| STUDIO-03 | Phase 6 | Pending |
-| STUDIO-04 | Phase 6 | Pending |
+| STUDIO-01 | Phase 6 | Complete |
+| STUDIO-02 | Phase 6 | Complete |
+| STUDIO-03 | Phase 6 | Complete |
+| STUDIO-04 | Phase 6 | Complete |
 | STAFF-01 | Phase 7 | Pending |
 | STAFF-02 | Phase 7 | Pending |
 | STAFF-03 | Phase 7 | Pending |
