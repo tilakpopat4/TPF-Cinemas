@@ -116,30 +116,53 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
       let savedFilmId = film?.id;
 
       if (!savedFilmId) {
-        // Create new film
-        // IMPORTANT: Never include status, is_featured, or published_at in insert payload
-        const { data, error: insertError } = await supabase
-          .from('films')
-          .insert({
-            filmmaker_id: userId,
-            title: filmData.title!.trim(),
-            slug: filmData.slug!.trim(),
-            synopsis: filmData.synopsis!.trim(),
-            director_note: filmData.director_note?.trim() || null,
-            runtime_minutes: Number(filmData.runtime_minutes) || 1,
-            language: filmData.language || 'Hindi',
-            release_year: Number(filmData.release_year) || 2026,
-            age_rating: filmData.age_rating || 'UA13+',
-            video_provider: filmData.video_provider || 'youtube',
-            video_ref: filmData.video_ref?.trim() || null,
-            poster_url: filmData.poster_url || null,
-            is_debut: !!filmData.is_debut,
-          })
-          .select('id')
-          .single();
+        // Create new film with automatic slug collision resolution
+        let finalSlug = filmData.slug!.trim();
+        let insertSuccess = false;
+        let attempt = 0;
 
-        if (insertError) throw insertError;
-        savedFilmId = data.id;
+        while (!insertSuccess && attempt < 5) {
+          const { data, error: insertError } = await supabase
+            .from('films')
+            .insert({
+              filmmaker_id: userId,
+              title: filmData.title!.trim(),
+              slug: finalSlug,
+              synopsis: filmData.synopsis!.trim(),
+              director_note: filmData.director_note?.trim() || null,
+              runtime_minutes: Number(filmData.runtime_minutes) || 1,
+              language: filmData.language || 'Hindi',
+              release_year: Number(filmData.release_year) || 2026,
+              age_rating: filmData.age_rating || 'UA13+',
+              video_provider: filmData.video_provider || 'youtube',
+              video_ref: filmData.video_ref?.trim() || null,
+              poster_url: filmData.poster_url || null,
+              is_debut: !!filmData.is_debut,
+            })
+            .select('id')
+            .single();
+
+          if (insertError) {
+            // Handle unique constraint on films_slug_key (Postgres code 23505)
+            if (insertError.code === '23505' || insertError.message?.includes('films_slug_key')) {
+              attempt++;
+              finalSlug = `${filmData.slug!.trim()}-${attempt + 1}`;
+              continue;
+            }
+            throw insertError;
+          }
+
+          savedFilmId = data.id;
+          insertSuccess = true;
+          // Update local state to match the saved unique slug
+          if (finalSlug !== filmData.slug) {
+            setFilmData((prev) => ({ ...prev, slug: finalSlug }));
+          }
+        }
+
+        if (!insertSuccess) {
+          throw new Error(`The slug "${filmData.slug}" is already in use. Please enter a different URL slug in Step 1.`);
+        }
       } else {
         // Update existing film
         const { error: updateError } = await supabase
@@ -160,7 +183,12 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
           })
           .eq('id', savedFilmId);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          if (updateError.code === '23505' || updateError.message?.includes('films_slug_key')) {
+            throw new Error(`The URL slug "${filmData.slug}" is already in use by another film. Please choose a different slug in Step 1.`);
+          }
+          throw updateError;
+        }
       }
 
       // Sync genres

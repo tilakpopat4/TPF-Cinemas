@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Film, AgeRating } from '../../types';
 import { slugify } from '../../lib/utils';
+import { supabase } from '../../lib/supabase';
 
 interface StepDetailsProps {
   formData: Partial<Film>;
@@ -14,6 +15,35 @@ const LANGUAGES = [
 ];
 
 export const StepDetails: React.FC<StepDetailsProps> = ({ formData, onChange }) => {
+  const [slugChecking, setSlugChecking] = useState(false);
+  const [slugTaken, setSlugTaken] = useState(false);
+
+  useEffect(() => {
+    const rawSlug = formData.slug?.trim();
+    if (!rawSlug) {
+      setSlugTaken(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        setSlugChecking(true);
+        const query = supabase.from('films').select('id').eq('slug', rawSlug);
+        if (formData.id) {
+          query.neq('id', formData.id);
+        }
+        const { data } = await query.maybeSingle();
+        setSlugTaken(!!data);
+      } catch (err) {
+        console.error('Slug check error:', err);
+      } finally {
+        setSlugChecking(false);
+      }
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [formData.slug, formData.id]);
+
   function handleTitleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const title = e.target.value;
     // Auto-generate slug if slug hasn't been custom modified
@@ -50,11 +80,29 @@ export const StepDetails: React.FC<StepDetailsProps> = ({ formData, onChange }) 
             value={formData.slug || ''}
             onChange={(e) => onChange({ slug: slugify(e.target.value) })}
             placeholder="whispers-of-the-ghats"
-            className="form-input font-mono text-sm"
+            className={`form-input font-mono text-sm ${
+              slugTaken ? 'border-amber-500/70 focus:border-amber-400' : ''
+            }`}
           />
-          <span className="text-[11px] text-slate-500">
-            tpfcinemas.com/film/{formData.slug || 'slug'}
-          </span>
+          <div className="flex items-center justify-between text-[11px] mt-1">
+            <span className="text-slate-500">
+              tpfcinemas.com/film/{formData.slug || 'slug'}
+            </span>
+            {slugTaken && (
+              <button
+                type="button"
+                onClick={() => onChange({ slug: `${formData.slug}-${Math.floor(100 + Math.random() * 900)}` })}
+                className="text-amber-400 font-bold hover:text-white underline"
+              >
+                Auto-fix collision
+              </button>
+            )}
+          </div>
+          {slugTaken && (
+            <p className="text-[11px] text-amber-400 mt-1">
+              ⚠️ A film with this slug already exists. If left as-is, a unique suffix will be added automatically upon saving.
+            </p>
+          )}
         </div>
       </div>
 
