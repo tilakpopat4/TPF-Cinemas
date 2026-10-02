@@ -215,21 +215,47 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
         if (creditErr) throw creditErr;
       }
 
-      // Sync licence agreement
+      // Sync licence agreement (respecting PostgreSQL column-level grants)
       if (licence.music_cleared !== undefined) {
-        const { error: licErr } = await supabase.from('licence_agreements').upsert(
-          {
-            film_id: savedFilmId,
-            filmmaker_id: userId,
-            territory: licence.territory || 'worldwide',
-            term_months: licence.term_months || 24,
-            music_cleared: !!licence.music_cleared,
-            terms_version: licence.terms_version || 'v1.0',
-            agreement_path: licence.agreement_path || null,
-          },
-          { onConflict: 'film_id' }
-        );
-        if (licErr) throw licErr;
+        // Check if licence agreement already exists for this film
+        const { data: existingLic, error: selectLicErr } = await supabase
+          .from('licence_agreements')
+          .select('id')
+          .eq('film_id', savedFilmId)
+          .maybeSingle();
+
+        if (selectLicErr) throw selectLicErr;
+
+        if (existingLic) {
+          // UPDATE: Only send columns granted to authenticated: (term_months, music_cleared, terms_version, agreement_path)
+          // Do not send film_id, filmmaker_id, or territory which triggers permission denied on UPDATE
+          const { error: updateLicErr } = await supabase
+            .from('licence_agreements')
+            .update({
+              term_months: licence.term_months || 24,
+              music_cleared: !!licence.music_cleared,
+              terms_version: licence.terms_version || 'v1.0',
+              agreement_path: licence.agreement_path || null,
+            })
+            .eq('id', existingLic.id);
+
+          if (updateLicErr) throw updateLicErr;
+        } else {
+          // INSERT: All columns permitted on insert
+          const { error: insertLicErr } = await supabase
+            .from('licence_agreements')
+            .insert({
+              film_id: savedFilmId,
+              filmmaker_id: userId,
+              territory: licence.territory || 'worldwide',
+              term_months: licence.term_months || 24,
+              music_cleared: !!licence.music_cleared,
+              terms_version: licence.terms_version || 'v1.0',
+              agreement_path: licence.agreement_path || null,
+            });
+
+          if (insertLicErr) throw insertLicErr;
+        }
       }
 
       // If submitting to curators right away
