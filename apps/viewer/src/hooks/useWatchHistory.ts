@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
-import { WatchHistoryEntry } from '../types';
+import { WatchHistoryEntry, Film } from '../types';
 
 export function useWatchHistory(userId: string | undefined) {
   const [history, setHistory] = useState<Map<string, WatchHistoryEntry>>(new Map());
@@ -93,6 +93,45 @@ export function useWatchHistory(userId: string | undefined) {
     [userId]
   );
 
+  // Dismiss / remove a film from the active resume queue
+  const dismissFromHistory = useCallback(
+    async (filmId: string) => {
+      if (!userId) return;
+
+      const currentEntry = history.get(filmId);
+      const progressSeconds = currentEntry?.progress_seconds || 0;
+
+      // Remove pending updates for this film if any
+      pendingUpdatesRef.current.delete(filmId);
+
+      // Update local state immediately to mark as completed
+      setHistory((prev) => {
+        const next = new Map(prev);
+        next.set(filmId, {
+          user_id: userId,
+          film_id: filmId,
+          progress_seconds: progressSeconds,
+          completed: true,
+          updated_at: new Date().toISOString(),
+        });
+        return next;
+      });
+
+      try {
+        await supabase.from('watch_history').upsert({
+          user_id: userId,
+          film_id: filmId,
+          progress_seconds: progressSeconds,
+          completed: true,
+          updated_at: new Date().toISOString(),
+        });
+      } catch (err) {
+        console.error('Failed to dismiss film from watch history:', err);
+      }
+    },
+    [userId, history]
+  );
+
   const getProgress = (filmId: string) => {
     return history.get(filmId)?.progress_seconds || 0;
   };
@@ -101,12 +140,39 @@ export function useWatchHistory(userId: string | undefined) {
     return history.get(filmId)?.completed || false;
   };
 
+  // Helper to filter in-progress films: >= 15s watched, <= 90% watched, not completed
+  const getInProgressFilms = useCallback(
+    (allFilms: Film[]): Film[] => {
+      if (!userId || !allFilms || allFilms.length === 0) return [];
+
+      const inProgress = allFilms.filter((film) => {
+        const entry = history.get(film.id);
+        if (!entry || entry.completed) return false;
+
+        const progress = entry.progress_seconds || 0;
+        const totalSeconds = (film.runtime_minutes || 1) * 60;
+
+        // >= 15s to filter misclicks, <= 90% to filter completed films
+        return progress >= 15 && progress <= totalSeconds * 0.9;
+      });
+
+      return inProgress.sort((a, b) => {
+        const timeA = new Date(history.get(a.id)?.updated_at || 0).getTime();
+        const timeB = new Date(history.get(b.id)?.updated_at || 0).getTime();
+        return timeB - timeA;
+      });
+    },
+    [userId, history]
+  );
+
   return {
     history,
     loading,
     recordProgress,
+    dismissFromHistory,
     getProgress,
     isCompleted,
+    getInProgressFilms,
     refreshHistory: fetchHistory,
   };
 }

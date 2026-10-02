@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
-import { Play, Plus, Check, Clock } from 'lucide-react';
+import { Play, Plus, Check, Clock, X } from 'lucide-react';
 import { Film } from '../../types';
-import { formatRuntime, formatProgress } from '../../lib/utils';
+import { formatRuntime } from '../../lib/utils';
 import { useHoverPreview } from '../../context/HoverPreviewContext';
 
 interface FilmCardProps {
@@ -11,6 +11,9 @@ interface FilmCardProps {
   onToggleWatchlist: (filmId: string) => void;
   progressSeconds?: number;
   inRail?: boolean;
+  rankIndex?: number;
+  onDismiss?: (filmId: string) => void;
+  resumeMode?: boolean;
 }
 
 export const FilmCard: React.FC<FilmCardProps> = ({
@@ -19,12 +22,15 @@ export const FilmCard: React.FC<FilmCardProps> = ({
   isInWatchlist,
   onToggleWatchlist,
   progressSeconds = 0,
+  rankIndex,
+  onDismiss,
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const { activeFilm, isOpen, triggerEnter, triggerLeave } = useHoverPreview();
   const isHoveredInPortal = isOpen && activeFilm?.id === film.id;
   const totalSeconds = (film.runtime_minutes || 1) * 60;
   const progressPercent = Math.min(100, Math.round((progressSeconds / totalSeconds) * 100));
+  const remainingMinutes = Math.max(1, Math.ceil((totalSeconds - progressSeconds) / 60));
 
   const handleMouseEnter = () => {
     if (typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
@@ -45,14 +51,31 @@ export const FilmCard: React.FC<FilmCardProps> = ({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       className={`group relative flex-none w-48 sm:w-56 md:w-60 cursor-pointer select-none outline-none transition-all duration-200 ${
-        isHoveredInPortal ? 'opacity-0 pointer-events-none' : 'opacity-100 hover:-translate-y-1'
+        rankIndex !== undefined ? 'ml-6 sm:ml-9 md:ml-11' : ''
       }`}
       tabIndex={0}
     >
+      {/* Anchored Top 10 Giant Stylized Outline Numeral (Netflix Style) */}
+      {rankIndex !== undefined && (
+        <div className="absolute -left-6 sm:-left-9 md:-left-11 bottom-6 sm:bottom-8 z-0 pointer-events-none select-none">
+          <span
+            className="font-display font-black text-7xl sm:text-8xl md:text-9xl tracking-tighter leading-none select-none text-canvas/90 transition-all duration-300 group-hover:drop-shadow-[0_0_18px_rgba(245,158,11,0.5)]"
+            style={{
+              WebkitTextStroke: '2.5px rgba(255, 255, 255, 0.75)',
+              textShadow: '0 4px 16px rgba(0,0,0,0.95)',
+            }}
+          >
+            {rankIndex}
+          </span>
+        </div>
+      )}
+
       {/* Poster Container: Sharp 2px corners, graphite backing, hairline border */}
       <div
         onClick={() => onPlay(film)}
-        className="relative aspect-[2/3] w-full rounded-sm overflow-hidden bg-graphite border border-hairline group-hover:border-signature/50 transition-colors shadow-lg"
+        className={`relative aspect-[2/3] w-full rounded-sm overflow-hidden bg-graphite border border-hairline group-hover:border-signature/50 transition-colors shadow-lg z-10 ${
+          isHoveredInPortal ? 'opacity-0 pointer-events-none' : 'opacity-100 hover:-translate-y-1'
+        }`}
       >
         <img
           src={film.poster_url || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=600&auto=format&fit=crop'}
@@ -70,28 +93,45 @@ export const FilmCard: React.FC<FilmCardProps> = ({
           </div>
         )}
 
-        {/* Hover Quick Actions Overlay (Minimalist, No AI Blur) */}
+        {/* Hover Quick Actions Overlay */}
         <div className="absolute inset-0 bg-canvas/80 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-200 flex flex-col justify-between p-3">
-          {/* Top Row: Rating Badge & Queue Toggle */}
+          {/* Top Row: Rating Badge & Action Buttons */}
           <div className="flex items-center justify-between">
             <span className="px-1.5 py-0.5 text-[9px] font-mono uppercase bg-graphite border border-hairline text-ivory">
               {film.age_rating}
             </span>
 
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleWatchlist(film.id);
-              }}
-              className={`p-1.5 rounded-sm border transition-colors ${
-                isInWatchlist
-                  ? 'bg-signature text-black border-signature'
-                  : 'bg-graphite text-ivory border-hairline hover:border-ivory'
-              }`}
-              title={isInWatchlist ? 'Remove from Queue' : 'Add to Queue'}
-            >
-              {isInWatchlist ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
-            </button>
+            <div className="flex items-center gap-1.5">
+              {/* Dismiss button for Continue Watching */}
+              {onDismiss && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDismiss(film.id);
+                  }}
+                  className="p-1.5 rounded-sm bg-graphite/90 hover:bg-black text-muted hover:text-white border border-hairline transition-colors"
+                  title="Remove from Continue Watching"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+
+              {/* Watchlist Toggle */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleWatchlist(film.id);
+                }}
+                className={`p-1.5 rounded-sm border transition-colors ${
+                  isInWatchlist
+                    ? 'bg-signature text-black border-signature'
+                    : 'bg-graphite text-ivory border-hairline hover:border-ivory'
+                }`}
+                title={isInWatchlist ? 'Remove from Queue' : 'Add to Queue'}
+              >
+                {isInWatchlist ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+              </button>
+            </div>
           </div>
 
           {/* Center: Play Trigger */}
@@ -122,11 +162,11 @@ export const FilmCard: React.FC<FilmCardProps> = ({
           </div>
         </div>
 
-        {/* Continue Watching Progress Bar (Hairline Signature Accent) */}
+        {/* Continue Watching Progress Bar (Glowing Amber Signature Accent) */}
         {progressSeconds > 0 && (
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/80 z-20">
+          <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-black/80 z-20">
             <div
-              className="h-full bg-signature"
+              className="h-full bg-signature shadow-[0_0_8px_rgba(245,158,11,0.6)]"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -134,7 +174,7 @@ export const FilmCard: React.FC<FilmCardProps> = ({
       </div>
 
       {/* Card Typography below poster */}
-      <div className="mt-2.5 px-0.5">
+      <div className={`mt-2.5 px-0.5 z-10 relative ${isHoveredInPortal ? 'opacity-0' : 'opacity-100'}`}>
         <h3
           onClick={() => onPlay(film)}
           className="font-editorial text-base sm:text-lg font-semibold text-ivory truncate group-hover:text-signature transition-colors leading-tight"
@@ -147,8 +187,9 @@ export const FilmCard: React.FC<FilmCardProps> = ({
         </p>
 
         {progressSeconds > 0 && (
-          <p className="font-mono text-[10px] text-signature mt-0.5 uppercase tracking-wider">
-            Resume • {formatProgress(progressSeconds)}
+          <p className="font-mono text-[10px] text-signature mt-0.5 uppercase tracking-wider flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-signature animate-pulse inline-block" />
+            Resume • {remainingMinutes}m left
           </p>
         )}
       </div>
