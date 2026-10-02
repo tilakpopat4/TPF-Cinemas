@@ -145,6 +145,27 @@ Plans:
 - [ ] 08-01: Implement and verify `RoleManager` dashboard with search, role transitions, and self-demotion guards.
 - [ ] 08-02: Implement and verify `AuditLogView` stream, emergency takedown modal, and featured status controls.
 
+- [ ] **Phase 9: Creator Legal Agreement & Content Rights Framework** - Digital signature onboarding flow (canvas draw + typed name), dynamic non-exclusive streaming rights + IP ownership agreement (Short Film vs Feature Film variants), signed PDF generation & download, legal verification tab in Staff Console, and immutable agreement record in Supabase.
+
+## Phase Details
+
+### Phase 9: Creator Legal Agreement & Content Rights Framework
+**Goal**: Implement a legally sound digital agreement system where creators sign a non-exclusive streaming rights grant and IP ownership self-declaration before their first submission. Signed agreements are stored as both a raw signature image and a generated PDF in Supabase Storage, are visible to the creator for download, and are verifiable by admins via a dedicated Legal Verification tab in the Staff Console.
+**Depends on**: Phase 6 (Filmmaker Studio — submission pipeline must exist)
+**Requirements**: LEGAL-01, LEGAL-02, LEGAL-03, LEGAL-04
+**Success Criteria** (what must be TRUE):
+  1. First-time creators encounter a legal onboarding step before submitting any film — they cannot proceed without completing it.
+  2. Agreement displays dynamic clauses based on film type (Short Film vs Feature Film). Creator can read the full in-page document before signing.
+  3. Creator draws their signature on a canvas widget, types their full legal name, and confirms — the platform records IP address, timestamp, and user agent server-side.
+  4. A PDF with the embedded signature is generated and stored in Supabase Storage. Creator can download their signed copy at any time from their studio dashboard.
+  5. Staff Console features a "Legal Verification" tab showing: agreement status badge (Signed/Unsigned), signature image preview, signed PDF download link, and a `verify_licence` action that logs the verification to `audit_logs`.
+  6. The `licence_agreements` table is extended to store: `signature_image_url`, `agreement_pdf_url`, `signed_ip`, `signed_user_agent`, `agreement_version`, `film_type_at_signing`. Agreement records are NEVER deleted even on film takedown or account deletion.
+**Plans**: 2 plans
+
+Plans:
+- [ ] 09-01: Build creator legal onboarding flow — dynamic agreement document, canvas signature widget, PDF generation, and Supabase Storage upload.
+- [ ] 09-02: Extend Staff Console with Legal Verification tab — agreement status badge, signature preview, PDF download, and verify action with audit logging.
+
 ---
 *Roadmap defined: 2026-10-01*
-*Updated: 2026-10-02 (Added Phases 6, 7, 8 for Studio, Staff, Admin portals)*
+*Updated: 2026-10-02 (Added Phases 6, 7, 8 for Studio, Staff, Admin portals; Phase 9 for Creator Legal Framework)*
