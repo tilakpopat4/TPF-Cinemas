@@ -9,7 +9,7 @@ Transform the TPF Cinemas viewer application (`apps/viewer`) into a world-class,
 - [x] **Phase 1: Cinematic Hero Billboard** - High-impact billboard with video teaser loop, audio mute toggle, rotating featured carousel, and rich metadata badges.
 - [x] **Phase 2: Netflix-Style Hover Previews** - Smooth desktop card hover expansion displaying video teaser, synopsis snippet, age rating, and quick actions without layout reflow.
 - [x] **Phase 3: Custom Cinematic Video Player** - Custom Amber scrubber, chromeless engine, transport HUD, shortcuts & gestures.
-- [ ] **Phase 4: Dynamic Content Rails & Ranked Lists** - "Continue Watching" rail with watched-progress bars from `watch_history`, "Top 10 in India" ranked badges, and smooth horizontal scrolling rails.
+- [x] **Phase 4: Dynamic Content Rails & Ranked Lists** - "Continue Watching" rail with watched-progress bars from `watch_history`, "Top 10 in India" ranked badges, and smooth horizontal scrolling rails.
 - [ ] **Phase 5: Discovery Filter Chips & Polish** - Sticky category and language filter bar (Telugu, Hindi, Tamil, Short Films, Feature Films), instant search filtering, and mobile responsive touch polish.
 
 ## Phase Details
@@ -72,8 +72,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: Create `ContinueWatchingRail` with progress calculation and `Top10Rail` with stylized rank typography.
-- [ ] 04-02: Enhance `ContentRail` with smooth chevron controls, responsive touch scroll, and synchronized watchlist state.
+- [x] 04-01: Create `ContinueWatchingRail` with progress calculation and `Top10Rail` with stylized rank typography.
+- [x] 04-02: Enhance `ContentRail` with smooth chevron controls, responsive touch scroll, and synchronized watchlist state.
 
 ### Phase 5: Discovery Filter Chips & Polish
 **Goal**: Provide instant format and regional language discovery via sticky filter chips, instant search refinement, and responsive mobile adaptations.

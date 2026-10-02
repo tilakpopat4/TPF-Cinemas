@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { Play, Plus, Check, ChevronDown, Volume2, VolumeX } from 'lucide-react';
+import { Play, Plus, Check, ChevronDown, Volume2, VolumeX, X } from 'lucide-react';
 import { Film } from '../../types';
 import { useHoverPreview } from '../../context/HoverPreviewContext';
 import { formatRuntime, extractYouTubeId } from '../../lib/utils';
@@ -13,6 +13,8 @@ interface HoverPreviewPortalProps {
   onToggleWatchlist: (filmId: string) => void;
   onMoreInfo: (film: Film) => void;
   onSelectGenre?: (genre: string) => void;
+  getProgress?: (filmId: string) => number;
+  onDismissFromHistory?: (filmId: string) => void;
 }
 
 export const HoverPreviewPortal: React.FC<HoverPreviewPortalProps> = ({
@@ -21,6 +23,8 @@ export const HoverPreviewPortal: React.FC<HoverPreviewPortalProps> = ({
   onToggleWatchlist,
   onMoreInfo,
   onSelectGenre,
+  getProgress,
+  onDismissFromHistory,
 }) => {
   const reduced = useReducedMotion();
   const { activeFilm, sourceRect, isOpen, portalEnter, portalLeave, closeImmediately } = useHoverPreview();
@@ -141,6 +145,17 @@ export const HoverPreviewPortal: React.FC<HoverPreviewPortalProps> = ({
                 </span>
               </div>
             )}
+            {/* Resume Progress Bar */}
+            {getProgress && getProgress(activeFilm.id) > 0 && (
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/80 z-20">
+                <div
+                  className="h-full bg-signature shadow-[0_0_8px_rgba(245,158,11,0.6)]"
+                  style={{
+                    width: `${Math.min(100, Math.round((getProgress(activeFilm.id) / ((activeFilm.runtime_minutes || 1) * 60)) * 100))}%`,
+                  }}
+                />
+              </div>
+            )}
           </div>
 
           {/* Details & Actions Body (No rounded pills) */}
@@ -173,6 +188,20 @@ export const HoverPreviewPortal: React.FC<HoverPreviewPortalProps> = ({
                 >
                   {inWatchlist ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
                 </button>
+
+                {/* Dismiss from Resume Queue */}
+                {onDismissFromHistory && getProgress && getProgress(activeFilm.id) > 0 && (
+                  <button
+                    onClick={() => {
+                      onDismissFromHistory(activeFilm.id);
+                      closeImmediately();
+                    }}
+                    className="h-8 w-8 rounded-sm border border-hairline bg-graphite hover:bg-black text-muted hover:text-white flex items-center justify-center transition-colors"
+                    title="Remove from Continue Watching"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </div>
 
               {/* Curatorial More Info */}

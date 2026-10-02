@@ -9,6 +9,8 @@ import { ViewerHeader } from './components/navigation/ViewerHeader';
 import { ViewerFooter } from './components/navigation/ViewerFooter';
 import { HeroBillboard } from './components/hero/HeroBillboard';
 import { ContentRail } from './components/catalog/ContentRail';
+import { ContinueWatchingRail } from './components/catalog/ContinueWatchingRail';
+import { Top10Rail } from './components/catalog/Top10Rail';
 import { FilmCard } from './components/catalog/FilmCard';
 import { WatchModal } from './components/player/WatchModal';
 import { MoreInfoModal } from './components/player/MoreInfoModal';
@@ -33,7 +35,7 @@ export default function App() {
   } = useCatalogue();
 
   const { watchlistIds, toggleWatchlist, isInWatchlist } = useWatchlist(user?.id);
-  const { history, recordProgress, getProgress } = useWatchHistory(user?.id);
+  const { history, recordProgress, getProgress, dismissFromHistory, getInProgressFilms } = useWatchHistory(user?.id);
 
   const [currentTab, setCurrentTab] = useState<'home' | 'browse' | 'watchlist' | 'history'>('home');
   const [activeWatchFilm, setActiveWatchFilm] = useState<FilmType | null>(null);
@@ -59,6 +61,10 @@ export default function App() {
   // Filtered lists for specific rails
   const watchlistFilms = films.filter((f) => watchlistIds.has(f.id));
   const historyFilms = films.filter((f) => history.has(f.id));
+  const inProgressFilms = getInProgressFilms(films);
+  const top10Films = [...films]
+    .sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
+    .slice(0, 10);
 
   // Genre-specific film rails for home page
   const dramaFilms = films.filter((f) =>
@@ -158,13 +164,29 @@ export default function App() {
 
               {/* Rails Container */}
               <div className="relative -mt-6 sm:-mt-10 z-20 space-y-2">
-                {/* Continue Watching (if viewer has history) */}
-                {user && historyFilms.length > 0 && (
-                  <ContentRail
-                    title="Resuming Streams"
-                    subtitle="Synchronized viewer positions"
-                    films={historyFilms}
-                    onPlay={(f) => setActiveWatchFilm(f)}
+                {/* Continue Watching (Active In-Progress Streams with Dismissal) */}
+                {user && inProgressFilms.length > 0 && (
+                  <ContinueWatchingRail
+                    films={inProgressFilms}
+                    onPlay={(f) => {
+                      setActiveWatchFilm(f);
+                      setActiveWatchMode('movie');
+                    }}
+                    isInWatchlist={isInWatchlist}
+                    onToggleWatchlist={toggleWatchlist}
+                    getProgress={getProgress}
+                    onDismiss={dismissFromHistory}
+                  />
+                )}
+
+                {/* Top 10 in India (Ranked Popularity Rail) */}
+                {top10Films.length > 0 && (
+                  <Top10Rail
+                    films={top10Films}
+                    onPlay={(f) => {
+                      setActiveWatchFilm(f);
+                      setActiveWatchMode('movie');
+                    }}
                     isInWatchlist={isInWatchlist}
                     onToggleWatchlist={toggleWatchlist}
                     getProgress={getProgress}
@@ -429,6 +451,8 @@ export default function App() {
             setSelectedGenre(g);
             setCurrentTab('browse');
           }}
+          getProgress={getProgress}
+          onDismissFromHistory={dismissFromHistory}
         />
 
         {/* Netflix-Inspired Curatorial Footer */}

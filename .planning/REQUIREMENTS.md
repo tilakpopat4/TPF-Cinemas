@@ -23,10 +23,10 @@ Requirements for initial release of the Viewer Home Page.
 
 ### Dynamic Content Rails & Ranked Lists
 
-- [ ] **RAILS-01**: "Continue Watching" rail displaying in-progress titles with visual progress bars calculated from Supabase `watch_history`.
-- [ ] **RAILS-02**: "Top 10 / Trending" rail with stylized typography rank numerals (1-10) beside poster artwork.
-- [ ] **RAILS-03**: Horizontal scrollable rails for curated categories (Trending, Indie Debuts, Award Winners, Genre rails) with smooth snap scrolling, navigation chevrons, and touch swipe.
-- [ ] **RAILS-04**: Realtime synchronisation of watchlist state across cards and hero when toggled.
+- [x] **RAILS-01**: "Continue Watching" rail displaying in-progress titles with visual progress bars calculated from Supabase `watch_history`.
+- [x] **RAILS-02**: "Top 10 / Trending" rail with stylized typography rank numerals (1-10) beside poster artwork.
+- [x] **RAILS-03**: Horizontal scrollable rails for curated categories (Trending, Indie Debuts, Award Winners, Genre rails) with smooth snap scrolling, navigation chevrons, and touch swipe.
+- [x] **RAILS-04**: Realtime synchronisation of watchlist state across cards and hero when toggled.
 
 ### Custom Cinematic Video Player
 
@@ -73,10 +73,10 @@ Which phases cover which requirements.
 | HOVER-02 | Phase 2 | Complete |
 | HOVER-03 | Phase 2 | Complete |
 | HOVER-04 | Phase 2 | Complete |
-| RAILS-01 | Phase 4 | Pending |
-| RAILS-02 | Phase 4 | Pending |
-| RAILS-03 | Phase 4 | Pending |
-| RAILS-04 | Phase 4 | Pending |
+| RAILS-01 | Phase 4 | Complete |
+| RAILS-02 | Phase 4 | Complete |
+| RAILS-03 | Phase 4 | Complete |
+| RAILS-04 | Phase 4 | Complete |
 | PLAYER-01 | Phase 3 | Complete |
 | PLAYER-02 | Phase 3 | Complete |
 | PLAYER-03 | Phase 3 | Complete |

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Film } from '../../types';
 import { FilmCard } from './FilmCard';
@@ -23,12 +23,36 @@ export const ContentRail: React.FC<ContentRailProps> = ({
   getProgress,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScrollBounds = useCallback(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 10);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
+  }, []);
+
+  useEffect(() => {
+    checkScrollBounds();
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    el.addEventListener('scroll', checkScrollBounds, { passive: true });
+    window.addEventListener('resize', checkScrollBounds);
+
+    return () => {
+      el.removeEventListener('scroll', checkScrollBounds);
+      window.removeEventListener('resize', checkScrollBounds);
+    };
+  }, [checkScrollBounds, films]);
 
   if (!films || films.length === 0) return null;
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
-      const scrollAmount = direction === 'left' ? -520 : 520;
+      const step = scrollContainerRef.current.clientWidth * 0.8;
+      const scrollAmount = direction === 'left' ? -step : step;
       scrollContainerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
@@ -57,19 +81,21 @@ export const ContentRail: React.FC<ContentRailProps> = ({
 
       {/* Horizontal Scroll Area */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Left Arrow Button (Sharp Rectangular, Graphite Surface) */}
-        <button
-          onClick={() => scroll('left')}
-          className="absolute left-1 top-1/2 -translate-y-1/2 z-30 h-11 w-8 bg-graphite/95 hover:bg-graphite text-ivory rounded-sm opacity-0 group-hover/rail:opacity-100 transition-opacity flex items-center justify-center border border-hairline focus:outline-none shadow-xl"
-          title="Scroll Left"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
+        {/* Left Arrow Button — Boundary Aware */}
+        {canScrollLeft && (
+          <button
+            onClick={() => scroll('left')}
+            className="absolute left-1 top-1/2 -translate-y-1/2 z-30 h-12 w-9 bg-graphite/95 hover:bg-graphite text-ivory rounded-sm opacity-0 group-hover/rail:opacity-100 transition-opacity flex items-center justify-center border border-hairline focus:outline-none shadow-2xl backdrop-blur-md"
+            title="Scroll Left"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+        )}
 
-        {/* Films Row — Always visible and smoothly scrollable */}
+        {/* Films Row — Always visible and smoothly scrollable with touch support */}
         <div
           ref={scrollContainerRef}
-          className="flex items-start gap-4 sm:gap-5 overflow-x-auto pb-4 pt-1 hide-scrollbar scroll-smooth"
+          className="flex items-start gap-4 sm:gap-5 overflow-x-auto pb-4 pt-1 hide-scrollbar scroll-smooth touch-pan-x"
         >
           {films.map((film) => (
             <div key={film.id} className="flex-none">
@@ -84,14 +110,16 @@ export const ContentRail: React.FC<ContentRailProps> = ({
           ))}
         </div>
 
-        {/* Right Arrow Button (Sharp Rectangular, Graphite Surface) */}
-        <button
-          onClick={() => scroll('right')}
-          className="absolute right-1 top-1/2 -translate-y-1/2 z-30 h-11 w-8 bg-graphite/95 hover:bg-graphite text-ivory rounded-sm opacity-0 group-hover/rail:opacity-100 transition-opacity flex items-center justify-center border border-hairline focus:outline-none shadow-xl"
-          title="Scroll Right"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
+        {/* Right Arrow Button — Boundary Aware */}
+        {canScrollRight && (
+          <button
+            onClick={() => scroll('right')}
+            className="absolute right-1 top-1/2 -translate-y-1/2 z-30 h-12 w-9 bg-graphite/95 hover:bg-graphite text-ivory rounded-sm opacity-0 group-hover/rail:opacity-100 transition-opacity flex items-center justify-center border border-hairline focus:outline-none shadow-2xl backdrop-blur-md"
+            title="Scroll Right"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        )}
       </div>
     </section>
   );
