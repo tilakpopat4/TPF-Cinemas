@@ -2,11 +2,11 @@
 gsd_state_version: '1.0'
 status: executing
 progress:
-  total_phases: 5
+  total_phases: 8
   completed_phases: 4
-  total_plans: 10
+  total_plans: 16
   completed_plans: 8
-  percent: 80
+  percent: 50
 ---
 
 # Project State

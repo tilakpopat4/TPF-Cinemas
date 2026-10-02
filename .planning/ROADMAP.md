@@ -1,8 +1,12 @@
-# Roadmap: TPF Cinemas (Viewer Home Page)
+# Roadmap: TPF Cinemas Platform (Viewer, Studio, Staff & Admin)
 
 ## Overview
 
-Transform the TPF Cinemas viewer application (`apps/viewer`) into a world-class, cinematic streaming homepage inspired by Netflix and Prime Video. This roadmap delivers a massive autoplaying teaser hero billboard, Netflix-style interactive hover cards with preview playback, real-time "Continue Watching" rails synced to Supabase `watch_history`, "Top 10" ranked rails, and sticky category/language filter pills.
+Deliver a complete cinematic streaming and management ecosystem:
+1. **Viewer site (`apps/viewer`)**: High-impact hero billboard, Netflix-style hover previews, custom cinematic video player, dynamic content rails ("Continue Watching", "Top 10"), and sticky discovery filters.
+2. **Filmmaker Studio (`apps/studio`)**: Filmmaker onboarding, multi-step submission wizard, media uploads, licence agreements, and submission lifecycle dashboard.
+3. **Staff Console (`apps/staff`)**: Curator review queue, film screening inspection, decision engine with mandatory feedback, licence verification, and one-click publishing.
+4. **Admin Governance (`apps/staff` admin)**: User role management (RBAC), searchable audit logging, emergency takedowns, and featured catalog curation.
 
 ## Phases
 
@@ -11,6 +15,9 @@ Transform the TPF Cinemas viewer application (`apps/viewer`) into a world-class,
 - [x] **Phase 3: Custom Cinematic Video Player** - Custom Amber scrubber, chromeless engine, transport HUD, shortcuts & gestures.
 - [x] **Phase 4: Dynamic Content Rails & Ranked Lists** - "Continue Watching" rail with watched-progress bars from `watch_history`, "Top 10 in India" ranked badges, and smooth horizontal scrolling rails.
 - [ ] **Phase 5: Discovery Filter Chips & Polish** - Sticky category and language filter bar (Telugu, Hindi, Tamil, Short Films, Feature Films), instant search filtering, and mobile responsive touch polish.
+- [ ] **Phase 6: Filmmaker Studio & Submission Pipeline** - Creator onboarding, multi-step submission wizard, media uploads & video preview validation, digital licence signing, and submission dashboard with revision tracking.
+- [ ] **Phase 7: Staff Curation Console & Moderation Queue** - Realtime submission review queue, screening preview player, curator decision box (`review_film` RPC with mandatory feedback notes), licence verification (`verify_licence` RPC), and one-click publishing (`publish_film` RPC).
+- [ ] **Phase 8: Admin Governance, Roles & Audit Logging** - Platform role management (`set_user_role` RPC with self-demote safety checks), searchable real-time audit log stream, and emergency film takedown (`takedown_film` RPC) & featured toggles (`feature_film` RPC).
 
 ## Phase Details
 
@@ -90,5 +97,54 @@ Plans:
 - [ ] 05-01: Build sticky `FilterChipsBar` supporting language/format facets with animated transitions.
 - [ ] 05-02: Integrate search query filtering, empty state views, and responsive mobile touch optimizations.
 
+### Phase 6: Filmmaker Studio & Submission Pipeline
+**Goal**: Deliver a seamless submission suite for independent filmmakers in `apps/studio` with multi-step wizard, poster uploads, video previews, licence signing, and live status tracking.
+**Depends on**: Phase 5
+**Requirements**: STUDIO-01, STUDIO-02, STUDIO-03, STUDIO-04
+**Success Criteria** (what must be TRUE):
+  1. Filmmaker can register/onboard and manage film submissions across draft, review, and live statuses.
+  2. Multi-step submission wizard validates title, slug, language, runtime, synopsis, age rating, genres, and credits.
+  3. Video URL/ID is validated with real-time screening preview before submission, and poster uploads securely to storage.
+  4. Non-exclusive licence terms (Schedule A & C, music clearance declaration) are confirmed and stored in `licence_agreements`.
+  5. Submitting calls `submit_film()` RPC, transitioning status to `submitted` and appearing in staff queue.
+  6. Filmmaker can view curator feedback on `changes_requested` or `rejected` films and resubmit updated drafts.
+**Plans**: 2 plans
+
+Plans:
+- [ ] 06-01: Build and verify submission wizard steps (metadata, media upload & video preview validation, credits, licence signing).
+- [ ] 06-02: Connect creator dashboard with status tabs, feedback modal, film stats, and revision re-submission flow.
+
+### Phase 7: Staff Curation Console & Moderation Queue
+**Goal**: Empower curators in `apps/staff` to review submitted films, screening playback, verify licences, provide mandatory feedback, and publish approved titles.
+**Depends on**: Phase 6
+**Requirements**: STAFF-01, STAFF-02, STAFF-03, STAFF-04
+**Success Criteria** (what must be TRUE):
+  1. Staff dashboard displays live submission queue with realtime status filters (`submitted`, `changes_requested`, `approved`, `published`).
+  2. Inspection modal features embedded video player for staff screening alongside complete metadata, credits, and director notes.
+  3. Decision engine executes `review_film()` RPC enforcing mandatory feedback notes for "changes requested" or "rejected".
+  4. Curators can inspect music clearance and execute `verify_licence()` RPC.
+  5. Approved films can be published to the catalog using `publish_film()` RPC with webhook cache invalidation.
+**Plans**: 2 plans
+
+Plans:
+- [ ] 07-01: Build and verify review queue table, status filters, realtime subscriptions, and screening inspection modal.
+- [ ] 07-02: Connect curator decision engine (`review_film`, `verify_licence`, `publish_film` RPCs) with mandatory feedback validation and error handling.
+
+### Phase 8: Admin Governance, Roles & Audit Logging
+**Goal**: Provide platform administrators in `apps/staff` with RBAC role management, platform audit logging, and global content controls (takedowns & featured toggles).
+**Depends on**: Phase 7
+**Requirements**: ADMIN-01, ADMIN-02, ADMIN-03
+**Success Criteria** (what must be TRUE):
+  1. Admins can view all platform users and promote/demote roles (`viewer`, `filmmaker`, `curator`, `admin`) via `set_user_role()` RPC with self-demote safety checks.
+  2. Searchable and filterable audit log stream displays all administrative, curation, and publishing actions from `audit_logs`.
+  3. Admins can execute emergency takedowns (`takedown_film()` RPC) with mandatory reasons, archiving the film and clearing edge cache.
+  4. Admins can toggle featured film status (`feature_film()` RPC) for hero and spotlight rails.
+**Plans**: 2 plans
+
+Plans:
+- [ ] 08-01: Implement and verify `RoleManager` dashboard with search, role transitions, and self-demotion guards.
+- [ ] 08-02: Implement and verify `AuditLogView` stream, emergency takedown modal, and featured status controls.
+
 ---
 *Roadmap defined: 2026-10-01*
+*Updated: 2026-10-02 (Added Phases 6, 7, 8 for Studio, Staff, Admin portals)*

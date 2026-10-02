@@ -41,11 +41,31 @@ Requirements for initial release of the Viewer Home Page.
 - [ ] **FILTER-02**: Instant responsive filtering and animated transitions between filtered states without page reload.
 - [ ] **FILTER-03**: Instant search bar with debounced query filtering across titles, directors, and genres with rich empty-state recommendations.
 
+### Filmmaker Studio & Submission Pipeline
+
+- [ ] **STUDIO-01**: Multi-step submission wizard with real-time validation across title, slug, language, runtime, synopsis, director's note, debut indicator, age rating, genres, and credits.
+- [ ] **STUDIO-02**: Poster image upload handling and YouTube video ID validation with live test preview screening before submission.
+- [ ] **STUDIO-03**: Digital non-exclusive licence agreement execution (Schedule A & C, music clearance declaration, terms versioning, record persistence in `licence_agreements`).
+- [ ] **STUDIO-04**: Creator submission dashboard with status filters (Drafts, In Review, Live), curator feedback review modal, and revision re-submission flow via `submit_film()` RPC.
+
+### Staff Curation Console & Moderation Queue
+
+- [ ] **STAFF-01**: Live submission review queue with status filtering (`submitted`, `changes_requested`, `approved`, `published`), search, and Supabase realtime subscriptions.
+- [ ] **STAFF-02**: Inspection modal featuring an embedded video screening player, full metadata viewer, credits breakdown, and director notes.
+- [ ] **STAFF-03**: Curator decision engine executing `review_film()` RPC enforcing mandatory feedback notes for "changes requested" or "rejected", and `verify_licence()` RPC for music clearance confirmation.
+- [ ] **STAFF-04**: One-click publishing pipeline via `publish_film()` RPC with status badge synchronization and edge cache invalidation.
+
+### Admin Governance, Roles & Audit Logging
+
+- [ ] **ADMIN-01**: Role management dashboard executing `set_user_role()` RPC to promote/demote users between `viewer`, `filmmaker`, `curator`, and `admin` with self-demote safety checks.
+- [ ] **ADMIN-02**: Real-time searchable and filterable platform audit log viewer querying `audit_logs`.
+- [ ] **ADMIN-03**: Emergency takedown controls via `takedown_film()` RPC with mandatory reason capture and featured film toggles via `feature_film()` RPC.
+
 ## v2 Requirements
 
 Deferred to future releases.
 
-### Advanced Viewer Features
+### Advanced Platform Features
 
 - **PLAYER-01**: Adaptive HLS video streaming via Mux with multi-bitrate selection and subtitle/audio track switching.
 - **SOCIAL-01**: Shareable deep links with timestamp playback (`/watch/:id?t=120`).
@@ -84,11 +104,23 @@ Which phases cover which requirements.
 | FILTER-01 | Phase 5 | Pending |
 | FILTER-02 | Phase 5 | Pending |
 | FILTER-03 | Phase 5 | Pending |
+| STUDIO-01 | Phase 6 | Pending |
+| STUDIO-02 | Phase 6 | Pending |
+| STUDIO-03 | Phase 6 | Pending |
+| STUDIO-04 | Phase 6 | Pending |
+| STAFF-01 | Phase 7 | Pending |
+| STAFF-02 | Phase 7 | Pending |
+| STAFF-03 | Phase 7 | Pending |
+| STAFF-04 | Phase 7 | Pending |
+| ADMIN-01 | Phase 8 | Pending |
+| ADMIN-02 | Phase 8 | Pending |
+| ADMIN-03 | Phase 8 | Pending |
 
 **Coverage:**
-- v1 requirements: 19 total
-- Mapped to phases: 19
+- v1 requirements: 30 total
+- Mapped to phases: 30
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-10-01*
+*Updated: 2026-10-02 (Added requirements for Studio, Staff, Admin portals)*
