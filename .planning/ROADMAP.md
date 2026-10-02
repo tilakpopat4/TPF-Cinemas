@@ -7,9 +7,10 @@ Transform the TPF Cinemas viewer application (`apps/viewer`) into a world-class,
 ## Phases
 
 - [x] **Phase 1: Cinematic Hero Billboard** - High-impact billboard with video teaser loop, audio mute toggle, rotating featured carousel, and rich metadata badges.
-- [ ] **Phase 2: Netflix-Style Hover Previews** - Smooth desktop card hover expansion displaying video teaser, synopsis snippet, age rating, and quick actions without layout reflow.
-- [ ] **Phase 3: Dynamic Content Rails & Ranked Lists** - "Continue Watching" rail with watched-progress bars from `watch_history`, "Top 10 in India" ranked badges, and smooth horizontal scrolling rails.
-- [ ] **Phase 4: Discovery Filter Chips & Polish** - Sticky category and language filter bar (Telugu, Hindi, Tamil, Short Films, Feature Films), instant search filtering, and mobile responsive touch polish.
+- [x] **Phase 2: Netflix-Style Hover Previews** - Smooth desktop card hover expansion displaying video teaser, synopsis snippet, age rating, and quick actions without layout reflow.
+- [x] **Phase 3: Custom Cinematic Video Player** - Custom Amber scrubber, chromeless engine, transport HUD, shortcuts & gestures.
+- [ ] **Phase 4: Dynamic Content Rails & Ranked Lists** - "Continue Watching" rail with watched-progress bars from `watch_history`, "Top 10 in India" ranked badges, and smooth horizontal scrolling rails.
+- [ ] **Phase 5: Discovery Filter Chips & Polish** - Sticky category and language filter bar (Telugu, Hindi, Tamil, Short Films, Feature Films), instant search filtering, and mobile responsive touch polish.
 
 ## Phase Details
 
