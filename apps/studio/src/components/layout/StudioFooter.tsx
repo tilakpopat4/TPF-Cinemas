@@ -3,15 +3,11 @@ import { Globe, ChevronDown, Check, Phone, Mail, ShieldCheck } from 'lucide-reac
 import { useLanguage, SUPPORTED_LANGUAGES } from '../../context/LanguageContext';
 import { getPortalUrl } from '../../lib/portalNav';
 
-interface ViewerFooterProps {
-  onSelectTab?: (tab: 'home' | 'browse' | 'watchlist' | 'history') => void;
-  onOpenAuth?: () => void;
+interface StudioFooterProps {
+  onOpenSubmission?: () => void;
 }
 
-export const ViewerFooter: React.FC<ViewerFooterProps> = ({
-  onSelectTab,
-  onOpenAuth,
-}) => {
+export const StudioFooter: React.FC<StudioFooterProps> = ({ onOpenSubmission }) => {
   const { currentLanguage, setLanguage, isTranslating } = useLanguage();
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [activeModalInfo, setActiveModalInfo] = useState<{ title: string; content: string } | null>(null);
@@ -34,12 +30,12 @@ export const ViewerFooter: React.FC<ViewerFooterProps> = ({
   };
 
   return (
-    <footer className="border-t border-hairline bg-canvas text-muted text-xs selection:bg-signature selection:text-black relative z-10">
+    <footer className="border-t border-hairline bg-canvas text-muted text-xs selection:bg-signature selection:text-black relative z-10 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-16 space-y-8">
         {/* Support & Contact Prompt — Direct Netflix Pattern */}
         <div className="flex flex-wrap items-center justify-between gap-4 text-sm text-muted">
           <div className="flex flex-wrap items-center gap-2">
-            <span>Questions or curatorial inquiries?</span>
+            <span>Creator support or curatorial inquiries?</span>
             <a
               href="tel:0008009191743"
               className="text-ivory hover:text-signature transition-colors underline underline-offset-4 flex items-center gap-1.5"
@@ -49,11 +45,11 @@ export const ViewerFooter: React.FC<ViewerFooterProps> = ({
             </a>
             <span className="hidden sm:inline text-hairline">•</span>
             <a
-              href="mailto:curators@tpfcinemas.com"
+              href="mailto:submissions@tpfcinemas.com"
               className="text-ivory hover:text-signature transition-colors underline underline-offset-4 flex items-center gap-1.5"
             >
               <Mail className="h-3.5 w-3.5 text-signature" />
-              <span>curators@tpfcinemas.com</span>
+              <span>submissions@tpfcinemas.com</span>
             </a>
           </div>
         </div>
@@ -65,14 +61,14 @@ export const ViewerFooter: React.FC<ViewerFooterProps> = ({
           </span>
           <a
             href={getPortalUrl('cinema')}
-            className="text-signature font-semibold hover:underline flex items-center gap-1.5"
+            className="text-ivory hover:text-signature transition-colors font-medium flex items-center gap-1.5"
           >
             <span>Audience Cinema</span>
           </a>
           <span className="text-hairline">•</span>
           <a
             href={getPortalUrl('studio')}
-            className="text-ivory hover:text-signature transition-colors font-medium flex items-center gap-1.5"
+            className="text-signature font-semibold hover:underline flex items-center gap-1.5"
           >
             <span>Filmmaker Studio</span>
           </a>
@@ -91,15 +87,25 @@ export const ViewerFooter: React.FC<ViewerFooterProps> = ({
           <ul className="space-y-3">
             <li>
               <button
-                onClick={() => handleLinkClick('Frequently Asked Questions', 'TPF Cinemas is an independent cinema platform dedicated to screening debut works and emerging auteur visions without studio compromise. All films are presented in their native aspect ratio with high-fidelity sound.')}
+                onClick={() =>
+                  handleLinkClick(
+                    'Creator Guidelines & Submission Rules',
+                    'TPF Cinemas accepts debut short films, documentary profiles, and independent features. All entries must possess music synchronization clearance and original author agreements.'
+                  )
+                }
                 className="hover:underline hover:text-ivory transition-colors text-left"
               >
-                FAQ
+                Submission Guidelines
               </button>
             </li>
             <li>
               <button
-                onClick={() => handleLinkClick('Investor Relations', 'TPF Cinemas is backed by independent film preservation funds, cultural patrons, and emerging technology foundations committed to democratizing cinematic distribution.')}
+                onClick={() =>
+                  handleLinkClick(
+                    'Investor & Patron Relations',
+                    'TPF Cinemas is backed by independent film preservation funds, cultural patrons, and emerging technology foundations committed to democratizing cinematic distribution.'
+                  )
+                }
                 className="hover:underline hover:text-ivory transition-colors text-left"
               >
                 Investor Relations
@@ -107,18 +113,28 @@ export const ViewerFooter: React.FC<ViewerFooterProps> = ({
             </li>
             <li>
               <button
-                onClick={() => handleLinkClick('Privacy & Anonymity', 'We collect zero advertising telemetry. Your viewing history and curated queue are protected with Supabase Row Level Security and never sold to third-party ad brokers.')}
+                onClick={() =>
+                  handleLinkClick(
+                    'Privacy & Data Protection',
+                    'We collect zero advertising telemetry. Your film manuscripts, master files, and identity documents are stored in secure, private encrypted Supabase storage.'
+                  )
+                }
                 className="hover:underline hover:text-ivory transition-colors text-left"
               >
-                Privacy
+                Privacy & Data
               </button>
             </li>
             <li>
               <button
-                onClick={() => handleLinkClick('Streaming & Playback Diagnostics', 'Optimal playback requires 15+ Mbps for 4K Ultra HD and 5.1 surround sound. Adaptive bitrate streaming dynamically matches your network throughput.')}
+                onClick={() =>
+                  handleLinkClick(
+                    'Technical Ingestion Standards',
+                    'Submit master exports in ProRes 422 or high-bitrate H.264/H.265 (minimum 25 Mbps), Rec. 709 color space, with stereo 48kHz 24-bit or 5.1 surround sound.'
+                  )
+                }
                 className="hover:underline hover:text-ivory transition-colors text-left"
               >
-                Speed Test & Quality
+                Audio/Video Standards
               </button>
             </li>
           </ul>
@@ -127,23 +143,38 @@ export const ViewerFooter: React.FC<ViewerFooterProps> = ({
           <ul className="space-y-3">
             <li>
               <button
-                onClick={() => handleLinkClick('Curatorial Centre', 'Our curatorial committee reviews unrepresented festival entries, graduation films from international cinema schools, and self-produced indie features year-round.')}
+                onClick={() =>
+                  handleLinkClick(
+                    'Curatorial Centre & Support',
+                    'Our curatorial desk reviews submissions in weekly cycles. Creators receive itemized editorial feedback and timeline notes directly in this Studio dashboard.'
+                  )
+                }
                 className="hover:underline hover:text-ivory transition-colors text-left"
               >
-                Help Centre
+                Help & Review Centre
               </button>
             </li>
             <li>
               <button
-                onClick={() => handleLinkClick('Filmmaker Opportunities & Jobs', 'We are actively seeking regional film curators, subtitle translation specialists, and frontend engineers passionate about cinema preservation.')}
+                onClick={() =>
+                  handleLinkClick(
+                    'Filmmaker Fellowships & Grants',
+                    'Annual production grants of up to INR 10,00,000 are awarded to standout debut directors discovered through the TPF Cinemas submission portal.'
+                  )
+                }
                 className="hover:underline hover:text-ivory transition-colors text-left"
               >
-                Jobs & Fellowships
+                Grants & Fellowships
               </button>
             </li>
             <li>
               <button
-                onClick={() => handleLinkClick('Cookie Preferences', 'TPF Cinemas uses only strictly necessary authentication session cookies and preference persistence tokens. Zero marketing or tracking cookies are utilized.')}
+                onClick={() =>
+                  handleLinkClick(
+                    'Cookie Preferences',
+                    'TPF Cinemas uses strictly authenticated session tokens and creator preferences. Zero marketing tracking cookies are utilized.'
+                  )
+                }
                 className="hover:underline hover:text-ivory transition-colors text-left"
               >
                 Cookie Preferences
@@ -151,10 +182,15 @@ export const ViewerFooter: React.FC<ViewerFooterProps> = ({
             </li>
             <li>
               <button
-                onClick={() => handleLinkClick('Legal Notices & Rights', 'All rights to films screened on TPF Cinemas remain exclusively with their respective directors and production houses under non-exclusive streaming licenses.')}
+                onClick={() =>
+                  handleLinkClick(
+                    'Legal Notices & Licensing Agreement',
+                    'All intellectual property remains 100% with the director. The standard TPF Non-Exclusive Streaming Licence (terms_version 1.0) guarantees filmmaker ownership.'
+                  )
+                }
                 className="hover:underline hover:text-ivory transition-colors text-left"
               >
-                Legal Notices
+                Licence & Legal
               </button>
             </li>
           </ul>
@@ -163,40 +199,50 @@ export const ViewerFooter: React.FC<ViewerFooterProps> = ({
           <ul className="space-y-3">
             <li>
               <button
-                onClick={() => {
-                  if (onOpenAuth) onOpenAuth();
-                  else handleLinkClick('Viewer Account', 'Sign in to access your synchronized queue, continue watching bookmarks, and curatorial recommendations.');
-                }}
+                onClick={() =>
+                  handleLinkClick(
+                    'Creator Account & Profile',
+                    'Manage your verified director profile, filmography credits, and contact credentials from the Creator Studio header.'
+                  )
+                }
                 className="hover:underline hover:text-ivory transition-colors text-left"
               >
-                Account
+                Creator Account
               </button>
             </li>
             <li>
               <button
-                onClick={() => handleLinkClick('Ways to Watch', 'Watch in any modern desktop or mobile browser. Cast to AirPlay and Chromecast-enabled smart TVs with cinema-grade color fidelity.')}
+                onClick={() =>
+                  handleLinkClick(
+                    'Exhibition & Distribution Channels',
+                    'Films accepted to TPF Cinemas stream globally on web, mobile, and AirPlay/Chromecast with lossless cinematic audio.'
+                  )
+                }
                 className="hover:underline hover:text-ivory transition-colors text-left"
               >
-                Ways to Watch
+                Exhibition Network
               </button>
             </li>
             <li>
               <button
-                onClick={() => handleLinkClick('Corporate & Production Information', 'TPF Cinemas operates as an artistic distribution entity committed to elevating debut filmmakers across South Asia and global cinema festivals.')}
+                onClick={() =>
+                  handleLinkClick(
+                    'Corporate & Production Information',
+                    'TPF Cinemas operates as an artistic distribution entity committed to elevating debut filmmakers across South Asia and global cinema festivals.'
+                  )
+                }
                 className="hover:underline hover:text-ivory transition-colors text-left"
               >
                 Corporate Information
               </button>
             </li>
             <li>
-              <button
-                onClick={() => {
-                  if (onSelectTab) onSelectTab('browse');
-                }}
-                className="hover:underline hover:text-signature transition-colors text-left"
+              <a
+                href={getPortalUrl('cinema')}
+                className="hover:underline hover:text-signature transition-colors text-left inline-block"
               >
-                Only on TPF Cinemas
-              </button>
+                Audience Cinema Portal
+              </a>
             </li>
           </ul>
 
@@ -204,31 +250,51 @@ export const ViewerFooter: React.FC<ViewerFooterProps> = ({
           <ul className="space-y-3">
             <li>
               <button
-                onClick={() => handleLinkClick('Media & Press Centre', 'Download official press kits, festival laurels, production stills, and high-resolution director portraits for official editorial coverage.')}
+                onClick={() =>
+                  handleLinkClick(
+                    'Media & Festival Laurels',
+                    'Official laurel artwork, press releases, and high-resolution TPF Official Selection badges are available upon submission approval.'
+                  )
+                }
                 className="hover:underline hover:text-ivory transition-colors text-left"
               >
-                Media Centre
+                Media & Laurels
               </button>
             </li>
             <li>
               <button
-                onClick={() => handleLinkClick('Terms of Exhibition', 'Screenings are licensed for personal, non-commercial exhibition. Public screenings and festival retrospectives require specialized curatorial licensing.')}
+                onClick={() =>
+                  handleLinkClick(
+                    'Terms of Exhibition & Distribution',
+                    'Screening licenses are executed digitally with verified timestamps. Filmmakers maintain rights to submit to other festivals simultaneously.'
+                  )
+                }
                 className="hover:underline hover:text-ivory transition-colors text-left"
               >
-                Terms of Use
+                Terms of Exhibition
               </button>
             </li>
             <li>
               <button
-                onClick={() => handleLinkClick('Contact Curatorial Board', 'Direct submissions and archival inquiries can be addressed to our lead programming desk at programming@tpfcinemas.com.')}
+                onClick={() =>
+                  handleLinkClick(
+                    'Contact Curatorial Desk',
+                    'Reach our programming director directly at programming@tpfcinemas.com for expedite requests or festival premiere co-ordination.'
+                  )
+                }
                 className="hover:underline hover:text-ivory transition-colors text-left"
               >
-                Contact Us
+                Contact Curators
               </button>
             </li>
             <li>
               <button
-                onClick={() => handleLinkClick('Debut Film Fund', '10% of all streaming patronage is contributed directly into the TPF Debut Film Fund to finance emerging directors first feature films.')}
+                onClick={() =>
+                  handleLinkClick(
+                    'Debut Auteur Grant Fund',
+                    '10% of platform earnings are dedicated to funding second films for filmmakers who debuted their first film on TPF Cinemas.'
+                  )
+                }
                 className="hover:underline hover:text-signature transition-colors text-left font-medium"
               >
                 Debut Auteur Fund
@@ -249,17 +315,19 @@ export const ViewerFooter: React.FC<ViewerFooterProps> = ({
             <Globe className="h-3.5 w-3.5 text-signature" />
             <span className="font-medium">{currentLanguage.nativeName}</span>
             <span className="text-[10px] text-muted">({currentLanguage.name})</span>
-            <ChevronDown className={`h-3.5 w-3.5 text-muted ml-1 transition-transform ${isLangOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown
+              className={`h-3.5 w-3.5 text-muted ml-1 transition-transform ${isLangOpen ? 'rotate-180' : ''}`}
+            />
           </button>
 
-          {/* 100% Solid Opaque Dropdown Container with Max-Height & Zero Background Bleed */}
+          {/* 100% Solid Opaque Dropdown Container */}
           {isLangOpen && (
             <div
               className="absolute left-0 bottom-full mb-2 w-56 rounded-sm border border-hairline/80 shadow-2xl py-1 z-50 font-sans max-h-64 overflow-y-auto"
               style={{ backgroundColor: '#141417' }}
             >
               <div className="px-3 py-1.5 border-b border-hairline/60 text-[10px] uppercase font-mono tracking-wider text-muted flex items-center justify-between">
-                <span>Translate Website</span>
+                <span>Translate Studio</span>
                 <span className="text-[9px] text-signature">Live</span>
               </div>
               {SUPPORTED_LANGUAGES.map((lang) => (
@@ -284,17 +352,16 @@ export const ViewerFooter: React.FC<ViewerFooterProps> = ({
           )}
         </div>
 
-        {/* Regional Tag — Netflix India Pattern */}
+        {/* Regional Tag & Cryptographic Security Line */}
         <div className="space-y-3 pt-2">
           <p className="text-xs text-muted font-sans font-medium">
-            TPF Cinemas India & International
+            TPF Cinemas Creator Studio • India & International
           </p>
 
-          {/* Security / Curatorial Protection Disclaimer — Inspired by Netflix reCAPTCHA notice */}
           <div className="flex items-center gap-2 text-[11px] text-muted/70 font-mono">
             <ShieldCheck className="h-3.5 w-3.5 text-signature/70 shrink-0" />
             <p>
-              Screening Beginners&apos; Dreams. This platform is protected by cryptographic DRM and curatorial integrity standards.
+              Screening Beginners&apos; Dreams. All filmmaker submissions are encrypted with cryptographic chain-of-title verification and curatorial integrity standards.
             </p>
           </div>
         </div>

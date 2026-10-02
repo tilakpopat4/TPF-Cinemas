@@ -5,12 +5,14 @@ import { useFilms } from './hooks/useFilms';
 import { useGenres } from './hooks/useGenres';
 import { Film } from './types';
 import { StudioHeader } from './components/layout/StudioHeader';
+import { StudioFooter } from './components/layout/StudioFooter';
 import { StatsOverview } from './components/dashboard/StatsOverview';
 import { OnboardingBanner } from './components/dashboard/OnboardingBanner';
 import { FilmsList } from './components/dashboard/FilmsList';
 import { FeedbackModal } from './components/dashboard/FeedbackModal';
 import { FilmEditorModal } from './components/editor/FilmEditorModal';
 import { AuthModal } from './components/auth/AuthModal';
+import { LanguageProvider } from './context/LanguageContext';
 
 export const App: React.FC = () => {
   const { user, profile, isFilmmakerOrAdmin, loading: authLoading, becomeFilmmaker, signOut, refreshProfile } = useAuth();
@@ -27,8 +29,8 @@ export const App: React.FC = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#090b10] text-slate-300">
-        <Loader2 className="h-10 w-10 text-rose-500 animate-spin mb-3" />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-canvas text-ivory">
+        <Loader2 className="h-10 w-10 text-signature animate-spin mb-3" />
         <p className="text-sm font-medium">Loading TPF Filmmaker Studio...</p>
       </div>
     );
@@ -48,18 +50,21 @@ export const App: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen bg-[#090b10] text-slate-100 flex flex-col">
-      {/* Header */}
-      <StudioHeader
-        profile={profile}
-        email={user.email}
-        isFilmmaker={isFilmmakerOrAdmin}
-        onNewFilm={() => {
-          setEditingFilm(null);
-          setEditorOpen(true);
-        }}
-        onSignOut={signOut}
-      />
+    <LanguageProvider>
+      <div className="min-h-screen bg-canvas text-ivory flex flex-col font-sans selection:bg-signature selection:text-black">
+        {/* Unified Header */}
+        <StudioHeader
+          profile={profile}
+          email={user.email}
+          isFilmmaker={isFilmmakerOrAdmin}
+          activeFilter={filterTab}
+          onFilterChange={setFilterTab}
+          onNewFilm={() => {
+            setEditingFilm(null);
+            setEditorOpen(true);
+          }}
+          onSignOut={signOut}
+        />
 
       {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -171,19 +176,28 @@ export const App: React.FC = () => {
         />
       )}
 
-      {/* Curator Feedback Modal */}
-      {feedbackFilm && (
-        <FeedbackModal
-          film={feedbackFilm}
-          onClose={() => setFeedbackFilm(null)}
-          onEdit={(film) => {
-            setFeedbackFilm(null);
-            setEditingFilm(film);
+        {/* Curator Feedback Modal */}
+        {feedbackFilm && (
+          <FeedbackModal
+            film={feedbackFilm}
+            onClose={() => setFeedbackFilm(null)}
+            onEdit={(film) => {
+              setFeedbackFilm(null);
+              setEditingFilm(film);
+              setEditorOpen(true);
+            }}
+          />
+        )}
+
+        {/* Unified Footer */}
+        <StudioFooter
+          onOpenSubmission={() => {
+            setEditingFilm(null);
             setEditorOpen(true);
           }}
         />
-      )}
-    </div>
+      </div>
+    </LanguageProvider>
   );
 };
 export default App;

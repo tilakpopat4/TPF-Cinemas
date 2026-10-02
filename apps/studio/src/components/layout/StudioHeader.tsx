@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
-import { Plus, LogOut, Clapperboard, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Plus, LogOut, Globe, ChevronDown, Check, Film, ShieldCheck } from 'lucide-react';
 import { Profile } from '../../types';
+import { useLanguage, SUPPORTED_LANGUAGES } from '../../context/LanguageContext';
+import { getPortalUrl } from '../../lib/portalNav';
 
 interface StudioHeaderProps {
   profile: Profile | null;
@@ -8,6 +11,8 @@ interface StudioHeaderProps {
   onNewFilm: () => void;
   onSignOut: () => void;
   isFilmmaker: boolean;
+  activeFilter?: 'all' | 'drafts' | 'review' | 'published';
+  onFilterChange?: (filter: 'all' | 'drafts' | 'review' | 'published') => void;
 }
 
 export const StudioHeader: React.FC<StudioHeaderProps> = ({
@@ -16,100 +21,271 @@ export const StudioHeader: React.FC<StudioHeaderProps> = ({
   onNewFilm,
   onSignOut,
   isFilmmaker,
+  activeFilter,
+  onFilterChange,
 }) => {
+  const { currentLanguage, setLanguage, isTranslating } = useLanguage();
   const [showMenu, setShowMenu] = useState(false);
+  const [showLangMenu, setShowLangMenu] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  const langMenuRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
   const displayName = profile?.display_name || email?.split('@')[0] || 'Creator';
   const role = profile?.role || 'viewer';
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 30);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Close menus when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (langMenuRef.current && !langMenuRef.current.contains(e.target as Node)) {
+        setShowLangMenu(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-white/[0.08] bg-[#08090c]/90 backdrop-blur-xl shadow-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Brand */}
-        <div className="flex items-center gap-6">
+    <header
+      className={`sticky top-0 left-0 right-0 z-40 transition-all duration-300 ${
+        isScrolled
+          ? 'bg-canvas py-3 sm:py-3.5 shadow-2xl border-b border-hairline/80'
+          : 'bg-gradient-to-b from-canvas/95 via-canvas/85 to-transparent py-4 sm:py-5 border-b border-hairline/40'
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
+        {/* Official Brand Logo & Universal Portal Nav */}
+        <div className="flex items-center gap-5 sm:gap-7">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 via-rose-500 to-rose-600 shadow-lg shadow-rose-500/20">
-              <Clapperboard className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-display text-lg font-black tracking-wider text-white">
-                  TPF<span className="text-amber-500">CINEMAS</span>
-                </span>
-                <span className="rounded-full bg-rose-500/15 px-2 py-0.5 font-display text-[9px] font-extrabold uppercase tracking-widest text-rose-400 border border-rose-500/25">
-                  STUDIO
-                </span>
-              </div>
-              <p className="text-[10px] text-zinc-400 font-medium tracking-wide">
-                Creator Portal & Film Submissions
-              </p>
-            </div>
+            <a
+              href={getPortalUrl('cinema')}
+              className="flex items-center group text-left focus:outline-none"
+              aria-label="TPF Cinemas Home"
+            >
+              <img
+                src="/tpf-cinemas-logo.png"
+                alt="TPF Cinemas - Screening The Beginner Dreams"
+                className="h-9 sm:h-11 md:h-12 w-auto object-contain transition-transform group-hover:scale-[1.02]"
+              />
+            </a>
+            <span className="hidden md:inline-block px-2 py-0.5 rounded-sm bg-rose-500/10 border border-rose-500/30 text-rose-400 font-mono text-[9px] uppercase tracking-wider font-semibold">
+              STUDIO
+            </span>
           </div>
+
+          {/* Universal Cross-Portal Hub Switcher */}
+          <div className="hidden lg:flex items-center border border-hairline/60 rounded-sm bg-black/40 p-0.5 text-[11px] font-mono uppercase tracking-wider">
+            <a
+              href={getPortalUrl('cinema')}
+              className="px-2.5 py-1 rounded-sm text-muted hover:text-ivory hover:bg-graphite/60 transition-colors"
+              title="Audience Streaming Portal"
+            >
+              Cinema
+            </a>
+            <a
+              href={getPortalUrl('studio')}
+              className="px-2.5 py-1 rounded-sm bg-signature text-black font-bold shadow-sm"
+              title="Filmmaker Studio & Submissions"
+            >
+              Studio
+            </a>
+            <a
+              href={getPortalUrl('staff')}
+              className="px-2.5 py-1 rounded-sm text-muted hover:text-ivory hover:bg-graphite/60 transition-colors"
+              title="Staff & Curation Console"
+            >
+              Staff
+            </a>
+          </div>
+
+          {/* Contextual Subnav / Filter links if onFilterChange provided */}
+          {onFilterChange && (
+            <nav className="hidden md:flex items-center gap-1">
+              <button
+                onClick={() => onFilterChange('all')}
+                className={`px-3 py-1.5 rounded-sm text-xs uppercase tracking-wider transition-colors ${
+                  activeFilter === 'all'
+                    ? 'text-ivory font-semibold bg-graphite/70'
+                    : 'text-muted hover:text-ivory hover:bg-graphite/40 font-medium'
+                }`}
+              >
+                All Submissions
+              </button>
+              <button
+                onClick={() => onFilterChange('drafts')}
+                className={`px-3 py-1.5 rounded-sm text-xs uppercase tracking-wider transition-colors ${
+                  activeFilter === 'drafts'
+                    ? 'text-ivory font-semibold bg-graphite/70'
+                    : 'text-muted hover:text-ivory hover:bg-graphite/40 font-medium'
+                }`}
+              >
+                Drafts
+              </button>
+              <button
+                onClick={() => onFilterChange('review')}
+                className={`px-3 py-1.5 rounded-sm text-xs uppercase tracking-wider transition-colors ${
+                  activeFilter === 'review'
+                    ? 'text-ivory font-semibold bg-graphite/70'
+                    : 'text-muted hover:text-ivory hover:bg-graphite/40 font-medium'
+                }`}
+              >
+                In Review
+              </button>
+              <button
+                onClick={() => onFilterChange('published')}
+                className={`px-3 py-1.5 rounded-sm text-xs uppercase tracking-wider transition-colors ${
+                  activeFilter === 'published'
+                    ? 'text-ivory font-semibold bg-graphite/70'
+                    : 'text-muted hover:text-ivory hover:bg-graphite/40 font-medium'
+                }`}
+              >
+                Live
+              </button>
+            </nav>
+          )}
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-3">
-          {/* Primary Submit CTA */}
+        {/* Right Tools & Language & User Menu */}
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          {/* Primary Submit Film CTA */}
           {isFilmmaker && (
             <button
               onClick={onNewFilm}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white shadow-lg shadow-rose-600/25 transition-all hover:scale-105 active:scale-95"
+              className="px-4 py-2 rounded-sm bg-signature text-black font-semibold uppercase tracking-wider text-xs sm:text-sm hover:bg-[#f79612] transition-colors flex items-center gap-1.5 shadow-md"
+              title="Submit New Film"
             >
               <Plus className="h-4 w-4 stroke-[2.5]" />
               <span>Submit Film</span>
             </button>
           )}
 
-          {/* User Profile Menu */}
-          <div className="relative">
+          {/* Live Google Translator Dropdown — Matching Viewer & Footer */}
+          <div className="relative" ref={langMenuRef}>
             <button
-              onClick={() => setShowMenu(!showMenu)}
-              className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] px-2.5 py-1.5 transition-colors focus:outline-none"
+              onClick={() => setShowLangMenu(!showLangMenu)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-sm bg-black/70 border border-hairline hover:border-ivory/50 text-ivory text-xs sm:text-sm font-sans transition-colors focus:outline-none ${
+                isTranslating ? 'animate-pulse border-signature' : ''
+              }`}
+              title="Change Website Language (Live Google Translator)"
             >
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-tr from-zinc-700 to-zinc-600 text-xs font-bold text-white uppercase">
-                {displayName.charAt(0)}
-              </div>
-              <div className="hidden md:block text-left pr-1">
-                <p className="text-xs font-semibold text-zinc-200 leading-tight truncate max-w-[120px]">
-                  {displayName}
-                </p>
-                <span className="flex items-center gap-1 text-[10px] text-zinc-400 capitalize">
-                  {role === 'admin' ? (
-                    <span className="text-amber-400 font-bold flex items-center gap-0.5">
-                      <Sparkles className="h-2.5 w-2.5" /> Admin
-                    </span>
-                  ) : role === 'filmmaker' ? (
-                    <span className="text-rose-400 font-semibold">Creator</span>
-                  ) : (
-                    role
-                  )}
-                </span>
-              </div>
+              <Globe className="h-4 w-4 text-signature" />
+              <span className="hidden sm:inline font-medium">{currentLanguage.nativeName}</span>
+              <ChevronDown
+                className={`h-3.5 w-3.5 text-muted transition-transform ${showLangMenu ? 'rotate-180' : ''}`}
+              />
             </button>
 
-            {showMenu && (
-              <div className="absolute right-0 mt-2 w-56 bg-[#0f131c] border border-white/10 rounded-xl shadow-2xl p-2 z-50 animate-fade-in">
-                <div className="px-3 py-2 border-b border-white/10">
-                  <p className="text-xs font-bold text-white truncate">{displayName}</p>
-                  <p className="text-[11px] text-zinc-400 truncate">{email}</p>
-                  <span className="inline-block mt-1.5 text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-rose-500/15 text-rose-400 border border-rose-500/25">
-                    {role} tier
-                  </span>
+            {showLangMenu && (
+              <div
+                className="absolute right-0 mt-2 w-48 rounded-sm border border-hairline/80 shadow-2xl py-1 z-50 font-sans max-h-72 overflow-y-auto"
+                style={{ backgroundColor: '#141417' }}
+              >
+                <div className="px-3 py-1.5 border-b border-hairline/60 text-[10px] uppercase font-mono tracking-wider text-muted flex items-center justify-between">
+                  <span>Translate Studio</span>
+                  <span className="text-[9px] text-signature">Live</span>
                 </div>
-
-                <div className="pt-1">
+                {SUPPORTED_LANGUAGES.map((lang) => (
                   <button
+                    key={lang.code}
                     onClick={() => {
-                      setShowMenu(false);
-                      onSignOut();
+                      setLanguage(lang);
+                      setShowLangMenu(false);
                     }}
-                    className="w-full text-left flex items-center gap-2 px-3 py-2 text-xs text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                    className="w-full text-left px-3 py-2 text-xs flex items-center justify-between text-ivory hover:bg-canvas transition-colors"
                   >
-                    <LogOut className="h-4 w-4" />
-                    <span>Sign Out</span>
+                    <span className="flex items-center gap-2">
+                      <span className="font-medium">{lang.nativeName}</span>
+                      <span className="text-[10px] text-muted">({lang.name})</span>
+                    </span>
+                    {currentLanguage.code === lang.code && (
+                      <Check className="h-3.5 w-3.5 text-signature" />
+                    )}
                   </button>
-                </div>
+                ))}
               </div>
             )}
+          </div>
+
+          {/* User Profile Menu */}
+          <div className="relative" ref={userMenuRef}>
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="flex items-center gap-2.5 px-3 py-2 rounded-sm bg-graphite hover:bg-[#232328] border border-hairline transition-colors focus:outline-none"
+            >
+              <div className="h-6 w-6 bg-signature text-black flex items-center justify-center text-[11px] font-bold font-mono">
+                {displayName.charAt(0).toUpperCase()}
+              </div>
+              <span className="hidden sm:inline text-xs sm:text-sm font-medium text-ivory max-w-[120px] truncate">
+                {displayName}
+              </span>
+              <ChevronDown className="h-3.5 w-3.5 text-muted" />
+            </button>
+
+            <AnimatePresence>
+              {showMenu && (
+                <motion.div
+                  className="absolute right-0 mt-2 w-56 rounded-sm border border-hairline p-2 z-50 shadow-2xl"
+                  style={{ backgroundColor: '#141417' }}
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0, transition: { duration: 0.15 } }}
+                  exit={{ opacity: 0, y: -4, transition: { duration: 0.1 } }}
+                >
+                  <div className="px-3 py-2 border-b border-hairline">
+                    <p className="text-xs font-semibold text-ivory truncate">{displayName}</p>
+                    <p className="text-[11px] text-muted truncate">{email}</p>
+                    <span className="inline-block mt-1 text-[9px] uppercase font-mono font-medium px-1.5 py-0.5 bg-black border border-hairline text-rose-400">
+                      {role}
+                    </span>
+                  </div>
+
+                  {/* Cross-Portal Switcher Links */}
+                  <div className="py-1">
+                    <div className="px-3 py-1 text-[10px] uppercase font-mono tracking-wider text-muted">
+                      Portals
+                    </div>
+                    <a
+                      href={getPortalUrl('cinema')}
+                      className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-ivory hover:bg-canvas rounded-sm transition-colors"
+                    >
+                      <Film className="h-3.5 w-3.5 text-signature" />
+                      <span>Audience Cinema</span>
+                    </a>
+                    <a
+                      href={getPortalUrl('staff')}
+                      className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-ivory hover:bg-canvas rounded-sm transition-colors"
+                    >
+                      <ShieldCheck className="h-3.5 w-3.5 text-amber-400" />
+                      <span>Staff Console</span>
+                    </a>
+                  </div>
+
+                  <div className="pt-1 border-t border-hairline">
+                    <button
+                      onClick={() => {
+                        setShowMenu(false);
+                        onSignOut();
+                      }}
+                      className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/10 rounded-sm transition-colors"
+                    >
+                      <LogOut className="h-3.5 w-3.5" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>

@@ -1,21 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TPF Cinemas | Filmmaker Studio</title>
     <meta name="description" content="Submit, track, and manage your films on TPF Cinemas OTT Platform." />
-    <!-- Google Fonts: Outfit & Plus Jakarta Sans -->
+    <!-- Google Fonts: Bebas Neue, Cormorant Garamond, Inter & Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <style>
+      /* Hide default Google Translate chrome, top banner frame & popups */
+      .goog-te-banner-frame.skiptranslate,
+      .goog-te-banner-frame {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+      }
+      body {
+        top: 0px !important;
+        position: static !important;
+      }
+      #goog-gt-tt,
+      .goog-te-balloon-frame {
+        display: none !important;
+      }
+      .goog-text-highlight {
+        background: transparent !important;
+        box-shadow: none !important;
+      }
+      #google_translate_element {
+        display: none !important;
+      }
+      .goog-tooltip,
+      .goog-tooltip:hover {
+        display: none !important;
+      }
+    </style>
   </head>
-  <body class="bg-midnight text-slate-100 antialiased selection:bg-rose-500 selection:text-white">
+  <body class="bg-[#0A0A0B] text-[#F2EEE6] min-h-screen selection:bg-[#FF9F1C] selection:text-black antialiased font-sans">
     <div id="root"></div>
+
+    <!-- Hidden Google Translate Element Anchor -->
+    <div id="google_translate_element" style="display:none"></div>
+
+    <script type="text/javascript">
+      window.googleTranslateElementInit = function() {
+        if (window.google && window.google.translate) {
+          new window.google.translate.TranslateElement({
+            pageLanguage: 'en',
+            includedLanguages: 'en,hi,ta,te,bn,ml,mr,gu,kn,pa,es,fr,de,ja',
+            autoDisplay: false
+          }, 'google_translate_element');
+        }
+      };
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async defer></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
