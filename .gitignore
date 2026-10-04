@@ -13,6 +13,7 @@ dist/
 .env.*.local
 .env.production
 .env.development
+client_secret*.json
 backend/scratch/
 my-first-agent/.env
 
