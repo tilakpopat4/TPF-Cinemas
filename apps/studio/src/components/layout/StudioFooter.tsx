@@ -335,11 +335,8 @@ export const StudioFooter: React.FC<StudioFooterProps> = ({ onOpenSubmission }) 
             TPF Cinemas
           </p>
 
-          <div className="flex items-center gap-2 text-[11px] text-muted/70 font-mono">
-            <ShieldCheck className="h-3.5 w-3.5 text-signature/70 shrink-0" />
-            <p>
-              Curated for Cinephiles.
-            </p>
+          <div className="flex items-center gap-1.5 text-[11px] text-muted font-mono">
+            <p>Made With For ❤️ Cinephiles</p>
           </div>
         </div>
       </div>
