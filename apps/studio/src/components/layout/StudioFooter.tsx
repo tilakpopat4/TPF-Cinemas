@@ -336,7 +336,7 @@ export const StudioFooter: React.FC<StudioFooterProps> = ({ onOpenSubmission }) 
           </p>
 
           <div className="flex items-center gap-1.5 text-[11px] text-muted font-mono">
-            <p>Made With For ❤️ Cinephiles</p>
+            <p>Made With ❤️ For Cinephiles</p>
           </div>
         </div>
       </div>
