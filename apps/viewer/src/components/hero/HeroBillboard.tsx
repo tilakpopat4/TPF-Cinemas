@@ -22,6 +22,7 @@ export interface HeroBillboardProps {
   onToggleWatchlist: (filmId: string) => void;
   onSelectGenre?: (genreSlug: string) => void;
   onMoreInfo?: (film: Film) => void;
+  customTagline?: string;
 }
 
 export const HeroBillboard: React.FC<HeroBillboardProps> = ({
@@ -32,6 +33,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
   onToggleWatchlist,
   onSelectGenre,
   onMoreInfo,
+  customTagline,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -118,7 +120,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
             <div className="flex items-center gap-3">
               <div className="h-3.5 w-1 bg-signature" />
               <span className="font-mono text-[10px] tracking-[0.24em] text-muted uppercase">
-                {currentFilm.is_debut ? 'Director Debut Spotlight' : 'Official Festival Selection'}
+                {customTagline || (currentFilm.is_debut ? 'Director Debut Spotlight' : 'Official Festival Selection')}
               </span>
 
               {currentFilm.profiles?.display_name && (

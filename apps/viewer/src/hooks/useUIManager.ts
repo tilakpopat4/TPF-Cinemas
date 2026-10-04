@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '../lib/supabase';
 import { Film } from '../types';
 
 export interface UISectionConfig {
@@ -182,7 +183,7 @@ export function useUIManager() {
     return DEFAULT_TAB_TITLES;
   });
 
-  const [heroConfig, setHeroConfig] = useState<HeroConfig>(() => {
+  const [heroConfig, setHeroConfigState] = useState<HeroConfig>(() => {
     try {
       const saved = localStorage.getItem(HERO_STORAGE_KEY);
       if (saved) return { ...DEFAULT_HERO_CONFIG, ...JSON.parse(saved) };
@@ -192,50 +193,124 @@ export function useUIManager() {
     return DEFAULT_HERO_CONFIG;
   });
 
-  // Sync to local storage
+  // 1. Initial Load from Supabase app_settings
   useEffect(() => {
-    try {
-      localStorage.setItem(SECTIONS_STORAGE_KEY, JSON.stringify(sections));
-    } catch (e) {
-      console.warn('Failed to save UI sections to localStorage', e);
-    }
-  }, [sections]);
+    async function loadSettingsFromSupabase() {
+      try {
+        const { data, error } = await supabase
+          .from('app_settings')
+          .select('key, value');
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(TABS_STORAGE_KEY, JSON.stringify(tabTitles));
-    } catch (e) {
-      console.warn('Failed to save UI tab titles to localStorage', e);
-    }
-  }, [tabTitles]);
+        if (error) {
+          console.warn('Supabase app_settings fetch notice:', error.message);
+          return;
+        }
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(HERO_STORAGE_KEY, JSON.stringify(heroConfig));
-    } catch (e) {
-      console.warn('Failed to save Hero config to localStorage', e);
+        if (data && data.length > 0) {
+          data.forEach((row) => {
+            if (row.key === 'ui_sections' && Array.isArray(row.value)) {
+              setSections(row.value);
+              localStorage.setItem(SECTIONS_STORAGE_KEY, JSON.stringify(row.value));
+            } else if (row.key === 'hero_config' && row.value) {
+              setHeroConfigState(row.value);
+              localStorage.setItem(HERO_STORAGE_KEY, JSON.stringify(row.value));
+            } else if (row.key === 'tab_titles' && row.value) {
+              setTabTitles(row.value);
+              localStorage.setItem(TABS_STORAGE_KEY, JSON.stringify(row.value));
+            }
+          });
+        }
+      } catch (err) {
+        console.error('Failed to sync app_settings with Supabase:', err);
+      }
     }
-  }, [heroConfig]);
+
+    loadSettingsFromSupabase();
+
+    // 2. Realtime listener for cross-portal instant sync
+    const channel = supabase
+      .channel('app_settings_sync')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'app_settings' },
+        (payload: any) => {
+          const newRow = payload.new;
+          if (!newRow) return;
+
+          if (newRow.key === 'ui_sections' && Array.isArray(newRow.value)) {
+            setSections(newRow.value);
+            localStorage.setItem(SECTIONS_STORAGE_KEY, JSON.stringify(newRow.value));
+          } else if (newRow.key === 'hero_config' && newRow.value) {
+            setHeroConfigState(newRow.value);
+            localStorage.setItem(HERO_STORAGE_KEY, JSON.stringify(newRow.value));
+          } else if (newRow.key === 'tab_titles' && newRow.value) {
+            setTabTitles(newRow.value);
+            localStorage.setItem(TABS_STORAGE_KEY, JSON.stringify(newRow.value));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Helper to persist to Supabase
+  const persistSetting = async (key: string, value: any) => {
+    try {
+      const { error } = await supabase
+        .from('app_settings')
+        .upsert({ key, value, updated_at: new Date().toISOString() });
+      if (error) {
+        console.warn('Could not persist to Supabase app_settings (will fallback to localStorage):', error.message);
+      }
+    } catch (e) {
+      console.warn('Network error saving app_settings to Supabase', e);
+    }
+  };
+
+  const setHeroConfig = useCallback((newConfig: HeroConfig) => {
+    setHeroConfigState(newConfig);
+    localStorage.setItem(HERO_STORAGE_KEY, JSON.stringify(newConfig));
+    persistSetting('hero_config', newConfig);
+  }, []);
 
   const addSection = useCallback((newSection: Omit<UISectionConfig, 'id'>) => {
     const id = `section_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
-    setSections((prev) => [...prev, { ...newSection, id }]);
+    setSections((prev) => {
+      const updated = [...prev, { ...newSection, id }];
+      localStorage.setItem(SECTIONS_STORAGE_KEY, JSON.stringify(updated));
+      persistSetting('ui_sections', updated);
+      return updated;
+    });
   }, []);
 
   const updateSection = useCallback((id: string, updates: Partial<UISectionConfig>) => {
-    setSections((prev) =>
-      prev.map((sec) => (sec.id === id ? { ...sec, ...updates } : sec))
-    );
+    setSections((prev) => {
+      const updated = prev.map((sec) => (sec.id === id ? { ...sec, ...updates } : sec));
+      localStorage.setItem(SECTIONS_STORAGE_KEY, JSON.stringify(updated));
+      persistSetting('ui_sections', updated);
+      return updated;
+    });
   }, []);
 
   const removeSection = useCallback((id: string) => {
-    setSections((prev) => prev.filter((sec) => sec.id !== id));
+    setSections((prev) => {
+      const updated = prev.filter((sec) => sec.id !== id);
+      localStorage.setItem(SECTIONS_STORAGE_KEY, JSON.stringify(updated));
+      persistSetting('ui_sections', updated);
+      return updated;
+    });
   }, []);
 
   const toggleSectionEnabled = useCallback((id: string) => {
-    setSections((prev) =>
-      prev.map((sec) => (sec.id === id ? { ...sec, enabled: !sec.enabled } : sec))
-    );
+    setSections((prev) => {
+      const updated = prev.map((sec) => (sec.id === id ? { ...sec, enabled: !sec.enabled } : sec));
+      localStorage.setItem(SECTIONS_STORAGE_KEY, JSON.stringify(updated));
+      persistSetting('ui_sections', updated);
+      return updated;
+    });
   }, []);
 
   const moveSectionUp = useCallback((id: string) => {
@@ -246,6 +321,8 @@ export function useUIManager() {
       const temp = next[index - 1];
       next[index - 1] = next[index];
       next[index] = temp;
+      localStorage.setItem(SECTIONS_STORAGE_KEY, JSON.stringify(next));
+      persistSetting('ui_sections', next);
       return next;
     });
   }, []);
@@ -258,18 +335,31 @@ export function useUIManager() {
       const temp = next[index + 1];
       next[index + 1] = next[index];
       next[index] = temp;
+      localStorage.setItem(SECTIONS_STORAGE_KEY, JSON.stringify(next));
+      persistSetting('ui_sections', next);
       return next;
     });
   }, []);
 
   const updateTabTitle = useCallback((key: keyof TabTitles, value: string) => {
-    setTabTitles((prev) => ({ ...prev, [key]: value }));
+    setTabTitles((prev) => {
+      const updated = { ...prev, [key]: value };
+      localStorage.setItem(TABS_STORAGE_KEY, JSON.stringify(updated));
+      persistSetting('tab_titles', updated);
+      return updated;
+    });
   }, []);
 
   const resetToDefaults = useCallback(() => {
     setSections(DEFAULT_UI_SECTIONS);
     setTabTitles(DEFAULT_TAB_TITLES);
-    setHeroConfig(DEFAULT_HERO_CONFIG);
+    setHeroConfigState(DEFAULT_HERO_CONFIG);
+    localStorage.setItem(SECTIONS_STORAGE_KEY, JSON.stringify(DEFAULT_UI_SECTIONS));
+    localStorage.setItem(TABS_STORAGE_KEY, JSON.stringify(DEFAULT_TAB_TITLES));
+    localStorage.setItem(HERO_STORAGE_KEY, JSON.stringify(DEFAULT_HERO_CONFIG));
+    persistSetting('ui_sections', DEFAULT_UI_SECTIONS);
+    persistSetting('hero_config', DEFAULT_HERO_CONFIG);
+    persistSetting('tab_titles', DEFAULT_TAB_TITLES);
   }, []);
 
   return {
