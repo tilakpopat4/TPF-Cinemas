@@ -16,7 +16,7 @@ import {
   ListOrdered,
   Clock
 } from 'lucide-react';
-import { useUIManager, UISectionConfig } from '../../../../viewer/src/hooks/useUIManager';
+import { useStaffUIManager, UISectionConfig } from '../../hooks/useStaffUIManager';
 
 export const UIManagerView: React.FC = () => {
   const {
@@ -32,7 +32,7 @@ export const UIManagerView: React.FC = () => {
     updateTabTitle,
     setHeroConfig,
     resetToDefaults,
-  } = useUIManager();
+  } = useStaffUIManager();
 
   const [activeSubTab, setActiveSubTab] = useState<'sections' | 'hero' | 'tabs'>('sections');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -166,7 +166,7 @@ export const UIManagerView: React.FC = () => {
       {/* 1. SECTIONS TAB */}
       {activeSubTab === 'sections' && (
         <div className="space-y-3">
-          {sections.map((section, idx) => (
+          {sections.map((section: UISectionConfig, idx: number) => (
             <div
               key={section.id}
               className={`p-4 rounded-xl border transition-all ${
