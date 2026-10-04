@@ -11,6 +11,10 @@ dist/
 .env
 .env.local
 .env.*.local
+.env.production
+.env.development
+backend/scratch/
+my-first-agent/.env
 
 # IDE & OS
 .DS_Store
