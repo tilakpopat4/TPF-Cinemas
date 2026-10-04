@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { useReducedMotion, easeMinimal, scaleModal, fadeOnly, springSnappy } from '../../lib/motion';
-import { X, Check, ArrowRight, ArrowLeft, Save, Send, Loader2, Sparkles, Eye, Film as FilmIcon, Clock } from 'lucide-react';
+import { X, Check, ArrowRight, ArrowLeft, Save, Send, Loader2, Eye, Film as FilmIcon, Clock, Lock } from 'lucide-react';
 import { Film, FilmCredit, LicenceAgreement, Genre } from '../../types';
 import { StepDetails } from './StepDetails';
 import { StepMedia } from './StepMedia';
@@ -97,18 +97,47 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
     }
   }
 
-  // Validate current step before advancing
-  function canProceed(): boolean {
-    if (currentStep === 0) {
-      return !!(filmData.title?.trim() && filmData.slug?.trim() && filmData.synopsis?.trim() && filmData.runtime_minutes);
+  // Verify completion of a specific step
+  function isStepComplete(stepIndex: number): boolean {
+    if (stepIndex === 0) {
+      return Boolean(
+        filmData.title?.trim() &&
+        filmData.slug?.trim() &&
+        filmData.synopsis?.trim() &&
+        filmData.runtime_minutes &&
+        Number(filmData.runtime_minutes) > 0
+      );
     }
-    if (currentStep === 1) {
-      return true; // Optional in draft
+    if (stepIndex === 1) {
+      const artworks = getFilmArtworks(filmData);
+      const hasPortrait = Boolean(filmData.poster_url?.trim() || (artworks.portrait && !artworks.portrait.includes('unsplash')));
+      const hasBackdrop = Boolean(filmData.backdrop_url?.trim() || (artworks.landscape && !artworks.landscape.includes('unsplash')));
+      const hasVideo = Boolean(filmData.video_ref?.trim());
+      return hasPortrait && hasBackdrop && hasVideo;
     }
-    if (currentStep === 2) {
+    if (stepIndex === 2) {
       return selectedGenres.length > 0;
     }
+    if (stepIndex === 3) {
+      return Boolean(licence.music_cleared);
+    }
+    return false;
+  }
+
+  // A step is only accessible if all previous steps have been completed
+  function canAccessStep(targetIndex: number): boolean {
+    if (targetIndex === 0) return true;
+    for (let i = 0; i < targetIndex; i++) {
+      if (!isStepComplete(i)) {
+        return false;
+      }
+    }
     return true;
+  }
+
+  // Validate current step before advancing
+  function canProceed(): boolean {
+    return isStepComplete(currentStep);
   }
 
   // Save film draft
@@ -309,7 +338,7 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
         {/* Modal Topbar */}
         <div className="flex items-center justify-between border-b border-white/[0.08] bg-[#10141c]/90 px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-500/15 border border-rose-500/25 text-rose-400">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-signature/15 border border-signature/25 text-signature">
               <FilmIcon className="h-4 w-4" />
             </div>
             <div>
@@ -325,13 +354,9 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowPreview(!showPreview)}
-              className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
-                showPreview
-                  ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-                  : 'bg-white/5 text-zinc-400 border-white/10 hover:text-white'
-              }`}
+              className="hidden lg:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.06] hover:bg-white/[0.12] text-xs font-sans text-muted hover:text-ivory transition-colors border-none"
             >
-              <Eye className="h-3.5 w-3.5" />
+              <Eye className="h-3.5 w-3.5 text-muted" />
               <span>{showPreview ? 'Hide Live Preview' : 'Show Live Preview'}</span>
             </button>
 
@@ -357,33 +382,51 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
           <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-white/[0.08] bg-[#0a0d14] p-4 flex md:flex-col gap-2 overflow-x-auto md:overflow-x-visible shrink-0">
             {STEPS.map((s, index) => {
               const isActive = currentStep === index;
-              const isPast = currentStep > index;
+              const isComplete = isStepComplete(index);
+              const isAccessible = canAccessStep(index);
 
               return (
                 <motion.button
                   key={index}
-                  onClick={() => setCurrentStep(index)}
-                  className={`flex items-center gap-3 p-3 rounded-xl text-left transition-colors w-full shrink-0 ${
+                  type="button"
+                  disabled={!isAccessible}
+                  onClick={() => {
+                    if (isAccessible) {
+                      setCurrentStep(index);
+                    }
+                  }}
+                  title={!isAccessible ? `Complete Step ${index} first to unlock` : s.title}
+                  className={`flex items-center gap-3 p-3 rounded-xl text-left transition-all w-full shrink-0 ${
                     isActive
-                      ? 'bg-rose-500/15 border border-rose-500/30 text-white shadow-md'
-                      : isPast
-                      ? 'text-zinc-300 hover:bg-white/5'
-                      : 'text-zinc-500 hover:bg-white/5'
+                      ? 'bg-signature/15 border border-signature/30 text-white shadow-md'
+                      : isComplete
+                      ? 'text-zinc-200 hover:bg-white/[0.06] cursor-pointer'
+                      : isAccessible
+                      ? 'text-zinc-400 hover:bg-white/[0.04] cursor-pointer'
+                      : 'text-zinc-600 opacity-40 cursor-not-allowed'
                   }`}
-                  whileTap={reduced ? {} : { scale: 0.97, transition: springSnappy }}
+                  whileTap={reduced || !isAccessible ? {} : { scale: 0.97, transition: springSnappy }}
                 >
                   <motion.div
                     className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-black shrink-0 ${
                       isActive
-                        ? 'bg-rose-500 text-white'
-                        : isPast
+                        ? 'bg-signature text-black font-black'
+                        : isComplete
                         ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                        : 'bg-white/5 text-zinc-500'
+                        : isAccessible
+                        ? 'bg-white/10 text-zinc-300'
+                        : 'bg-white/5 text-zinc-600'
                     }`}
                     animate={isActive && !reduced ? { scale: [1, 1.18, 1] } : { scale: 1 }}
                     transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] as [number,number,number,number] }}
                   >
-                    {isPast ? <Check className="h-3.5 w-3.5 stroke-[3]" /> : index + 1}
+                    {isComplete ? (
+                      <Check className="h-3.5 w-3.5 stroke-[3]" />
+                    ) : !isAccessible ? (
+                      <Lock className="h-3 w-3 text-zinc-500" />
+                    ) : (
+                      index + 1
+                    )}
                   </motion.div>
                   <div className="hidden md:block">
                     <p className="text-xs font-bold font-display leading-tight">{s.title}</p>
@@ -444,13 +487,13 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
           {showPreview && (
             <div className="hidden lg:flex w-72 border-l border-white/[0.08] bg-[#0a0d14] p-5 flex-col justify-between shrink-0">
               <div className="space-y-4">
-                <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-400">
-                  <Sparkles className="h-3.5 w-3.5" />
+                <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-widest text-muted">
+                  <Eye className="h-3.5 w-3.5 text-muted" />
                   <span>Audience Preview</span>
                 </div>
 
                 {/* Portrait Card */}
-                <div className="rounded-2xl overflow-hidden border border-white/10 bg-[#121620] shadow-xl">
+                <div className="rounded-2xl overflow-hidden bg-[#121620] shadow-xl">
                   <div className="relative aspect-[2/3] w-full bg-black/80 overflow-hidden">
                     {filmData.poster_url ? (
                       <img
@@ -466,12 +509,12 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
                     )}
 
                     {filmData.is_debut && (
-                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded text-[9px] font-black uppercase bg-amber-500 text-black shadow-md">
+                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[9px] font-mono uppercase font-bold tracking-wider bg-signature text-black shadow-md">
                         Debut
                       </span>
                     )}
 
-                    <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-black/70 text-zinc-200 border border-white/10">
+                    <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-black/80 text-zinc-200">
                       {filmData.age_rating || 'UA13+'}
                     </span>
                   </div>
@@ -492,7 +535,7 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
                     </div>
 
                     {selectedGenreObjects.length > 0 && (
-                      <p className="text-[10px] text-amber-400/90 font-medium truncate pt-1">
+                      <p className="text-[10px] text-signature font-mono truncate pt-1">
                         {selectedGenreObjects.map((g) => g.name).join(' • ')}
                       </p>
                     )}
@@ -549,8 +592,8 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
                 type="button"
                 onClick={() => setCurrentStep((prev) => prev + 1)}
                 disabled={!canProceed()}
-                className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 disabled:opacity-40 text-white shadow-lg shadow-rose-600/25 transition-colors"
-                whileTap={reduced ? {} : { scale: 0.96, transition: springSnappy }}
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-signature hover:bg-signature-hover disabled:opacity-40 disabled:cursor-not-allowed text-black shadow-lg shadow-signature/20 transition-all"
+                whileTap={reduced || !canProceed() ? {} : { scale: 0.96, transition: springSnappy }}
               >
                 <span>Continue</span>
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -560,7 +603,7 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
                 type="button"
                 onClick={() => handleSave(true)}
                 disabled={saving || !licence.music_cleared || !filmData.poster_url || !filmData.backdrop_url}
-                className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 disabled:opacity-40 text-white shadow-xl shadow-rose-600/30 transition-colors"
+                className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-xs font-bold bg-signature hover:bg-signature-hover disabled:opacity-40 disabled:cursor-not-allowed text-black shadow-xl shadow-signature/30 transition-all"
                 whileTap={reduced ? {} : { scale: 0.97, transition: springSnappy }}
               >
                 {saving ? (

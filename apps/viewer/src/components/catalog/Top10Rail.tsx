@@ -57,22 +57,16 @@ export const Top10Rail: React.FC<Top10RailProps> = ({
 
   return (
     <section className="relative py-6 group/rail">
-      {/* Rail Header — Editorial Display Title with Italic Subtitle & Hairline */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-3.5">
-        <div className="flex items-baseline justify-between border-b border-hairline pb-2.5">
-          <div className="flex items-baseline gap-3">
-            <h2 className="text-xl sm:text-2xl font-normal font-display tracking-widest text-ivory uppercase flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-signature" />
-              Top 10 in India
-            </h2>
-            <span className="font-mono text-[10px] text-muted tracking-widest">
-              [RANKED]
-            </span>
-          </div>
-
-          <p className="font-editorial italic text-xs sm:text-sm text-muted hidden sm:block">
-            Most watched independent cinema today
-          </p>
+      {/* Rail Header */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-3">
+        <div className="flex items-baseline gap-3 pb-1">
+          <h2 className="text-xl sm:text-2xl font-normal font-display tracking-widest text-ivory uppercase flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-signature" />
+            Top 10 in India
+          </h2>
+          <span className="font-mono text-[10px] text-muted tracking-widest">
+            [RANKED]
+          </span>
         </div>
       </div>
 
@@ -82,7 +76,7 @@ export const Top10Rail: React.FC<Top10RailProps> = ({
         {canScrollLeft && (
           <button
             onClick={() => scroll('left')}
-            className="absolute left-1 top-1/2 -translate-y-1/2 z-30 h-12 w-9 bg-graphite/95 hover:bg-graphite text-ivory rounded-sm opacity-0 group-hover/rail:opacity-100 transition-opacity flex items-center justify-center border border-hairline focus:outline-none shadow-2xl backdrop-blur-md"
+            className="absolute left-1 top-1/2 -translate-y-1/2 z-30 h-12 w-9 bg-black/80 hover:bg-black text-ivory rounded-r-md opacity-0 group-hover/rail:opacity-100 transition-opacity flex items-center justify-center focus:outline-none shadow-2xl backdrop-blur-md"
             title="Scroll Left"
           >
             <ChevronLeft className="h-5 w-5" />
@@ -103,6 +97,7 @@ export const Top10Rail: React.FC<Top10RailProps> = ({
                 onToggleWatchlist={onToggleWatchlist}
                 progressSeconds={getProgress ? getProgress(film.id) : 0}
                 rankIndex={index + 1}
+                inRail={true}
               />
             </div>
           ))}
@@ -112,7 +107,7 @@ export const Top10Rail: React.FC<Top10RailProps> = ({
         {canScrollRight && (
           <button
             onClick={() => scroll('right')}
-            className="absolute right-1 top-1/2 -translate-y-1/2 z-30 h-12 w-9 bg-graphite/95 hover:bg-graphite text-ivory rounded-sm opacity-0 group-hover/rail:opacity-100 transition-opacity flex items-center justify-center border border-hairline focus:outline-none shadow-2xl backdrop-blur-md"
+            className="absolute right-1 top-1/2 -translate-y-1/2 z-30 h-12 w-9 bg-black/80 hover:bg-black text-ivory rounded-l-md opacity-0 group-hover/rail:opacity-100 transition-opacity flex items-center justify-center focus:outline-none shadow-2xl backdrop-blur-md"
             title="Scroll Right"
           >
             <ChevronRight className="h-5 w-5" />

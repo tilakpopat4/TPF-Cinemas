@@ -1,14 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'motion/react';
 import { Film, Bookmark, History } from 'lucide-react';
 import { useViewerAuth } from './hooks/useViewerAuth';
 import { useCatalogue } from './hooks/useCatalogue';
 import { useWatchlist } from './hooks/useWatchlist';
 import { useWatchHistory } from './hooks/useWatchHistory';
+import { useUIManager, getFilmsForSection } from './hooks/useUIManager';
 import { ViewerHeader } from './components/navigation/ViewerHeader';
 import { ViewerFooter } from './components/navigation/ViewerFooter';
 import { HeroBillboard } from './components/hero/HeroBillboard';
 import { ContentRail } from './components/catalog/ContentRail';
+import { NewFilmmakersSpotlight } from './components/catalog/NewFilmmakersSpotlight';
 import { ContinueWatchingRail } from './components/catalog/ContinueWatchingRail';
 import { Top10Rail } from './components/catalog/Top10Rail';
 import { FilmCard } from './components/catalog/FilmCard';
@@ -35,11 +37,40 @@ export default function App() {
   const { watchlistIds, toggleWatchlist, isInWatchlist } = useWatchlist(user?.id);
   const { history, recordProgress, getProgress, dismissFromHistory, getInProgressFilms } = useWatchHistory(user?.id);
 
+  // Dynamic UI Manager (Fully customizable sections, tab titles, reordering, creation)
+  const {
+    sections,
+    tabTitles,
+    heroConfig,
+  } = useUIManager();
+
   const [currentTab, setCurrentTab] = useState<'home' | 'browse' | 'watchlist' | 'history'>('home');
+
   const [activeWatchFilm, setActiveWatchFilm] = useState<FilmType | null>(null);
   const [activeWatchMode, setActiveWatchMode] = useState<'movie' | 'trailer'>('movie');
   const [moreInfoFilm, setMoreInfoFilm] = useState<FilmType | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [pendingWatchFilm, setPendingWatchFilm] = useState<{ film: FilmType; mode: 'movie' | 'trailer' } | null>(null);
+
+  // Mandatory requirement: Authentication required to watch cinema content
+  const handlePlay = (film: FilmType, mode: 'movie' | 'trailer' = 'movie') => {
+    if (!user) {
+      setPendingWatchFilm({ film, mode });
+      setShowAuthModal(true);
+      return;
+    }
+    setActiveWatchFilm(film);
+    setActiveWatchMode(mode);
+  };
+
+  // Automatically start playback once the user completes sign-in / sign-up
+  useEffect(() => {
+    if (user && pendingWatchFilm) {
+      setActiveWatchFilm(pendingWatchFilm.film);
+      setActiveWatchMode(pendingWatchFilm.mode);
+      setPendingWatchFilm(null);
+    }
+  }, [user, pendingWatchFilm]);
 
   // Curated list of featured films for the hero carousel rotation
   const featuredCarouselFilms = (() => {
@@ -64,17 +95,6 @@ export default function App() {
     .sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
     .slice(0, 10);
 
-  // Genre-specific film rails for home page
-  const dramaFilms = films.filter((f) =>
-    f.film_genres?.some((fg) => fg.genres?.slug === 'drama' || fg.genres?.name.toLowerCase() === 'drama')
-  );
-  const thrillerFilms = films.filter((f) =>
-    f.film_genres?.some((fg) => fg.genres?.slug === 'thriller' || fg.genres?.name.toLowerCase() === 'thriller')
-  );
-  const docFilms = films.filter((f) =>
-    f.film_genres?.some((fg) => fg.genres?.slug === 'documentary' || fg.genres?.name.toLowerCase() === 'documentary')
-  );
-
   return (
     <LanguageProvider>
       <div className="min-h-screen bg-canvas text-ivory flex flex-col font-sans selection:bg-signature selection:text-black">
@@ -96,6 +116,7 @@ export default function App() {
             user={user}
             profile={profile}
             role={role}
+            tabTitles={tabTitles}
             onOpenAuth={() => setShowAuthModal(true)}
             onSignOut={signOut}
           />
@@ -106,7 +127,7 @@ export default function App() {
           {/* Search Results Overlay View if Search is active */}
           {searchQuery.trim() ? (
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 sm:pt-36 space-y-6">
-              <div className="flex items-baseline justify-between border-b border-hairline pb-4">
+              <div className="flex items-baseline justify-between pb-2">
                 <h2 className="text-xl sm:text-2xl font-normal font-display tracking-widest text-ivory uppercase">
                   Search Results for &ldquo;{searchQuery}&rdquo;
                 </h2>
@@ -129,7 +150,7 @@ export default function App() {
                     <FilmCard
                       key={film.id}
                       film={film}
-                      onPlay={(f) => setActiveWatchFilm(f)}
+                      onPlay={(f) => handlePlay(f)}
                       isInWatchlist={isInWatchlist(film.id)}
                       onToggleWatchlist={toggleWatchlist}
                       progressSeconds={getProgress(film.id)}
@@ -139,125 +160,130 @@ export default function App() {
               )}
             </div>
           ) : currentTab === 'home' ? (
-            /* Home Tab: Hero Billboard & Curated Content Rails */
+            /* Home Tab: Hero Billboard & Dynamic Curated Content Rails from UI Manager */
             <div className="space-y-6">
               {/* Hero Billboard */}
-              <HeroBillboard
-                films={featuredCarouselFilms}
-                film={featuredFilm}
-                onPlay={(f, mode) => {
-                  setActiveWatchFilm(f);
-                  setActiveWatchMode(mode || 'movie');
-                }}
-                isInWatchlist={(id) => isInWatchlist(id)}
-                onToggleWatchlist={toggleWatchlist}
-                onSelectGenre={(slug) => {
-                  setSelectedGenre(slug);
-                  setCurrentTab('browse');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                onMoreInfo={(f) => setMoreInfoFilm(f)}
-              />
-
-              {/* Rails Container */}
-              <div className="relative -mt-6 sm:-mt-10 z-20 space-y-2">
-                {/* Continue Watching (Active In-Progress Streams with Dismissal) */}
-                {user && inProgressFilms.length > 0 && (
-                  <ContinueWatchingRail
-                    films={inProgressFilms}
-                    onPlay={(f) => {
-                      setActiveWatchFilm(f);
-                      setActiveWatchMode('movie');
-                    }}
-                    isInWatchlist={isInWatchlist}
-                    onToggleWatchlist={toggleWatchlist}
-                    getProgress={getProgress}
-                    onDismiss={dismissFromHistory}
-                  />
-                )}
-
-                {/* Top 10 in India (Ranked Popularity Rail) */}
-                {top10Films.length > 0 && (
-                  <Top10Rail
-                    films={top10Films}
-                    onPlay={(f) => {
-                      setActiveWatchFilm(f);
-                      setActiveWatchMode('movie');
-                    }}
-                    isInWatchlist={isInWatchlist}
-                    onToggleWatchlist={toggleWatchlist}
-                    getProgress={getProgress}
-                  />
-                )}
-
-                {/* Trending / New Releases */}
-                <ContentRail
-                  title="Official Selections"
-                  subtitle="Curated festival premieres and notable debuts"
-                  films={films}
-                  onPlay={(f) => setActiveWatchFilm(f)}
-                  isInWatchlist={isInWatchlist}
+              {heroConfig.enabled && (
+                <HeroBillboard
+                  films={featuredCarouselFilms}
+                  film={featuredFilm}
+                  onPlay={(f, mode) => handlePlay(f, mode)}
+                  isInWatchlist={(id) => isInWatchlist(id)}
                   onToggleWatchlist={toggleWatchlist}
-                  getProgress={getProgress}
+                  onSelectGenre={(slug) => {
+                    setSelectedGenre(slug);
+                    setCurrentTab('browse');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  onMoreInfo={(f) => setMoreInfoFilm(f)}
                 />
+              )}
 
-                {/* Debut Spotlights */}
-                {debutFilms.length > 0 && (
-                  <ContentRail
-                    title="First-Time Directors"
-                    subtitle="Uncompromised vision from emerging auteurs"
-                    films={debutFilms}
-                    onPlay={(f) => setActiveWatchFilm(f)}
-                    isInWatchlist={isInWatchlist}
-                    onToggleWatchlist={toggleWatchlist}
-                    getProgress={getProgress}
-                  />
-                )}
+              {/* Dynamic Rails Container — Controlled live from UI Manager */}
+              <div className="relative -mt-6 sm:-mt-10 z-20 space-y-2">
+                {sections
+                  .filter((sec) => sec.enabled)
+                  .map((sec) => {
+                    const secFilms = getFilmsForSection(sec, films, inProgressFilms, top10Films);
 
-                {/* Drama Rail */}
-                {dramaFilms.length > 0 && (
-                  <ContentRail
-                    title="Human Geographies & Drama"
-                    subtitle="Intimate studies of relationships and quiet conflicts"
-                    films={dramaFilms}
-                    onPlay={(f) => setActiveWatchFilm(f)}
-                    isInWatchlist={isInWatchlist}
-                    onToggleWatchlist={toggleWatchlist}
-                    getProgress={getProgress}
-                  />
-                )}
+                    // Section Type: Continue Watching
+                    if (sec.type === 'continue_watching') {
+                      if (!user || inProgressFilms.length === 0) return null;
+                      return (
+                        <ContinueWatchingRail
+                          key={sec.id}
+                          films={inProgressFilms}
+                          onPlay={(f) => handlePlay(f, 'movie')}
+                          isInWatchlist={isInWatchlist}
+                          onToggleWatchlist={toggleWatchlist}
+                          getProgress={getProgress}
+                          onDismiss={dismissFromHistory}
+                        />
+                      );
+                    }
 
-                {/* Thrillers */}
-                {thrillerFilms.length > 0 && (
-                  <ContentRail
-                    title="Suspense & Noir"
-                    subtitle="Tension, moral ambiguity, and atmospheric rhythm"
-                    films={thrillerFilms}
-                    onPlay={(f) => setActiveWatchFilm(f)}
-                    isInWatchlist={isInWatchlist}
-                    onToggleWatchlist={toggleWatchlist}
-                    getProgress={getProgress}
-                  />
-                )}
+                    // Section Type: Top 10 in India
+                    if (sec.type === 'top10') {
+                      if (top10Films.length === 0) return null;
+                      return (
+                        <Top10Rail
+                          key={sec.id}
+                          films={top10Films.slice(0, sec.limit || 10)}
+                          onPlay={(f) => handlePlay(f, 'movie')}
+                          isInWatchlist={isInWatchlist}
+                          onToggleWatchlist={toggleWatchlist}
+                          getProgress={getProgress}
+                        />
+                      );
+                    }
 
-                {/* Documentaries */}
-                {docFilms.length > 0 && (
-                  <ContentRail
-                    title="Non-Fiction Archives"
-                    subtitle="Endangered architectures, oral traditions, and real lives"
-                    films={docFilms}
-                    onPlay={(f) => setActiveWatchFilm(f)}
-                    isInWatchlist={isInWatchlist}
-                    onToggleWatchlist={toggleWatchlist}
-                    getProgress={getProgress}
-                  />
-                )}
+                    // Section Type: Grid Showcase
+                    if (sec.type === 'grid') {
+                      if (secFilms.length === 0) return null;
+                      return (
+                        <section key={sec.id} className="relative py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+                          <div className="flex items-baseline gap-3 pb-1">
+                            <h2 className="text-xl sm:text-2xl font-normal font-display tracking-widest text-ivory uppercase">
+                              {sec.title}
+                            </h2>
+                            <span className="font-mono text-[10px] text-muted tracking-widest">
+                              [{secFilms.length}]
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+                            {secFilms.map((film) => (
+                              <FilmCard
+                                key={film.id}
+                                film={film}
+                                onPlay={(f) => handlePlay(f)}
+                                isInWatchlist={isInWatchlist(film.id)}
+                                onToggleWatchlist={toggleWatchlist}
+                                progressSeconds={getProgress(film.id)}
+                              />
+                            ))}
+                          </div>
+                        </section>
+                      );
+                    }
+
+                    // Section Type: New Filmmakers Spotlight (Panoramic 16:9 Showcase)
+                    if (sec.type === 'spotlight' || sec.filterType === 'debut') {
+                      if (secFilms.length === 0) return null;
+                      return (
+                        <NewFilmmakersSpotlight
+                          key={sec.id}
+                          title={sec.title}
+                          subtitle={sec.subtitle}
+                          films={secFilms}
+                          onPlay={(f, mode) => handlePlay(f, mode)}
+                          isInWatchlist={(filmId) => isInWatchlist(filmId)}
+                          onToggleWatchlist={toggleWatchlist}
+                        />
+                      );
+                    }
+
+                    // Section Type: Horizontal Content Rail (Default)
+                    if (secFilms.length === 0) return null;
+
+                    return (
+                      <ContentRail
+                        key={sec.id}
+                        title={sec.title}
+                        subtitle={sec.subtitle}
+                        films={secFilms}
+                        onPlay={(f) => handlePlay(f)}
+                        isInWatchlist={isInWatchlist}
+                        onToggleWatchlist={toggleWatchlist}
+                        getProgress={getProgress}
+                      />
+                    );
+                  })}
               </div>
             </div>
           ) : currentTab === 'browse' ? (
             /* Browse Tab: Full Catalogue Grid + Genre Tags */
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 space-y-6">
-              <div className="border-b border-hairline pb-4">
+              <div className="pb-2">
                 <h1 className="text-3xl sm:text-4xl font-normal font-display tracking-widest text-ivory uppercase">
                   Catalogue Explorer
                 </h1>
@@ -265,14 +291,14 @@ export default function App() {
                   Browse the complete archive of independent cinema, indexed by curatorial category.
                 </p>
 
-                {/* Genre Filter Tags (Sharp 2px corners, no rounded pills) */}
+                {/* Genre Filter Tags */}
                 <div className="flex flex-wrap items-center gap-2 pt-4">
                   <button
                     onClick={() => setSelectedGenre(null)}
-                    className={`px-3 py-1 rounded-sm font-mono text-[10px] uppercase tracking-wider transition-colors ${
+                    className={`px-3 py-1.5 rounded-full font-mono text-[10px] uppercase tracking-wider transition-colors ${
                       selectedGenre === null
-                        ? 'bg-signature text-black border border-signature font-bold'
-                        : 'bg-graphite border border-hairline text-muted hover:text-ivory'
+                        ? 'bg-signature text-black font-bold'
+                        : 'bg-white/[0.08] text-muted hover:text-ivory hover:bg-white/[0.14]'
                     }`}
                   >
                     All Disciplines
@@ -281,10 +307,10 @@ export default function App() {
                     <button
                       key={g.id}
                       onClick={() => setSelectedGenre(g.slug === selectedGenre ? null : g.slug)}
-                      className={`px-3 py-1 rounded-sm font-mono text-[10px] uppercase tracking-wider transition-colors ${
+                      className={`px-3 py-1.5 rounded-full font-mono text-[10px] uppercase tracking-wider transition-colors ${
                         selectedGenre === g.slug
-                          ? 'bg-signature text-black border border-signature font-bold'
-                          : 'bg-graphite border border-hairline text-muted hover:text-ivory'
+                          ? 'bg-signature text-black font-bold'
+                          : 'bg-white/[0.08] text-muted hover:text-ivory hover:bg-white/[0.14]'
                       }`}
                     >
                       {g.name}
@@ -299,7 +325,7 @@ export default function App() {
                   <FilmCard
                     key={film.id}
                     film={film}
-                    onPlay={(f) => setActiveWatchFilm(f)}
+                    onPlay={(f) => handlePlay(f)}
                     isInWatchlist={isInWatchlist(film.id)}
                     onToggleWatchlist={toggleWatchlist}
                     progressSeconds={getProgress(film.id)}
@@ -310,7 +336,7 @@ export default function App() {
           ) : currentTab === 'watchlist' ? (
             /* Watchlist Tab */
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 space-y-6">
-              <div className="border-b border-hairline pb-4">
+              <div className="pb-2">
                 <h1 className="text-3xl font-normal font-display tracking-widest text-ivory uppercase flex items-center gap-3">
                   <Bookmark className="h-6 w-6 text-signature" />
                   <span>Curated Queue</span>
@@ -342,7 +368,7 @@ export default function App() {
                     <FilmCard
                       key={film.id}
                       film={film}
-                      onPlay={(f) => setActiveWatchFilm(f)}
+                      onPlay={(f) => handlePlay(f)}
                       isInWatchlist={true}
                       onToggleWatchlist={toggleWatchlist}
                       progressSeconds={getProgress(film.id)}
@@ -351,10 +377,10 @@ export default function App() {
                 </div>
               )}
             </div>
-          ) : (
+          ) : currentTab === 'history' ? (
             /* Watch History Tab */
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 space-y-6">
-              <div className="border-b border-hairline pb-4">
+              <div className="pb-2">
                 <h1 className="text-3xl font-normal font-display tracking-widest text-ivory uppercase flex items-center gap-3">
                   <History className="h-6 w-6 text-muted" />
                   <span>Screening Log</span>
@@ -386,7 +412,7 @@ export default function App() {
                     <FilmCard
                       key={film.id}
                       film={film}
-                      onPlay={(f) => setActiveWatchFilm(f)}
+                      onPlay={(f) => handlePlay(f)}
                       isInWatchlist={isInWatchlist(film.id)}
                       onToggleWatchlist={toggleWatchlist}
                       progressSeconds={getProgress(film.id)}
@@ -395,7 +421,7 @@ export default function App() {
                 </div>
               )}
             </div>
-          )}
+          ) : null}
         </main>
 
         {/* Video Streaming Player Modal */}
@@ -423,8 +449,7 @@ export default function App() {
               onClose={() => setMoreInfoFilm(null)}
               onPlay={(f, mode) => {
                 setMoreInfoFilm(null);
-                setActiveWatchFilm(f);
-                setActiveWatchMode(mode || 'movie');
+                handlePlay(f, mode);
               }}
               isInWatchlist={moreInfoFilm ? isInWatchlist(moreInfoFilm.id) : false}
               onToggleWatchlist={toggleWatchlist}
@@ -435,7 +460,15 @@ export default function App() {
         {/* Auth Modal */}
         <ViewerAuthModal
           isOpen={showAuthModal}
-          onClose={() => setShowAuthModal(false)}
+          onClose={() => {
+            setShowAuthModal(false);
+            setPendingWatchFilm(null);
+          }}
+          contextPrompt={
+            pendingWatchFilm
+              ? `Sign in or sign up to stream "${pendingWatchFilm.film.title}"`
+              : undefined
+          }
         />
 
         {/* Netflix-Inspired Curatorial Footer */}

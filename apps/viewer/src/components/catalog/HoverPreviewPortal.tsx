@@ -137,14 +137,7 @@ export const HoverPreviewPortal: React.FC<HoverPreviewPortalProps> = ({
               </button>
             )}
 
-            {/* Debut Tag */}
-            {activeFilm.is_debut && (
-              <div className="absolute top-2 left-2 z-20">
-                <span className="px-1.5 py-0.5 bg-signature text-black font-mono text-[8px] uppercase tracking-widest font-bold">
-                  Debut
-                </span>
-              </div>
-            )}
+
             {/* Resume Progress Bar */}
             {getProgress && getProgress(activeFilm.id) > 0 && (
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/80 z-20">
@@ -169,7 +162,7 @@ export const HoverPreviewPortal: React.FC<HoverPreviewPortalProps> = ({
                     closeImmediately();
                     onPlay(activeFilm);
                   }}
-                  className="h-8.5 px-3.5 rounded-lg bg-signature hover:bg-signature-hover text-black flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider transition-all duration-200 shadow-[0_2px_12px_rgba(229,169,59,0.3)] hover:scale-[1.02] active:scale-[0.98]"
+                  className="h-9 px-4 rounded-lg bg-signature hover:bg-signature-hover text-black flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider transition-all duration-200 shadow-md hover:scale-[1.02] active:scale-[0.98]"
                   title="Screen Film"
                 >
                   <Play className="h-3.5 w-3.5 fill-current ml-0.5" />
@@ -179,10 +172,10 @@ export const HoverPreviewPortal: React.FC<HoverPreviewPortalProps> = ({
                 {/* Queue Button */}
                 <button
                   onClick={() => onToggleWatchlist(activeFilm.id)}
-                  className={`h-8.5 w-8.5 rounded-lg border flex items-center justify-center transition-all ${
+                  className={`h-9 w-9 rounded-lg flex items-center justify-center transition-all ${
                     inWatchlist
-                      ? 'bg-signature text-black border-signature shadow-[0_0_10px_rgba(229,169,59,0.35)]'
-                      : 'bg-white/[0.06] border-white/15 text-ivory hover:border-white/40'
+                      ? 'bg-signature text-black shadow-sm'
+                      : 'bg-white/[0.08] text-ivory hover:bg-white/[0.16]'
                   }`}
                   title={inWatchlist ? 'Remove from Queue' : 'Add to Queue'}
                 >
@@ -196,7 +189,7 @@ export const HoverPreviewPortal: React.FC<HoverPreviewPortalProps> = ({
                       onDismissFromHistory(activeFilm.id);
                       closeImmediately();
                     }}
-                    className="h-8.5 w-8.5 rounded-lg border border-white/10 bg-white/[0.04] hover:bg-black text-muted hover:text-white flex items-center justify-center transition-colors"
+                    className="h-9 w-9 rounded-lg bg-white/[0.06] hover:bg-black text-muted hover:text-white flex items-center justify-center transition-colors"
                     title="Remove from Continue Watching"
                   >
                     <X className="h-3.5 w-3.5" />

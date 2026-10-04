@@ -4,6 +4,7 @@ import { Search, Bookmark, History, LogIn, LogOut, X, Globe, ChevronDown, Check,
 import { Profile, AppRole } from '../../types';
 import { useReducedMotion } from '../../lib/motion';
 import { useLanguage, SUPPORTED_LANGUAGES } from '../../context/LanguageContext';
+import { TabTitles } from '../../hooks/useUIManager';
 
 interface ViewerHeaderProps {
   currentTab: 'home' | 'browse' | 'watchlist' | 'history';
@@ -13,6 +14,7 @@ interface ViewerHeaderProps {
   user: any;
   profile: Profile | null;
   role: AppRole;
+  tabTitles?: TabTitles;
   onOpenAuth: () => void;
   onSignOut: () => void;
 }
@@ -25,6 +27,7 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
   user,
   profile,
   role,
+  tabTitles,
   onOpenAuth,
   onSignOut,
 }) => {
@@ -97,21 +100,23 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
           <nav className="hidden md:flex items-center gap-1.5">
             <button
               onClick={() => onSelectTab('home')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs uppercase tracking-wider transition-all duration-150 ${currentTab === 'home'
+              className={`px-3.5 py-1.5 rounded-lg text-xs uppercase tracking-wider transition-all duration-150 ${
+                currentTab === 'home'
                   ? 'text-ivory font-semibold bg-white/[0.08] shadow-sm'
                   : 'text-muted hover:text-ivory hover:bg-white/[0.04] font-medium'
-                }`}
+              }`}
             >
-              Curated
+              {tabTitles?.home || 'Curated'}
             </button>
             <button
               onClick={() => onSelectTab('browse')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs uppercase tracking-wider transition-all duration-150 ${currentTab === 'browse'
+              className={`px-3.5 py-1.5 rounded-lg text-xs uppercase tracking-wider transition-all duration-150 ${
+                currentTab === 'browse'
                   ? 'text-ivory font-semibold bg-white/[0.08] shadow-sm'
                   : 'text-muted hover:text-ivory hover:bg-white/[0.04] font-medium'
-                }`}
+              }`}
             >
-              Catalogue
+              {tabTitles?.browse || 'Catalogue'}
             </button>
             <button
               onClick={() => {
@@ -121,13 +126,14 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
                   onSelectTab('watchlist');
                 }
               }}
-              className={`px-3.5 py-1.5 rounded-lg text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all duration-150 ${currentTab === 'watchlist'
+              className={`px-3.5 py-1.5 rounded-lg text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all duration-150 ${
+                currentTab === 'watchlist'
                   ? 'text-ivory font-semibold bg-white/[0.08] shadow-sm'
                   : 'text-muted hover:text-ivory hover:bg-white/[0.04] font-medium'
-                }`}
+              }`}
             >
               <Bookmark className="h-3.5 w-3.5 text-signature" />
-              <span>Queue</span>
+              <span>{tabTitles?.watchlist || 'Queue'}</span>
             </button>
             <button
               onClick={() => {
@@ -137,45 +143,46 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
                   onSelectTab('history');
                 }
               }}
-              className={`px-3.5 py-1.5 rounded-lg text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all duration-150 ${currentTab === 'history'
+              className={`px-3.5 py-1.5 rounded-lg text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all duration-150 ${
+                currentTab === 'history'
                   ? 'text-ivory font-semibold bg-white/[0.08] shadow-sm'
                   : 'text-muted hover:text-ivory hover:bg-white/[0.04] font-medium'
-                }`}
+              }`}
             >
               <History className="h-3.5 w-3.5 text-muted" />
-              <span>History</span>
+              <span>{tabTitles?.history || 'History'}</span>
             </button>
           </nav>
         </div>
 
         {/* Right Actions: Search, Netflix-Style Live Google Language Selector & Auth */}
         <div className="flex items-center gap-2.5 sm:gap-3">
-          {/* Expandable Search Input */}
+          {/* Expandable Search Input (Borderless Modern Pill) */}
           <div className="relative">
             <AnimatePresence mode="wait" initial={false}>
               {showSearch ? (
                 <motion.div
                   key="search-open"
-                  className="flex items-center bg-graphite border border-signature/60 rounded-sm px-3 py-1.5 w-52 sm:w-64"
+                  className="flex items-center bg-white/[0.08] hover:bg-white/[0.12] focus-within:bg-white/[0.14] rounded-full px-3.5 py-1.5 w-56 sm:w-72 transition-colors border-none shadow-[0_4px_16px_rgba(0,0,0,0.5)]"
                   initial={reduced ? { opacity: 0 } : { opacity: 0, x: 10 }}
                   animate={{ opacity: 1, x: 0, transition: { duration: 0.15 } }}
                   exit={{ opacity: 0, x: 10, transition: { duration: 0.1 } }}
                 >
-                  <Search className="h-3.5 w-3.5 text-signature shrink-0 mr-2" />
+                  <Search className="h-4 w-4 text-signature shrink-0 mr-2" />
                   <input
                     type="text"
                     placeholder="Search title, auteur..."
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
                     autoFocus
-                    className="bg-transparent border-none text-ivory text-xs placeholder:text-muted focus:outline-none w-full font-sans"
+                    className="bg-transparent border-none text-ivory text-xs placeholder:text-muted/60 focus:outline-none w-full font-sans"
                   />
                   <button
                     onClick={() => {
                       onSearchChange('');
                       setShowSearch(false);
                     }}
-                    className="text-muted hover:text-ivory ml-1.5"
+                    className="text-muted hover:text-ivory ml-1.5 p-0.5 rounded-full hover:bg-white/10 transition-colors"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -184,7 +191,7 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
                 <button
                   key="search-icon"
                   onClick={() => setShowSearch(true)}
-                  className="p-2 sm:p-2.5 rounded-sm text-muted hover:text-ivory hover:bg-graphite transition-colors"
+                  className="p-2 sm:p-2.5 rounded-full text-muted hover:text-ivory hover:bg-white/[0.08] transition-colors"
                   title="Search Catalogue"
                 >
                   <Search className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
@@ -193,12 +200,13 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
             </AnimatePresence>
           </div>
 
-          {/* Live Google Translator Dropdown — Solid Opaque, Multi-Lingual */}
+          {/* Live Google Translator Dropdown (Borderless Pill) */}
           <div className="relative" ref={langMenuRef}>
             <button
               onClick={() => setShowLangMenu(!showLangMenu)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-sm bg-black/70 border border-hairline hover:border-ivory/50 text-ivory text-xs sm:text-sm font-sans transition-colors focus:outline-none ${isTranslating ? 'animate-pulse border-signature' : ''
-                }`}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.06] hover:bg-white/[0.12] text-ivory text-xs sm:text-sm font-sans transition-colors focus:outline-none border-none ${
+                isTranslating ? 'animate-pulse text-signature' : ''
+              }`}
               title="Change Website Language (Live Google Translator)"
             >
               <Globe className="h-4 w-4 text-signature" />
@@ -256,17 +264,17 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
               <AnimatePresence>
                 {showUserMenu && (
                   <motion.div
-                    className="absolute right-0 mt-2 w-56 rounded-xl border border-white/[0.12] p-2 z-50 shadow-[0_20px_50px_rgba(0,0,0,0.9)] text-ivory bg-[#101117]"
+                    className="absolute right-0 mt-2 w-56 rounded-2xl p-2 z-50 shadow-[0_20px_60px_rgba(0,0,0,0.95)] text-ivory bg-[#0F1015]"
                     initial={reduced ? { opacity: 0 } : { opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0, transition: { duration: 0.15 } }}
                     exit={{ opacity: 0, y: -4, transition: { duration: 0.1 } }}
                   >
-                    <div className="px-3 py-2 border-b border-white/[0.08]">
+                    <div className="px-3 py-2.5">
                       <p className="text-xs font-semibold text-ivory truncate">
                         {profile?.display_name || 'Audience Member'}
                       </p>
                       <p className="text-[11px] text-muted truncate">{user.email}</p>
-                      <span className="inline-block mt-1 text-[9px] uppercase font-mono font-medium px-1.5 py-0.5 bg-black/60 border border-white/10 text-signature rounded-sm">
+                      <span className="inline-block mt-1.5 text-[9px] uppercase font-mono font-medium px-2 py-0.5 bg-signature/15 text-signature rounded-full">
                         {role}
                       </span>
                     </div>
@@ -277,7 +285,7 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
                           onSelectTab('watchlist');
                           setShowUserMenu(false);
                         }}
-                        className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-xs text-ivory hover:bg-white/[0.06] rounded-lg transition-colors"
+                        className="w-full text-left flex items-center gap-2 px-3 py-2 text-xs text-ivory hover:bg-white/[0.06] rounded-xl transition-colors"
                       >
                         <Bookmark className="h-3.5 w-3.5 text-signature" />
                         <span>Curated Queue</span>
@@ -287,20 +295,20 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
                           onSelectTab('history');
                           setShowUserMenu(false);
                         }}
-                        className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-xs text-ivory hover:bg-white/[0.06] rounded-lg transition-colors"
+                        className="w-full text-left flex items-center gap-2 px-3 py-2 text-xs text-ivory hover:bg-white/[0.06] rounded-xl transition-colors"
                       >
                         <History className="h-3.5 w-3.5 text-muted" />
                         <span>Watch History</span>
                       </button>
                     </div>
 
-                    <div className="pt-1 border-t border-white/[0.08]">
+                    <div className="pt-1 mt-1 border-t border-white/[0.04]">
                       <button
                         onClick={() => {
                           onSignOut();
                           setShowUserMenu(false);
                         }}
-                        className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-xs text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                        className="w-full text-left flex items-center gap-2 px-3 py-2 text-xs text-rose-400 hover:bg-rose-500/10 rounded-xl transition-colors"
                       >
                         <LogOut className="h-3.5 w-3.5" />
                         <span>Sign Out</span>
@@ -350,11 +358,11 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
                 }}
                 className={`flex items-center justify-center p-2.5 rounded-xl text-xs uppercase font-medium tracking-wider transition-all ${
                   currentTab === 'home'
-                    ? 'text-ivory font-semibold bg-white/[0.12] border border-signature/40 shadow-sm'
+                    ? 'text-ivory font-semibold bg-white/[0.12] shadow-sm'
                     : 'text-muted hover:text-ivory hover:bg-white/[0.04]'
                 }`}
               >
-                <span>Curated</span>
+                <span>{tabTitles?.home || 'Curated'}</span>
               </button>
 
               <button
@@ -364,11 +372,11 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
                 }}
                 className={`flex items-center justify-center p-2.5 rounded-xl text-xs uppercase font-medium tracking-wider transition-all ${
                   currentTab === 'browse'
-                    ? 'text-ivory font-semibold bg-white/[0.12] border border-signature/40 shadow-sm'
+                    ? 'text-ivory font-semibold bg-white/[0.12] shadow-sm'
                     : 'text-muted hover:text-ivory hover:bg-white/[0.04]'
                 }`}
               >
-                <span>Catalogue</span>
+                <span>{tabTitles?.browse || 'Catalogue'}</span>
               </button>
 
               <button
@@ -379,12 +387,12 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
                 }}
                 className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl text-xs uppercase font-medium tracking-wider transition-all ${
                   currentTab === 'watchlist'
-                    ? 'text-ivory font-semibold bg-white/[0.12] border border-signature/40 shadow-sm'
+                    ? 'text-ivory font-semibold bg-white/[0.12] shadow-sm'
                     : 'text-muted hover:text-ivory hover:bg-white/[0.04]'
                 }`}
               >
                 <Bookmark className="h-3.5 w-3.5 text-signature" />
-                <span>Queue</span>
+                <span>{tabTitles?.watchlist || 'Queue'}</span>
               </button>
 
               <button
@@ -395,12 +403,12 @@ export const ViewerHeader: React.FC<ViewerHeaderProps> = ({
                 }}
                 className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl text-xs uppercase font-medium tracking-wider transition-all ${
                   currentTab === 'history'
-                    ? 'text-ivory font-semibold bg-white/[0.12] border border-signature/40 shadow-sm'
+                    ? 'text-ivory font-semibold bg-white/[0.12] shadow-sm'
                     : 'text-muted hover:text-ivory hover:bg-white/[0.04]'
                 }`}
               >
                 <History className="h-3.5 w-3.5 text-muted" />
-                <span>History</span>
+                <span>{tabTitles?.history || 'History'}</span>
               </button>
             </div>
           </motion.div>

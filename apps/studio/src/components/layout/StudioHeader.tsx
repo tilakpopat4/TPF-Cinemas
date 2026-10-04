@@ -155,8 +155,8 @@ export const StudioHeader: React.FC<StudioHeaderProps> = ({
           <div className="relative" ref={langMenuRef}>
             <button
               onClick={() => setShowLangMenu(!showLangMenu)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-sm bg-black/70 border border-hairline hover:border-ivory/50 text-ivory text-xs sm:text-sm font-sans transition-colors focus:outline-none ${
-                isTranslating ? 'animate-pulse border-signature' : ''
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.06] hover:bg-white/[0.12] border-none text-ivory text-xs sm:text-sm font-sans transition-colors focus:outline-none ${
+                isTranslating ? 'animate-pulse text-signature' : ''
               }`}
               title="Change Website Language (Live Google Translator)"
             >
@@ -216,26 +216,26 @@ export const StudioHeader: React.FC<StudioHeaderProps> = ({
             <AnimatePresence>
               {showMenu && (
                 <motion.div
-                  className="absolute right-0 mt-2 w-56 rounded-xl border border-white/[0.12] p-2 z-50 shadow-[0_20px_50px_rgba(0,0,0,0.9)] text-ivory bg-[#101117]"
+                  className="absolute right-0 mt-2 w-56 rounded-2xl p-2 z-50 shadow-[0_20px_60px_rgba(0,0,0,0.95)] text-ivory bg-[#0F1015]"
                   initial={{ opacity: 0, y: -4 }}
                   animate={{ opacity: 1, y: 0, transition: { duration: 0.15 } }}
                   exit={{ opacity: 0, y: -4, transition: { duration: 0.1 } }}
                 >
-                  <div className="px-3 py-2 border-b border-white/[0.08]">
+                  <div className="px-3 py-2.5">
                     <p className="text-xs font-semibold text-ivory truncate">{displayName}</p>
                     <p className="text-[11px] text-muted truncate">{email}</p>
-                    <span className="inline-block mt-1 text-[9px] uppercase font-mono font-medium px-1.5 py-0.5 bg-black/60 border border-white/10 text-signature rounded-sm">
+                    <span className="inline-block mt-1.5 text-[9px] uppercase font-mono font-medium px-2 py-0.5 bg-signature/15 text-signature rounded-full">
                       {role}
                     </span>
                   </div>
 
-                  <div className="pt-1">
+                  <div className="pt-1 mt-1 border-t border-white/[0.04]">
                     <button
                       onClick={() => {
                         setShowMenu(false);
                         onSignOut();
                       }}
-                      className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-xs text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                      className="w-full text-left flex items-center gap-2 px-3 py-2 text-xs text-rose-400 hover:bg-rose-500/10 rounded-xl transition-colors"
                     >
                       <LogOut className="h-3.5 w-3.5" />
                       <span>Sign Out</span>
@@ -277,7 +277,7 @@ export const StudioHeader: React.FC<StudioHeaderProps> = ({
                 }}
                 className={`flex items-center justify-center p-2.5 rounded-xl text-xs uppercase font-medium tracking-wider transition-all ${
                   activeFilter === 'all'
-                    ? 'text-ivory font-semibold bg-white/[0.12] border border-signature/40 shadow-sm'
+                    ? 'text-ivory font-semibold bg-white/[0.14] shadow-sm'
                     : 'text-muted hover:text-ivory hover:bg-white/[0.04]'
                 }`}
               >
@@ -290,7 +290,7 @@ export const StudioHeader: React.FC<StudioHeaderProps> = ({
                 }}
                 className={`flex items-center justify-center p-2.5 rounded-xl text-xs uppercase font-medium tracking-wider transition-all ${
                   activeFilter === 'drafts'
-                    ? 'text-ivory font-semibold bg-white/[0.12] border border-signature/40 shadow-sm'
+                    ? 'text-ivory font-semibold bg-white/[0.14] shadow-sm'
                     : 'text-muted hover:text-ivory hover:bg-white/[0.04]'
                 }`}
               >
@@ -303,7 +303,7 @@ export const StudioHeader: React.FC<StudioHeaderProps> = ({
                 }}
                 className={`flex items-center justify-center p-2.5 rounded-xl text-xs uppercase font-medium tracking-wider transition-all ${
                   activeFilter === 'review'
-                    ? 'text-ivory font-semibold bg-white/[0.12] border border-signature/40 shadow-sm'
+                    ? 'text-ivory font-semibold bg-white/[0.14] shadow-sm'
                     : 'text-muted hover:text-ivory hover:bg-white/[0.04]'
                 }`}
               >
@@ -316,7 +316,7 @@ export const StudioHeader: React.FC<StudioHeaderProps> = ({
                 }}
                 className={`flex items-center justify-center p-2.5 rounded-xl text-xs uppercase font-medium tracking-wider transition-all ${
                   activeFilter === 'published'
-                    ? 'text-ivory font-semibold bg-white/[0.12] border border-signature/40 shadow-sm'
+                    ? 'text-ivory font-semibold bg-white/[0.14] shadow-sm'
                     : 'text-muted hover:text-ivory hover:bg-white/[0.04]'
                 }`}
               >

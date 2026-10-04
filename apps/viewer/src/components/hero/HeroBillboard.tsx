@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Film as FilmIcon,
+  X,
 } from 'lucide-react';
 import { Film } from '../../types';
 import { formatRuntime } from '../../lib/utils';
@@ -73,7 +74,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
       ref={containerRef}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className="relative w-full h-[82vh] min-h-[580px] max-h-[860px] overflow-hidden bg-canvas select-none border-b border-hairline"
+      className="relative w-full h-[82vh] min-h-[580px] max-h-[860px] overflow-hidden bg-canvas select-none"
     >
       {/* Background Media — Still Poster Art ONLY, Zero Autoplay Video */}
       <AnimatePresence mode="wait">
@@ -81,8 +82,8 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
           key={currentFilm.id}
           className="absolute inset-0 z-0 overflow-hidden"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1, transition: { duration: 0.5, ease: 'easeOut' } }}
-          exit={{ opacity: 0, transition: { duration: 0.3, ease: 'easeIn' } }}
+          animate={{ opacity: 1, transition: { duration: 0.8, ease: [0.25, 1, 0.5, 1] } }}
+          exit={{ opacity: 0, transition: { duration: 0.4, ease: [0.25, 1, 0.5, 1] } }}
         >
           {/* Still Backdrop Poster with Cinema Fidelity Lighting */}
           <img
@@ -109,9 +110,9 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
           <motion.div
             key={currentFilm.id}
             className="max-w-2xl lg:max-w-3xl space-y-4"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0, transition: { duration: 0.3 } }}
-            exit={{ opacity: 0, y: -6, transition: { duration: 0.15 } }}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 1, 0.5, 1], staggerChildren: 0.1 } }}
+            exit={{ opacity: 0, y: -8, transition: { duration: 0.25, ease: [0.25, 1, 0.5, 1] } }}
           >
             {/* Curatorial Header Stamp */}
             <div className="flex items-center gap-3">
@@ -122,7 +123,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
 
               {currentFilm.profiles?.display_name && (
                 <>
-                  <span className="text-hairline">|</span>
+                  <span className="text-white/20">|</span>
                   <span className="font-editorial italic text-xs sm:text-sm text-ivory/80">
                     Directed by <strong className="text-ivory font-medium not-italic">{currentFilm.profiles.display_name}</strong>
                   </span>
@@ -130,34 +131,26 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
               )}
             </div>
 
-            {/* Editorial Serif Film Title */}
-            <h1
-              onClick={() => setShowFormatModal(true)}
-              className="font-editorial text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-normal text-ivory leading-[1.05] tracking-tight cursor-pointer hover:text-signature transition-colors"
-            >
-              {currentFilm.title}
-            </h1>
-
             {/* Architectural Metadata Badges */}
             <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] text-muted tracking-wider">
-              <span className="px-2 py-0.5 rounded-sm bg-graphite border border-hairline text-ivory">
+              <span className="px-2.5 py-0.5 rounded-md bg-white/[0.08] text-ivory">
                 2.39:1 ANAMORPHIC
               </span>
 
-              <span className="px-2 py-0.5 rounded-sm bg-graphite border border-hairline text-signature">
+              <span className="px-2.5 py-0.5 rounded-md bg-white/[0.08] text-signature font-semibold">
                 {currentFilm.age_rating}
               </span>
 
-              <span className="px-2 py-0.5 rounded-sm bg-graphite border border-hairline text-muted">
+              <span className="px-2.5 py-0.5 rounded-md bg-white/[0.08] text-muted">
                 {formatRuntime(currentFilm.runtime_minutes)}
               </span>
 
-              <span className="px-2 py-0.5 rounded-sm bg-graphite border border-hairline text-muted">
+              <span className="px-2.5 py-0.5 rounded-md bg-white/[0.08] text-muted">
                 {currentFilm.release_year}
               </span>
 
               {currentFilm.language && (
-                <span className="px-2 py-0.5 rounded-sm bg-graphite border border-hairline text-muted uppercase">
+                <span className="px-2.5 py-0.5 rounded-md bg-white/[0.08] text-muted uppercase">
                   {currentFilm.language}
                 </span>
               )}
@@ -170,7 +163,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
                       key={fg.genre_id}
                       type="button"
                       onClick={() => onSelectGenre?.(fg.genres?.slug || '')}
-                      className="px-2 py-0.5 rounded-sm border border-hairline hover:border-signature text-muted hover:text-ivory transition-colors"
+                      className="px-2.5 py-0.5 rounded-md bg-white/[0.06] hover:bg-white/[0.12] text-muted hover:text-ivory transition-colors"
                     >
                       {fg.genres?.name}
                     </button>
@@ -184,41 +177,46 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
               {currentFilm.synopsis}
             </p>
 
-            {/* Action Buttons: Explicit 2 Options (Movie & Trailer) */}
+            {/* Action Buttons: Seamless Cinema UI with Generous Fitting */}
             <div className="flex flex-wrap items-center gap-3 pt-3">
               {/* Option 1: Watch Movie (Primary) */}
               <button
                 onClick={() => onPlay(currentFilm, 'movie')}
-                className="px-6 py-3 rounded-lg bg-signature hover:bg-signature-hover text-black font-semibold text-xs uppercase tracking-wider transition-all duration-200 flex items-center gap-2 shadow-[0_4px_20px_rgba(229,169,59,0.35)] hover:scale-[1.02] active:scale-[0.98]"
+                className="px-6 py-3 rounded-xl bg-signature hover:bg-signature-hover text-black font-bold text-xs uppercase tracking-wider transition-all duration-200 flex items-center gap-2.5 shadow-[0_4px_16px_rgba(0,0,0,0.5)] hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
                 title="Watch Full Feature Movie"
               >
-                <Play className="h-4 w-4 fill-current ml-0.5" />
+                <Play className="h-4 w-4 fill-current ml-0.5 shrink-0" />
                 <span>Watch Movie</span>
               </button>
 
               {/* Option 2: Watch Trailer (Secondary) */}
               <button
                 onClick={() => onPlay(currentFilm, 'trailer')}
-                className="px-5 py-3 rounded-lg bg-white/[0.08] hover:bg-white/[0.14] text-ivory border border-white/[0.15] hover:border-white/[0.3] font-medium text-xs uppercase tracking-wider transition-all duration-200 flex items-center gap-2 shadow-sm backdrop-blur-sm hover:scale-[1.02] active:scale-[0.98]"
+                className="px-5 py-3 rounded-xl bg-white/[0.08] hover:bg-white/[0.16] text-ivory hover:text-white font-medium text-xs uppercase tracking-wider transition-all duration-200 flex items-center gap-2 backdrop-blur-md hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
                 title="Watch Official Trailer"
               >
-                <FilmIcon className="h-4 w-4 text-signature" />
+                <FilmIcon className="h-4 w-4 text-signature shrink-0" />
                 <span>Watch Trailer</span>
               </button>
 
-              {/* Add to Queue */}
+              {/* Add to Queue / In Queue with Spacious Fitting & Balanced Padding */}
               <button
                 onClick={() => onToggleWatchlist(currentFilm.id)}
-                className="px-4.5 py-3 rounded-lg border border-white/[0.12] hover:border-white/[0.25] text-ivory text-xs uppercase tracking-wider font-medium flex items-center gap-1.5 bg-black/40 hover:bg-black/60 transition-all duration-200 backdrop-blur-sm"
+                className={`px-5 py-3 rounded-xl text-xs uppercase tracking-wider font-semibold flex items-center gap-2 transition-all duration-200 backdrop-blur-md active:scale-95 whitespace-nowrap ${
+                  inList
+                    ? 'bg-signature/15 text-signature hover:bg-signature/25'
+                    : 'bg-white/[0.08] hover:bg-white/[0.16] text-ivory hover:text-white'
+                }`}
+                title={inList ? 'Remove from Queue' : 'Add to Queue'}
               >
                 {inList ? (
                   <>
-                    <Check className="h-3.5 w-3.5 text-signature" />
+                    <Check className="h-4 w-4 text-signature shrink-0" />
                     <span>In Queue</span>
                   </>
                 ) : (
                   <>
-                    <Plus className="h-3.5 w-3.5" />
+                    <Plus className="h-4 w-4 shrink-0" />
                     <span>Add to Queue</span>
                   </>
                 )}
@@ -228,10 +226,10 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
               {onMoreInfo && (
                 <button
                   onClick={() => onMoreInfo(currentFilm)}
-                  className="px-3.5 py-3 rounded-lg text-muted hover:text-ivory text-xs uppercase tracking-wider flex items-center gap-1.5 hover:bg-white/[0.06] transition-all duration-200"
+                  className="px-4 py-3 rounded-xl text-muted hover:text-ivory text-xs uppercase tracking-wider flex items-center gap-2 bg-white/[0.04] hover:bg-white/[0.10] transition-all duration-200 backdrop-blur-md active:scale-95 whitespace-nowrap"
                   title="Curatorial Notes & Credits"
                 >
-                  <Info className="h-3.5 w-3.5" />
+                  <Info className="h-3.5 w-3.5 shrink-0" />
                   <span className="font-mono text-[10px]">Notes</span>
                 </button>
               )}
@@ -245,7 +243,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
         <>
           <button
             onClick={handlePrevSlide}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-sm bg-black/60 hover:bg-black text-ivory border border-hairline flex items-center justify-center transition-colors focus:outline-none"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-full bg-black/60 hover:bg-black text-ivory flex items-center justify-center transition-colors focus:outline-none backdrop-blur-sm"
             title="Previous Featured Film"
             aria-label="Previous Slide"
           >
@@ -253,7 +251,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
           </button>
           <button
             onClick={handleNextSlide}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-sm bg-black/60 hover:bg-black text-ivory border border-hairline flex items-center justify-center transition-colors focus:outline-none"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-full bg-black/60 hover:bg-black text-ivory flex items-center justify-center transition-colors focus:outline-none backdrop-blur-sm"
             title="Next Featured Film"
             aria-label="Next Slide"
           >
@@ -264,9 +262,9 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
 
       {/* Slide Index Counter */}
       {activeFilms.length > 1 && (
-        <div className="absolute bottom-6 right-6 z-20 px-3 py-1 rounded-sm bg-black/60 border border-hairline font-mono text-[10px] text-muted tracking-widest uppercase">
+        <div className="absolute bottom-6 right-6 z-20 px-3 py-1 rounded-full bg-black/60 backdrop-blur-sm font-mono text-[10px] text-muted tracking-widest uppercase">
           <span className="text-ivory font-bold">{String(currentIndex + 1).padStart(2, '0')}</span>
-          <span className="mx-1 text-hairline">/</span>
+          <span className="mx-1 text-white/20">/</span>
           <span>{String(activeFilms.length).padStart(2, '0')}</span>
         </div>
       )}
@@ -296,7 +294,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
                   className="text-muted hover:text-ivory h-8 w-8 rounded-lg border border-white/10 hover:bg-white/[0.06] flex items-center justify-center transition-colors shrink-0"
                   aria-label="Close dialog"
                 >
-                  ✕
+                  <X className="h-4 w-4" />
                 </button>
               </div>
 

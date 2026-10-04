@@ -83,40 +83,40 @@ export const App: React.FC = () => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setFilterTab('all')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors ${
                     filterTab === 'all'
-                      ? 'bg-white/10 text-white'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-white/[0.12] text-ivory shadow-sm'
+                      : 'text-muted hover:text-ivory hover:bg-white/[0.04]'
                   }`}
                 >
-                  All Submissions ({films.length})
+                  All ({films.length})
                 </button>
                 <button
                   onClick={() => setFilterTab('drafts')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors ${
                     filterTab === 'drafts'
-                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-white/[0.12] text-ivory shadow-sm'
+                      : 'text-muted hover:text-ivory hover:bg-white/[0.04]'
                   }`}
                 >
                   Drafts & Revisions ({films.filter((f) => f.status === 'draft' || f.status === 'changes_requested').length})
                 </button>
                 <button
                   onClick={() => setFilterTab('review')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors ${
                     filterTab === 'review'
-                      ? 'bg-sky-500/10 text-sky-400 border border-sky-500/20'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-white/[0.12] text-ivory shadow-sm'
+                      : 'text-muted hover:text-ivory hover:bg-white/[0.04]'
                   }`}
                 >
                   In Review ({films.filter((f) => f.status === 'submitted' || f.status === 'approved').length})
                 </button>
                 <button
                   onClick={() => setFilterTab('published')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors ${
                     filterTab === 'published'
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-white/[0.12] text-ivory shadow-sm'
+                      : 'text-muted hover:text-ivory hover:bg-white/[0.04]'
                   }`}
                 >
                   Live ({films.filter((f) => f.status === 'published').length})

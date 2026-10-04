@@ -15,7 +15,7 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ logs, loading, onRef
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-bold text-white font-display flex items-center gap-2">
-            <History className="h-5 w-5 text-purple-400" />
+            <History className="h-5 w-5 text-signature" />
             <span>Platform Audit Log (Admin Only)</span>
           </h3>
           <p className="text-xs text-slate-400">
@@ -27,7 +27,7 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ logs, loading, onRef
           onClick={onRefresh}
           className="btn btn-secondary btn-sm flex items-center gap-1.5"
         >
-          <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin text-amber-400' : ''}`} />
+          <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin text-signature' : ''}`} />
           <span>Refresh</span>
         </button>
       </div>
@@ -62,7 +62,7 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ logs, loading, onRef
                     </td>
 
                     <td>
-                      <span className="rounded bg-white/5 px-2 py-0.5 text-xs font-bold text-amber-300 font-mono border border-white/5">
+                      <span className="rounded-full bg-signature/10 px-2 py-0.5 text-[11px] font-medium text-signature font-mono">
                         {log.action}
                       </span>
                     </td>

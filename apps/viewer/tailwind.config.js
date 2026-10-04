@@ -24,8 +24,10 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        display: ['"Bebas Neue"', 'Oswald', 'sans-serif'],
-        editorial: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        display: ['"Lato"', 'sans-serif'],
+        editorial: ['"Gloock"', 'Georgia', 'serif'],
+        serif: ['"Gloock"', 'Georgia', 'serif'],
+        mono: ['"Montserrat"', 'sans-serif'],
       },
       aspectRatio: {
         cinema: '2.39 / 1',

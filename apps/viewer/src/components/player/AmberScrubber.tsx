@@ -103,7 +103,7 @@ export const AmberScrubber: React.FC<AmberScrubberProps> = ({
       {/* Timecode Hover Stamp */}
       {(isHovering || isDragging) && (
         <div
-          className="absolute -top-7 px-2.5 py-0.5 rounded-full bg-black/90 text-amber-400 font-mono text-[10px] pointer-events-none -translate-x-1/2 z-30 shadow-lg border border-white/10"
+          className="absolute -top-7 px-2.5 py-0.5 rounded-full bg-black/90 text-signature font-mono text-[10px] pointer-events-none -translate-x-1/2 z-30 shadow-lg border border-white/10"
           style={{ left: `${isDragging ? progressPercent : (hoverX / (trackRef.current?.offsetWidth || 1)) * 100}%` }}
         >
           {formatScrubberTime(isDragging ? currentTime : hoverTime)}
@@ -120,14 +120,14 @@ export const AmberScrubber: React.FC<AmberScrubberProps> = ({
 
         {/* Played Progress Track */}
         <div
-          className="absolute left-0 top-0 h-full bg-amber-500"
+          className="absolute left-0 top-0 h-full bg-signature"
           style={{ width: `${progressPercent}%` }}
         />
       </div>
 
       {/* Scrubber Knob Thumb: Smooth Rounded Knob */}
       <div
-        className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 h-3.5 w-3.5 rounded-full bg-amber-500 ring-2 ring-black shadow-lg transition-transform duration-100 pointer-events-none ${
+        className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 h-3.5 w-3.5 rounded-full bg-signature ring-2 ring-black shadow-lg transition-transform duration-100 pointer-events-none ${
           isHovering || isDragging ? 'scale-100' : 'scale-0'
         }`}
         style={{ left: `${progressPercent}%` }}

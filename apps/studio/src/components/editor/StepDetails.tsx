@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { AlertCircle } from 'lucide-react';
 import { Film, AgeRating } from '../../types';
 import { slugify } from '../../lib/utils';
 import { supabase } from '../../lib/supabase';
@@ -92,15 +93,16 @@ export const StepDetails: React.FC<StepDetailsProps> = ({ formData, onChange }) 
               <button
                 type="button"
                 onClick={() => onChange({ slug: `${formData.slug}-${Math.floor(100 + Math.random() * 900)}` })}
-                className="text-amber-400 font-bold hover:text-white underline"
+                className="text-signature font-semibold hover:text-white underline font-mono text-[11px]"
               >
                 Auto-fix collision
               </button>
             )}
           </div>
           {slugTaken && (
-            <p className="text-[11px] text-amber-400 mt-1">
-              ⚠️ A film with this slug already exists. If left as-is, a unique suffix will be added automatically upon saving.
+            <p className="text-[11px] text-muted flex items-center gap-1 mt-1 font-mono">
+              <AlertCircle className="h-3.5 w-3.5 text-signature shrink-0" />
+              <span>A film with this slug already exists. A unique suffix will be added automatically upon saving.</span>
             </p>
           )}
         </div>
@@ -117,10 +119,10 @@ export const StepDetails: React.FC<StepDetailsProps> = ({ formData, onChange }) 
           placeholder="Brief storyline and hook for the audience..."
           className="form-textarea"
         />
-        <div className={`text-right text-[11px] ${
+        <div className={`text-right text-[11px] font-mono ${
           (formData.synopsis || '').length > 1400
-            ? 'text-amber-400 font-semibold'
-            : 'text-slate-500'
+            ? 'text-signature font-semibold'
+            : 'text-muted'
         }`}>
           {(formData.synopsis || '').length} / 1500
         </div>
@@ -137,10 +139,10 @@ export const StepDetails: React.FC<StepDetailsProps> = ({ formData, onChange }) 
           placeholder="What inspired you to make this film? Your vision and creative background..."
           className="form-textarea"
         />
-        <div className={`text-right text-[11px] ${
+        <div className={`text-right text-[11px] font-mono ${
           (formData.director_note || '').length > 1400
-            ? 'text-amber-400 font-semibold'
-            : 'text-slate-500'
+            ? 'text-signature font-semibold'
+            : 'text-muted'
         }`}>
           {(formData.director_note || '').length} / 1500
         </div>

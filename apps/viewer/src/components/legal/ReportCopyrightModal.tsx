@@ -364,9 +364,9 @@ export const ReportCopyrightModal: React.FC<ReportCopyrightModalProps> = ({
               </fieldset>
 
               {/* Warning Box */}
-              <div className="flex items-start gap-2.5 rounded-xl bg-amber-500/8 border border-amber-500/20 p-3.5">
-                <AlertTriangle className="h-3.5 w-3.5 text-amber-400 mt-0.5 shrink-0" />
-                <p className="text-[10px] text-amber-200/80 leading-relaxed">
+              <div className="flex items-start gap-2.5 rounded-xl bg-white/[0.04] p-3.5">
+                <AlertTriangle className="h-3.5 w-3.5 text-signature mt-0.5 shrink-0" />
+                <p className="text-[10px] text-muted leading-relaxed">
                   False reports are a criminal offence under §209 IPC. This report will be
                   logged with your IP address and may be shared with law enforcement if
                   found to be fraudulent.

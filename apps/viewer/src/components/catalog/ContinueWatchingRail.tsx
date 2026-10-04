@@ -57,22 +57,16 @@ export const ContinueWatchingRail: React.FC<ContinueWatchingRailProps> = ({
 
   return (
     <section className="relative py-6 group/rail">
-      {/* Rail Header — Editorial Display Title with Italic Subtitle & Hairline */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-3.5">
-        <div className="flex items-baseline justify-between border-b border-hairline pb-2.5">
-          <div className="flex items-baseline gap-3">
-            <h2 className="text-xl sm:text-2xl font-normal font-display tracking-widest text-ivory uppercase flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-signature animate-pulse inline-block" />
-              Continue Watching
-            </h2>
-            <span className="font-mono text-[10px] text-muted tracking-widest">
-              [{films.length}]
-            </span>
-          </div>
-
-          <p className="font-editorial italic text-xs sm:text-sm text-muted hidden sm:block">
-            Pick up where you left off
-          </p>
+      {/* Rail Header */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-3">
+        <div className="flex items-baseline gap-3 pb-1">
+          <h2 className="text-xl sm:text-2xl font-normal font-display tracking-widest text-ivory uppercase flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-signature animate-pulse inline-block" />
+            Continue Watching
+          </h2>
+          <span className="font-mono text-[10px] text-muted tracking-widest">
+            [{films.length}]
+          </span>
         </div>
       </div>
 
@@ -82,7 +76,7 @@ export const ContinueWatchingRail: React.FC<ContinueWatchingRailProps> = ({
         {canScrollLeft && (
           <button
             onClick={() => scroll('left')}
-            className="absolute left-1 top-1/2 -translate-y-1/2 z-30 h-12 w-9 bg-graphite/95 hover:bg-graphite text-ivory rounded-sm opacity-0 group-hover/rail:opacity-100 transition-opacity flex items-center justify-center border border-hairline focus:outline-none shadow-2xl backdrop-blur-md"
+            className="absolute left-1 top-1/2 -translate-y-1/2 z-30 h-12 w-9 bg-black/80 hover:bg-black text-ivory rounded-r-md opacity-0 group-hover/rail:opacity-100 transition-opacity flex items-center justify-center focus:outline-none shadow-2xl backdrop-blur-md"
             title="Scroll Left"
           >
             <ChevronLeft className="h-5 w-5" />
@@ -104,6 +98,7 @@ export const ContinueWatchingRail: React.FC<ContinueWatchingRailProps> = ({
                 progressSeconds={getProgress(film.id)}
                 onDismiss={onDismiss}
                 resumeMode={true}
+                inRail={true}
               />
             </div>
           ))}
@@ -113,7 +108,7 @@ export const ContinueWatchingRail: React.FC<ContinueWatchingRailProps> = ({
         {canScrollRight && (
           <button
             onClick={() => scroll('right')}
-            className="absolute right-1 top-1/2 -translate-y-1/2 z-30 h-12 w-9 bg-graphite/95 hover:bg-graphite text-ivory rounded-sm opacity-0 group-hover/rail:opacity-100 transition-opacity flex items-center justify-center border border-hairline focus:outline-none shadow-2xl backdrop-blur-md"
+            className="absolute right-1 top-1/2 -translate-y-1/2 z-30 h-12 w-9 bg-black/80 hover:bg-black text-ivory rounded-l-md opacity-0 group-hover/rail:opacity-100 transition-opacity flex items-center justify-center focus:outline-none shadow-2xl backdrop-blur-md"
             title="Scroll Right"
           >
             <ChevronRight className="h-5 w-5" />

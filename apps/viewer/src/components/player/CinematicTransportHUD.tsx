@@ -70,7 +70,7 @@ export const CinematicTransportHUD: React.FC<CinematicTransportHUDProps> = ({
             className="absolute inset-0 flex items-center justify-center pointer-events-none z-30"
           >
             <motion.div
-              className="h-20 w-20 bg-black/80 backdrop-blur-xl text-amber-400 flex flex-col items-center justify-center rounded-full shadow-2xl border border-white/10"
+              className="h-20 w-20 bg-black/80 backdrop-blur-xl text-signature flex flex-col items-center justify-center rounded-full shadow-2xl border border-white/10"
               initial={{ scale: 0.8, opacity: 0.9 }}
               animate={{ scale: 1.1, opacity: 0 }}
               exit={{ opacity: 0 }}
@@ -162,7 +162,7 @@ export const CinematicTransportHUD: React.FC<CinematicTransportHUDProps> = ({
                 ) : controller.volume < 50 ? (
                   <Volume1 className="h-4 w-4 text-white" />
                 ) : (
-                  <Volume2 className="h-4 w-4 text-amber-400" />
+                  <Volume2 className="h-4 w-4 text-white" />
                 )}
               </button>
 
@@ -233,12 +233,12 @@ export const CinematicTransportHUD: React.FC<CinematicTransportHUDProps> = ({
                         }}
                         className={`w-full px-3 py-1.5 flex items-center justify-between text-left font-mono text-xs transition-colors ${
                           controller.playbackRate === rate
-                            ? 'text-amber-400 font-bold bg-white/10'
+                            ? 'text-signature font-semibold bg-white/10'
                             : 'text-zinc-200 hover:bg-white/5'
                         }`}
                       >
                         <span>{rate === 1.0 ? '1.0x (Normal)' : `${rate}x`}</span>
-                        {controller.playbackRate === rate && <Check className="h-3 w-3 text-amber-400" />}
+                        {controller.playbackRate === rate && <Check className="h-3 w-3 text-signature" />}
                       </button>
                     ))}
                   </motion.div>
@@ -247,7 +247,7 @@ export const CinematicTransportHUD: React.FC<CinematicTransportHUDProps> = ({
             </div>
 
             {/* Quality Stamp */}
-            <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full font-mono text-[9px] uppercase tracking-wider bg-white/10 text-amber-400 font-bold">
+            <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full font-mono text-[9px] uppercase tracking-wider bg-signature/10 text-signature font-semibold">
               4K UHD
             </span>
 
@@ -256,7 +256,7 @@ export const CinematicTransportHUD: React.FC<CinematicTransportHUDProps> = ({
               onClick={onToggleDetailsDrawer}
               className={`h-9 w-9 rounded-full flex items-center justify-center transition-all backdrop-blur-sm ${
                 showDetailsDrawer
-                  ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20'
+                  ? 'bg-signature text-black font-semibold shadow-md shadow-signature/20'
                   : 'bg-white/10 hover:bg-white/20 text-white/80 hover:text-white'
               }`}
               title="Curatorial Notes (I)"

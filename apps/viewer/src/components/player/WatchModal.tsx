@@ -76,6 +76,14 @@ export const WatchModal: React.FC<WatchModalProps> = ({
     }
   }, [showDetailsDrawer]);
 
+  // Mandatory requirement: authentication required to watch cinema
+  useEffect(() => {
+    if (!user) {
+      onOpenAuth();
+      onClose();
+    }
+  }, [user, onOpenAuth, onClose]);
+
   useEffect(() => {
     resetHideTimer();
     return () => {
@@ -332,12 +340,12 @@ export const WatchModal: React.FC<WatchModalProps> = ({
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ duration: 0.22, ease: 'easeOut' }}
+            transition={{ duration: 0.35, ease: [0.25, 1, 0.5, 1] }}
           >
             {/* Drawer Header */}
             <div className="flex items-center justify-between pb-3.5 border-b border-hairline shrink-0">
               <div className="flex items-center gap-2">
-                <span className="font-mono text-[9px] uppercase tracking-widest text-signature font-bold">
+                <span className="font-display text-[10px] uppercase tracking-[0.2em] text-signature font-bold">
                   Curatorial Archive
                 </span>
                 <span className="text-hairline">|</span>
@@ -382,10 +390,10 @@ export const WatchModal: React.FC<WatchModalProps> = ({
                 </div>
                 <div className="flex items-center justify-between text-muted">
                   <span>Age Rating</span>
-                  <span className="text-amber-400 font-bold">{film.age_rating}</span>
+                  <span className="text-ivory font-mono font-semibold">{film.age_rating}</span>
                 </div>
                 {film.is_debut && (
-                  <div className="pt-2 border-t border-white/[0.08] text-amber-400 text-[10px] tracking-wider uppercase font-semibold">
+                  <div className="pt-2 border-t border-white/[0.08] text-signature text-[10px] tracking-wider uppercase font-mono font-medium">
                     • Official First-Time Director Debut
                   </div>
                 )}

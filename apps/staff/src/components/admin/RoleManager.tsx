@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Search, UserCheck, Shield, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, UserCheck, Shield, AlertCircle, CheckCircle, Loader2, ChevronDown, Check } from 'lucide-react';
 import { Profile, AppRole } from '../../types';
 import { supabase } from '../../lib/supabase';
 import { formatDate } from '../../lib/utils';
@@ -9,6 +9,67 @@ interface RoleManagerProps {
 }
 
 const ROLES: AppRole[] = ['viewer', 'filmmaker', 'curator', 'admin'];
+
+const RoleSelector: React.FC<{
+  currentRole: AppRole;
+  disabled: boolean;
+  onSelect: (role: AppRole) => void;
+}> = ({ currentRole, disabled, onSelect }) => {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [open]);
+
+  return (
+    <div className={`relative inline-block text-left ${open ? 'z-50' : 'z-10'}`} ref={containerRef}>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => setOpen(!open)}
+        className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] text-ivory text-xs font-mono uppercase tracking-wider transition-colors disabled:opacity-40 disabled:cursor-not-allowed border-none focus:outline-none w-32 shadow-sm"
+      >
+        <span>{currentRole}</span>
+        <ChevronDown className={`h-3.5 w-3.5 text-muted transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-1.5 w-36 rounded-xl border border-white/[0.12] bg-[#101117] shadow-[0_12px_36px_rgba(0,0,0,0.85)] py-1.5 z-50 overflow-hidden font-sans">
+          {ROLES.map((r) => {
+            const isSelected = r === currentRole;
+            return (
+              <button
+                key={r}
+                type="button"
+                onClick={() => {
+                  onSelect(r);
+                  setOpen(false);
+                }}
+                className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between font-mono uppercase tracking-wider transition-colors ${
+                  isSelected
+                    ? 'bg-signature/15 text-signature font-bold'
+                    : 'text-ivory hover:bg-white/[0.08]'
+                }`}
+              >
+                <span>{r}</span>
+                {isSelected && <Check className="h-3.5 w-3.5 text-signature" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const RoleManager: React.FC<RoleManagerProps> = ({ currentUserId }) => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -128,7 +189,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ currentUserId }) => {
             <p className="text-xs">Loading profiles...</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto min-h-[320px] pb-16">
             <table className="data-table">
               <thead>
                 <tr>
@@ -149,7 +210,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ currentUserId }) => {
                     <tr key={p.id}>
                       <td>
                         <div className="font-bold text-white flex items-center gap-2">
-                          <div className="h-6 w-6 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center text-[10px] uppercase">
+                          <div className="h-6 w-6 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center text-[10px] uppercase font-mono">
                             {(p.display_name || 'U').charAt(0)}
                           </div>
                           <span>{p.display_name || 'Anonymous User'}</span>
@@ -164,14 +225,14 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ currentUserId }) => {
                       <td className="text-slate-400 text-xs">{formatDate(p.created_at)}</td>
 
                       <td>
-                        <span className={`badge ${
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase font-bold tracking-wider ${
                           p.role === 'admin'
-                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                            ? 'bg-amber-500/20 text-amber-300'
                             : p.role === 'curator'
-                            ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                            ? 'bg-purple-500/20 text-purple-300'
                             : p.role === 'filmmaker'
-                            ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                            : 'bg-slate-800 text-slate-400'
+                            ? 'bg-sky-500/20 text-sky-300'
+                            : 'bg-white/[0.08] text-muted'
                         }`}>
                           {p.role}
                         </span>
@@ -180,18 +241,11 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ currentUserId }) => {
                       <td className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           {isUpdating && <Loader2 className="h-3.5 w-3.5 text-amber-400 animate-spin" />}
-                          <select
+                          <RoleSelector
+                            currentRole={p.role}
                             disabled={isSelf || isUpdating}
-                            value={p.role}
-                            onChange={(e) => handleRoleChange(p.id, e.target.value as AppRole)}
-                            className="form-select text-xs py-1 px-2 w-32 bg-slate-900 border-white/10 text-white disabled:opacity-40"
-                          >
-                            {ROLES.map((r) => (
-                              <option key={r} value={r}>
-                                {r.toUpperCase()}
-                              </option>
-                            ))}
-                          </select>
+                            onSelect={(r) => handleRoleChange(p.id, r)}
+                          />
                         </div>
                       </td>
                     </tr>

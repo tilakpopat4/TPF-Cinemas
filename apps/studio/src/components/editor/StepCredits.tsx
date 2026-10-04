@@ -64,12 +64,10 @@ export const StepCredits: React.FC<StepCreditsProps> = ({
       <div>
         <div className="flex items-center justify-between mb-2">
           <label className="form-label mb-0 block">Select Genres (Pick 1 to 3) *</label>
-          <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-            selectedGenreIds.length >= 3
-              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-              : selectedGenreIds.length > 0
-              ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-              : 'bg-white/5 text-slate-400'
+          <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full ${
+            selectedGenreIds.length > 0
+              ? 'bg-signature/10 text-signature'
+              : 'bg-white/[0.06] text-muted'
           }`}>
             {selectedGenreIds.length} / 3 selected
           </span>
@@ -84,7 +82,7 @@ export const StepCredits: React.FC<StepCreditsProps> = ({
                 onClick={() => onToggleGenre(genre.id)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
                   isSelected
-                    ? 'bg-rose-600 text-white border-rose-500 shadow-md shadow-rose-600/20'
+                    ? 'bg-signature text-black border-signature shadow-md shadow-signature/20'
                     : 'bg-white/5 text-slate-300 border-white/10 hover:border-white/20 hover:bg-white/10'
                 }`}
               >
@@ -100,7 +98,7 @@ export const StepCredits: React.FC<StepCreditsProps> = ({
       <div className="border-t border-white/10 pt-6">
         <div className="flex items-center justify-between mb-2">
           <label className="form-label flex items-center gap-2 mb-0">
-            <Users className="h-4 w-4 text-rose-500" />
+            <Users className="h-4 w-4 text-signature" />
             <span>Cast & Crew Credits</span>
           </label>
           <span className="text-xs text-slate-500">{credits.length} credits added</span>
@@ -154,7 +152,7 @@ export const StepCredits: React.FC<StepCreditsProps> = ({
                 <div>
                   <span className="font-bold text-white">{credit.person_name}</span>
                   <span className="text-slate-400 ml-2">as</span>
-                  <span className="text-rose-400 font-medium ml-1.5">{credit.credit_role}</span>
+                  <span className="text-signature font-mono text-[11px] font-semibold ml-1.5">{credit.credit_role}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <button

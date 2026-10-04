@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Upload, Film, AlertCircle, CheckCircle, Video, Loader2, Image as ImageIcon, Sparkles, Monitor, Smartphone } from 'lucide-react';
+import { Upload, Film, AlertCircle, CheckCircle, Video, Loader2, Image as ImageIcon, Monitor, Smartphone } from 'lucide-react';
 import { Film as FilmType } from '../../types';
 import { extractYouTubeId, getFilmArtworks } from '../../lib/utils';
 import { supabase } from '../../lib/supabase';
@@ -162,37 +162,37 @@ export const StepMedia: React.FC<StepMediaProps> = ({ formData, onChange, userId
   return (
     <div className="space-y-8">
       {/* Compulsory Artworks Header Notice */}
-      <div className="rounded-2xl border border-amber-500/25 bg-amber-500/[0.05] p-4.5 sm:p-5 text-xs text-zinc-300">
+      <div className="rounded-2xl bg-white/[0.04] p-5 text-xs text-zinc-300">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
-          <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
-              <Sparkles className="h-4 w-4" />
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-xl bg-white/[0.06] flex items-center justify-center text-signature shrink-0">
+              <ImageIcon className="h-4 w-4" />
             </div>
             <div>
               <h4 className="font-display font-bold text-white text-sm">
-                Dual Compulsory Theatrical Artworks
+                Dual Theatrical Artworks
               </h4>
-              <p className="text-[11px] text-zinc-400">
-                1 Portrait Poster (2:3) & 1 Landscape Banner (16:9) are mandatory for every release.
+              <p className="text-[11px] text-muted">
+                1 Portrait Poster (2:3) & 1 Landscape Banner (16:9) are required for every release.
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <span
-              className={`px-2.5 py-1 rounded-full text-[11px] font-bold border transition-colors flex items-center gap-1.5 ${
+              className={`px-3 py-1 rounded-full text-[11px] font-mono font-medium transition-colors flex items-center gap-1.5 ${
                 hasPortrait && hasBackdrop
-                  ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
-                  : 'bg-rose-500/15 text-rose-400 border-rose-500/30'
+                  ? 'bg-emerald-500/15 text-emerald-400'
+                  : 'bg-white/[0.08] text-muted'
               }`}
             >
               {hasPortrait && hasBackdrop ? (
                 <>
-                  <CheckCircle className="h-3 w-3" /> Both Artworks Uploaded
+                  <CheckCircle className="h-3.5 w-3.5" /> Both Artworks Uploaded
                 </>
               ) : (
                 <>
-                  <AlertCircle className="h-3 w-3" /> Compulsory (
+                  <AlertCircle className="h-3.5 w-3.5" /> Required (
                   {[hasPortrait, hasBackdrop].filter(Boolean).length}/2 Complete)
                 </>
               )}
@@ -200,7 +200,7 @@ export const StepMedia: React.FC<StepMediaProps> = ({ formData, onChange, userId
           </div>
         </div>
 
-        <p className="pt-3 text-[11.5px] text-zinc-400 leading-relaxed">
+        <p className="pt-3 text-[11.5px] text-muted leading-relaxed">
           TPF Cinemas serves viewers across widescreen smart TVs, laptop cinema monitors, and mobile phones.
           Portrait artwork powers our theatrical rails and search cards, while landscape artwork elevates the 
           Cinematic Hero Billboard, Watchroom backdrop, and widescreen editorial spotlights.
@@ -217,7 +217,7 @@ export const StepMedia: React.FC<StepMediaProps> = ({ formData, onChange, userId
           <div>
             <div className="flex items-center justify-between gap-2 mb-2">
               <label className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                <Smartphone className="h-3.5 w-3.5 text-amber-400" />
+                <Smartphone className="h-3.5 w-3.5 text-muted" />
                 <span>1. Portrait Poster (2:3)</span>
                 <span className="text-rose-400">*</span>
               </label>
@@ -263,7 +263,7 @@ export const StepMedia: React.FC<StepMediaProps> = ({ formData, onChange, userId
                       htmlFor="poster-upload-portrait"
                       className="absolute inset-0 bg-black/70 opacity-0 hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-white text-xs font-semibold p-3 text-center"
                     >
-                      <Upload className="h-5 w-5 mb-1.5 text-amber-400" />
+                      <Upload className="h-5 w-5 mb-1.5 text-signature" />
                       Replace Portrait Poster
                     </label>
                   </motion.div>
@@ -278,11 +278,11 @@ export const StepMedia: React.FC<StepMediaProps> = ({ formData, onChange, userId
                   >
                     {uploadingPortrait ? (
                       <>
-                        <Loader2 className="h-8 w-8 text-amber-400 animate-spin mb-2" />
+                        <Loader2 className="h-8 w-8 text-signature animate-spin mb-2" />
                         <span className="text-xs font-medium text-white">Uploading portrait...</span>
                         <div className="mt-3 w-full max-w-[100px] h-1.5 bg-white/10 rounded-full overflow-hidden">
                           <motion.div
-                            className="h-full bg-amber-400 origin-left rounded-full"
+                            className="h-full bg-signature origin-left rounded-full"
                             initial={{ scaleX: 0 }}
                             animate={{
                               scaleX: portraitProgress / 100,
@@ -295,7 +295,7 @@ export const StepMedia: React.FC<StepMediaProps> = ({ formData, onChange, userId
                     ) : (
                       <>
                         <div className="h-10 w-10 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-zinc-400 mb-2">
-                          <ImageIcon className="h-5 w-5 text-amber-400" />
+                          <ImageIcon className="h-5 w-5 text-signature" />
                         </div>
                         <span className="text-xs font-semibold text-white">Upload Portrait Poster</span>
                         <span className="text-[10px] text-zinc-400 mt-1">1080 × 1600 px (2:3 aspect)</span>
@@ -341,7 +341,7 @@ export const StepMedia: React.FC<StepMediaProps> = ({ formData, onChange, userId
           <div>
             <div className="flex items-center justify-between gap-2 mb-2">
               <label className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                <Monitor className="h-3.5 w-3.5 text-amber-400" />
+                <Monitor className="h-3.5 w-3.5 text-muted" />
                 <span>2. Landscape Banner (16:9)</span>
                 <span className="text-rose-400">*</span>
               </label>
@@ -387,7 +387,7 @@ export const StepMedia: React.FC<StepMediaProps> = ({ formData, onChange, userId
                       htmlFor="poster-upload-backdrop"
                       className="absolute inset-0 bg-black/70 opacity-0 hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-white text-xs font-semibold p-3 text-center"
                     >
-                      <Upload className="h-5 w-5 mb-1.5 text-amber-400" />
+                      <Upload className="h-5 w-5 mb-1.5 text-signature" />
                       Replace Landscape Banner
                     </label>
                   </motion.div>
@@ -402,11 +402,11 @@ export const StepMedia: React.FC<StepMediaProps> = ({ formData, onChange, userId
                   >
                     {uploadingBackdrop ? (
                       <>
-                        <Loader2 className="h-8 w-8 text-amber-400 animate-spin mb-2" />
+                        <Loader2 className="h-8 w-8 text-signature animate-spin mb-2" />
                         <span className="text-xs font-medium text-white">Uploading landscape...</span>
                         <div className="mt-3 w-full max-w-[120px] h-1.5 bg-white/10 rounded-full overflow-hidden">
                           <motion.div
-                            className="h-full bg-amber-400 origin-left rounded-full"
+                            className="h-full bg-signature origin-left rounded-full"
                             initial={{ scaleX: 0 }}
                             animate={{
                               scaleX: backdropProgress / 100,
@@ -419,7 +419,7 @@ export const StepMedia: React.FC<StepMediaProps> = ({ formData, onChange, userId
                     ) : (
                       <>
                         <div className="h-10 w-10 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-zinc-400 mb-2">
-                          <ImageIcon className="h-5 w-5 text-amber-400" />
+                          <ImageIcon className="h-5 w-5 text-signature" />
                         </div>
                         <span className="text-xs font-semibold text-white">Upload Landscape Banner</span>
                         <span className="text-[10px] text-zinc-400 mt-1">1920 × 1080 px (16:9 aspect)</span>
@@ -464,7 +464,7 @@ export const StepMedia: React.FC<StepMediaProps> = ({ formData, onChange, userId
       <div className="border-t border-white/10 pt-6">
         <label className="form-label flex items-center justify-between">
           <span className="flex items-center gap-2">
-            <Video className="h-4 w-4 text-amber-400" />
+            <Video className="h-4 w-4 text-signature" />
             <span>Video Stream Source (YouTube Embed) *</span>
           </span>
           <AnimatePresence>

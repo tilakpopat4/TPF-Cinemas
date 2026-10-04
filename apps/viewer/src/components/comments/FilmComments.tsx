@@ -146,7 +146,7 @@ export const FilmComments: React.FC<FilmCommentsProps> = ({
     <div className="space-y-4 pt-6 border-t border-white/10">
       <div className="flex items-center justify-between">
         <h4 className="text-base font-bold text-white flex items-center gap-2">
-          <MessageSquare className="h-4 w-4 text-amber-500" />
+          <MessageSquare className="h-4 w-4 text-signature" />
           <span>Audience Discussion ({comments.length})</span>
         </h4>
       </div>
@@ -167,14 +167,14 @@ export const FilmComments: React.FC<FilmCommentsProps> = ({
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             maxLength={1000}
-            className="flex-1 bg-zinc-900/80 border border-white/15 focus:border-amber-500 rounded-xl px-4 py-2.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none transition-colors"
+            className="flex-1 bg-zinc-900/80 border border-white/15 focus:border-signature rounded-xl px-4 py-2.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none transition-colors"
           />
           <button
             type="submit"
             disabled={submitting || !newComment.trim()}
-            className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black font-bold text-xs flex items-center gap-1.5 transition-all"
+            className="px-4 py-2.5 rounded-xl bg-signature hover:bg-[#F2B94F] disabled:opacity-50 text-black font-semibold text-xs flex items-center gap-1.5 transition-all"
           >
-            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+            {submitting ? <Loader2 className="h-4 w-4 animate-spin text-black" /> : <Send className="h-3.5 w-3.5 text-black" />}
             <span>Post</span>
           </button>
         </form>

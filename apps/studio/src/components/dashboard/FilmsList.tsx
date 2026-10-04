@@ -102,34 +102,34 @@ export const FilmsList: React.FC<FilmsListProps> = ({
         );
       case 'submitted':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-500/15 text-sky-400 border border-sky-500/25">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-signature/10 text-signature">
             <Clock className="h-3 w-3" />
             In Review
           </span>
         );
       case 'approved':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-500/15 text-purple-400 border border-purple-500/25">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-emerald-500/10 text-emerald-400">
             <CheckCircle className="h-3 w-3" />
             Approved
           </span>
         );
       case 'changes_requested':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/25">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-rose-500/10 text-rose-400">
             <AlertCircle className="h-3 w-3" />
             Changes Requested
           </span>
         );
       case 'rejected':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-red-500/15 text-red-400 border border-red-500/25">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-rose-500/10 text-rose-400">
             Rejected
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/25">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-white/[0.06] text-muted">
             Draft
           </span>
         );
@@ -138,8 +138,8 @@ export const FilmsList: React.FC<FilmsListProps> = ({
 
   if (films.length === 0) {
     return (
-      <div className="rounded-2xl border border-white/[0.08] bg-[#0f131c]/60 p-12 text-center my-8 backdrop-blur-md">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-400 border border-rose-500/20 mb-4 shadow-xl">
+      <div className="rounded-2xl border border-white/[0.08] bg-[#0E1015] p-12 text-center my-8">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white/[0.05] text-muted mb-4 shadow-xl">
           <FilmIcon className="h-8 w-8" />
         </div>
         <h3 className="text-xl font-bold text-white font-display">No films submitted yet</h3>
@@ -284,11 +284,11 @@ export const FilmsList: React.FC<FilmsListProps> = ({
                     )}
 
                     {film.status === 'changes_requested' && (
-                      <div className="mt-2.5 p-2 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[11px] text-amber-300 flex items-center justify-between gap-2">
+                      <div className="mt-2.5 p-2.5 rounded-xl bg-signature/10 text-[11px] text-signature flex items-center justify-between gap-2">
                         <span className="font-medium">Curator requested changes</span>
                         <button
                           onClick={() => onViewFeedback(film)}
-                          className="font-bold underline text-amber-200 hover:text-white"
+                          className="font-bold underline text-ivory hover:text-signature"
                         >
                           View Notes
                         </button>
@@ -437,7 +437,7 @@ export const FilmsList: React.FC<FilmsListProps> = ({
                             <span>Signed (Print)</span>
                           </button>
                         ) : (
-                          <span className="text-[11px] text-amber-400">Pending</span>
+                          <span className="text-[11px] text-muted font-mono">Pending</span>
                         )}
                       </td>
                       <td className="px-4 py-3.5 text-zinc-500 text-[11px]">{formatDate(film.created_at)}</td>

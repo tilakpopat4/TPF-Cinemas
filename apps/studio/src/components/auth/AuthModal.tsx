@@ -1,9 +1,32 @@
 import React, { useState } from 'react';
-import { Clapperboard, Mail, Lock, Loader2, ArrowRight, Sparkles } from 'lucide-react';
+import { Clapperboard, Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 interface AuthModalProps {
   onSuccess?: () => void;
+}
+
+function GoogleIcon({ className = 'h-4 w-4' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path
+        fill="#4285F4"
+        d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17Z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24Z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.17 0 9.99 0 12s.45 3.83 1.25 5.42l4.03-3.15Z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98Z"
+      />
+    </svg>
+  );
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess }) => {
@@ -12,8 +35,29 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess }) => {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  async function handleGoogleSignIn() {
+    setError(null);
+    setSuccessMsg(null);
+    setGoogleLoading(true);
+
+    try {
+      const { error: oAuthErr } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
+      if (oAuthErr) throw oAuthErr;
+    } catch (err) {
+      console.error('Google auth error:', err);
+      setError((err as Error).message);
+      setGoogleLoading(false);
+    }
+  }
 
   async function handleAuth(e: React.FormEvent) {
     e.preventDefault();
@@ -53,12 +97,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess }) => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-radial-gradient">
-      <div className="w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-[#11141d]/90 p-8 shadow-2xl backdrop-blur-xl">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-[#07080A]">
+      <div className="w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-[#0E1015] p-8 shadow-2xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-rose-600 to-rose-500 shadow-xl shadow-rose-600/30 mb-4">
-            <Clapperboard className="h-7 w-7 text-white" />
+          <div className="mx-auto flex items-center justify-center mb-6">
+            <img src="/tpf-cinemas-logo.png" alt="TPF Cinemas Studio" className="h-10 sm:h-12 w-auto object-contain" />
           </div>
           <h2 className="text-2xl font-extrabold text-white font-display tracking-tight">
             TPF Cinemas Studio
@@ -79,6 +123,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess }) => {
             {successMsg}
           </div>
         )}
+
+        <div className="mb-4">
+          <button
+            type="button"
+            disabled={loading || googleLoading}
+            onClick={handleGoogleSignIn}
+            className="w-full py-3 px-4 rounded-xl bg-white hover:bg-zinc-100 text-zinc-900 font-sans font-semibold text-xs sm:text-sm flex items-center justify-center gap-3 transition-all duration-200 shadow-[0_4px_16px_rgba(0,0,0,0.35)] hover:scale-[1.01] active:scale-[0.98] cursor-pointer disabled:opacity-60 border-none"
+          >
+            {googleLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin text-zinc-600" />
+            ) : (
+              <GoogleIcon className="h-4 w-4 shrink-0" />
+            )}
+            <span>Continue with Google</span>
+          </button>
+
+          <div className="relative my-4 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/[0.08]" />
+            </div>
+            <span className="relative px-3 bg-[#0E1015] text-[10px] uppercase font-mono tracking-widest text-muted">
+              or continue with email
+            </span>
+          </div>
+        </div>
 
         <form onSubmit={handleAuth} className="space-y-4">
           {isSignUp && (
@@ -125,14 +194,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess }) => {
           <button
             type="submit"
             disabled={loading}
-            className="btn btn-primary w-full py-3 text-sm flex items-center justify-center gap-2 mt-6 shadow-xl shadow-rose-600/30"
+            className="w-full py-3 px-4 text-sm font-semibold rounded-xl bg-signature text-black hover:bg-[#F2B94F] flex items-center justify-center gap-2 mt-6 shadow-lg shadow-signature/20 transition-all duration-150"
           >
             {loading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin text-black" />
             ) : (
               <>
                 <span>{isSignUp ? 'Create Account' : 'Sign In to Studio'}</span>
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-4 w-4 text-black" />
               </>
             )}
           </button>
@@ -145,7 +214,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess }) => {
               Already have an account?{' '}
               <button
                 onClick={() => setIsSignUp(false)}
-                className="text-rose-400 font-bold hover:underline ml-1"
+                className="text-signature font-bold hover:underline ml-1"
               >
                 Sign In
               </button>
@@ -155,7 +224,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess }) => {
               Don't have an account yet?{' '}
               <button
                 onClick={() => setIsSignUp(true)}
-                className="text-rose-400 font-bold hover:underline ml-1"
+                className="text-signature font-bold hover:underline ml-1"
               >
                 Sign Up as Creator
               </button>

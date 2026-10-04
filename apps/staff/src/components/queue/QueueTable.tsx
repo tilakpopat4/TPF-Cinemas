@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Film as FilmIcon, Sparkles, Eye, CheckCircle2, Clock, AlertTriangle, FileCheck2, ArrowRight, Lock } from 'lucide-react';
+import { Search, Film as FilmIcon, Eye, CheckCircle2, Clock, AlertTriangle, FileCheck2, ArrowRight, Lock } from 'lucide-react';
 import { Film } from '../../types';
 import { formatDuration, formatDate } from '../../lib/utils';
 
@@ -49,41 +49,41 @@ export const QueueTable: React.FC<QueueTableProps> = ({ films, onSelectFilm }) =
     switch (status) {
       case 'published':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-emerald-500/10 text-emerald-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
             Live
           </span>
         );
       case 'submitted':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-500/15 text-sky-400 border border-sky-500/25">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-signature/10 text-signature">
             <Clock className="h-3 w-3" />
             Needs Review
           </span>
         );
       case 'approved':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-500/15 text-purple-400 border border-purple-500/25">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-emerald-500/10 text-emerald-400">
             <CheckCircle2 className="h-3 w-3" />
             Approved
           </span>
         );
       case 'changes_requested':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/25">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-rose-500/10 text-rose-400">
             <AlertTriangle className="h-3 w-3" />
             Revisions
           </span>
         );
       case 'rejected':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-red-500/15 text-red-400 border border-red-500/25">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-rose-500/10 text-rose-400">
             Rejected
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/25">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-white/[0.06] text-muted">
             {status}
           </span>
         );
@@ -97,85 +97,85 @@ export const QueueTable: React.FC<QueueTableProps> = ({ films, onSelectFilm }) =
         {/* Needs Review */}
         <div
           onClick={() => setStatusFilter('submitted')}
-          className={`cursor-pointer rounded-2xl border p-4 backdrop-blur-md transition-all ${
+          className={`cursor-pointer rounded-2xl border p-4 transition-all ${
             statusFilter === 'submitted'
-              ? 'border-sky-500/50 bg-sky-950/30 shadow-lg shadow-sky-950/40 scale-[1.01]'
-              : 'border-white/[0.08] bg-[#0f131c]/80 hover:border-white/20'
+              ? 'border-signature/40 bg-signature/10 shadow-lg'
+              : 'border-white/[0.08] bg-[#0E1015] hover:border-white/20'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-sky-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-signature font-mono">
               Needs Curation
             </span>
-            <div className="p-1.5 rounded-lg bg-sky-500/15 text-sky-400">
+            <div className="p-1.5 rounded-lg bg-signature/10 text-signature">
               <Clock className="h-3.5 w-3.5" />
             </div>
           </div>
-          <p className="mt-2 text-2xl sm:text-3xl font-black text-white font-display">{submittedCount}</p>
-          <span className="text-[11px] text-zinc-400 mt-0.5 block">Pending curator inspection</span>
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-ivory font-display">{submittedCount}</p>
+          <span className="text-[11px] text-muted mt-0.5 block">Pending curator inspection</span>
         </div>
 
         {/* Ready to Publish */}
         <div
           onClick={() => setStatusFilter('approved')}
-          className={`cursor-pointer rounded-2xl border p-4 backdrop-blur-md transition-all ${
+          className={`cursor-pointer rounded-2xl border p-4 transition-all ${
             statusFilter === 'approved'
-              ? 'border-purple-500/50 bg-purple-950/30 shadow-lg shadow-purple-950/40 scale-[1.01]'
-              : 'border-white/[0.08] bg-[#0f131c]/80 hover:border-white/20'
+              ? 'border-emerald-500/40 bg-emerald-500/10 shadow-lg'
+              : 'border-white/[0.08] bg-[#0E1015] hover:border-white/20'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-purple-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-400 font-mono">
               Ready to Publish
             </span>
-            <div className="p-1.5 rounded-lg bg-purple-500/15 text-purple-400">
+            <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400">
               <CheckCircle2 className="h-3.5 w-3.5" />
             </div>
           </div>
-          <p className="mt-2 text-2xl sm:text-3xl font-black text-white font-display">{approvedCount}</p>
-          <span className="text-[11px] text-zinc-400 mt-0.5 block">Approved & licence cleared</span>
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-ivory font-display">{approvedCount}</p>
+          <span className="text-[11px] text-muted mt-0.5 block">Approved & licence cleared</span>
         </div>
 
         {/* Live on Platform */}
         <div
           onClick={() => setStatusFilter('published')}
-          className={`cursor-pointer rounded-2xl border p-4 backdrop-blur-md transition-all ${
+          className={`cursor-pointer rounded-2xl border p-4 transition-all ${
             statusFilter === 'published'
-              ? 'border-emerald-500/50 bg-emerald-950/30 shadow-lg shadow-emerald-950/40 scale-[1.01]'
-              : 'border-white/[0.08] bg-[#0f131c]/80 hover:border-white/20'
+              ? 'border-emerald-500/40 bg-emerald-500/10 shadow-lg'
+              : 'border-white/[0.08] bg-[#0E1015] hover:border-white/20'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-400 font-mono">
               Live Catalogue
             </span>
-            <div className="p-1.5 rounded-lg bg-emerald-500/15 text-emerald-400">
+            <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400">
               <FilmIcon className="h-3.5 w-3.5" />
             </div>
           </div>
-          <p className="mt-2 text-2xl sm:text-3xl font-black text-white font-display">{publishedCount}</p>
-          <span className="text-[11px] text-zinc-400 mt-0.5 block">Currently streaming live</span>
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-ivory font-display">{publishedCount}</p>
+          <span className="text-[11px] text-muted mt-0.5 block">Currently streaming live</span>
         </div>
 
         {/* Changes Requested */}
         <div
           onClick={() => setStatusFilter('changes_requested')}
-          className={`cursor-pointer rounded-2xl border p-4 backdrop-blur-md transition-all ${
+          className={`cursor-pointer rounded-2xl border p-4 transition-all ${
             statusFilter === 'changes_requested'
-              ? 'border-rose-500/50 bg-rose-950/30 shadow-lg shadow-rose-950/40 scale-[1.01]'
-              : 'border-white/[0.08] bg-[#0f131c]/80 hover:border-white/20'
+              ? 'border-rose-500/40 bg-rose-500/10 shadow-lg'
+              : 'border-white/[0.08] bg-[#0E1015] hover:border-white/20'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-rose-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-rose-400 font-mono">
               Revisions
             </span>
-            <div className="p-1.5 rounded-lg bg-rose-500/15 text-rose-400">
+            <div className="p-1.5 rounded-lg bg-rose-500/10 text-rose-400">
               <AlertTriangle className="h-3.5 w-3.5" />
             </div>
           </div>
-          <p className="mt-2 text-2xl sm:text-3xl font-black text-white font-display">{changesCount}</p>
-          <span className="text-[11px] text-zinc-400 mt-0.5 block">Sent back with curator notes</span>
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-ivory font-display">{changesCount}</p>
+          <span className="text-[11px] text-muted mt-0.5 block">Sent back with curator notes</span>
         </div>
       </div>
 
@@ -185,16 +185,16 @@ export const QueueTable: React.FC<QueueTableProps> = ({ films, onSelectFilm }) =
         <div className="flex flex-wrap items-center gap-1.5">
           <button
             onClick={() => setStatusFilter('submitted')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all flex items-center gap-2 ${
               statusFilter === 'submitted'
-                ? 'bg-sky-500/20 text-sky-400 border border-sky-500/35 shadow-sm'
-                : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                ? 'bg-white/[0.12] text-ivory shadow-sm'
+                : 'text-muted hover:text-ivory hover:bg-white/[0.04]'
             }`}
           >
             <Clock className="h-3 w-3" />
             <span>Needs Review</span>
             {submittedCount > 0 && (
-              <span className="rounded-full bg-sky-500 text-black px-1.5 text-[10px] font-black">
+              <span className="rounded-full bg-signature text-black px-1.5 py-0.2 text-[10px] font-mono font-bold">
                 {submittedCount}
               </span>
             )}
@@ -202,10 +202,10 @@ export const QueueTable: React.FC<QueueTableProps> = ({ films, onSelectFilm }) =
 
           <button
             onClick={() => setStatusFilter('approved')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all flex items-center gap-2 ${
               statusFilter === 'approved'
-                ? 'bg-purple-500/20 text-purple-400 border border-purple-500/35 shadow-sm'
-                : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                ? 'bg-white/[0.12] text-ivory shadow-sm'
+                : 'text-muted hover:text-ivory hover:bg-white/[0.04]'
             }`}
           >
             <CheckCircle2 className="h-3 w-3" />
@@ -214,10 +214,10 @@ export const QueueTable: React.FC<QueueTableProps> = ({ films, onSelectFilm }) =
 
           <button
             onClick={() => setStatusFilter('published')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all ${
               statusFilter === 'published'
-                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/35 shadow-sm'
-                : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                ? 'bg-white/[0.12] text-ivory shadow-sm'
+                : 'text-muted hover:text-ivory hover:bg-white/[0.04]'
             }`}
           >
             Live ({publishedCount})
@@ -225,10 +225,10 @@ export const QueueTable: React.FC<QueueTableProps> = ({ films, onSelectFilm }) =
 
           <button
             onClick={() => setStatusFilter('changes_requested')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all ${
               statusFilter === 'changes_requested'
-                ? 'bg-rose-500/20 text-rose-400 border border-rose-500/35 shadow-sm'
-                : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                ? 'bg-white/[0.12] text-ivory shadow-sm'
+                : 'text-muted hover:text-ivory hover:bg-white/[0.04]'
             }`}
           >
             In Revision ({changesCount})

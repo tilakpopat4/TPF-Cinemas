@@ -277,12 +277,12 @@ export const StaffFooter: React.FC = () => {
           </ul>
         </div>
 
-        {/* Live Google Language Selector — Direct Netflix Outlined Box Pattern */}
+        {/* Live Google Language Selector — Borderless Pill Pattern */}
         <div className="relative inline-block text-left" ref={langContainerRef}>
           <button
             onClick={() => setIsLangOpen(!isLangOpen)}
-            className={`flex items-center gap-2.5 px-3.5 py-2 rounded-sm bg-black/70 border border-hairline hover:border-ivory/50 text-ivory text-xs font-sans transition-colors focus:outline-none focus:border-signature ${
-              isTranslating ? 'animate-pulse border-signature' : ''
+            className={`flex items-center gap-2.5 px-3.5 py-2 rounded-full bg-white/[0.06] hover:bg-white/[0.12] border-none text-ivory text-xs font-sans transition-colors focus:outline-none shadow-[0_4px_16px_rgba(0,0,0,0.4)] ${
+              isTranslating ? 'animate-pulse text-signature' : ''
             }`}
             aria-label="Select Language (Live Google Translator)"
           >
@@ -297,10 +297,9 @@ export const StaffFooter: React.FC = () => {
           {/* 100% Solid Opaque Dropdown Container */}
           {isLangOpen && (
             <div
-              className="absolute left-0 bottom-full mb-2 w-56 rounded-sm border border-hairline/80 shadow-2xl py-1 z-50 font-sans max-h-64 overflow-y-auto"
-              style={{ backgroundColor: '#141417' }}
+              className="absolute left-0 bottom-full mb-2 w-56 rounded-xl border border-white/[0.12] shadow-2xl py-1 z-50 font-sans max-h-64 overflow-y-auto bg-[#101117]"
             >
-              <div className="px-3 py-1.5 border-b border-hairline/60 text-[10px] uppercase font-mono tracking-wider text-muted flex items-center justify-between">
+              <div className="px-3 py-1.5 border-b border-white/[0.08] text-[10px] uppercase font-mono tracking-wider text-muted flex items-center justify-between">
                 <span>Translate Console</span>
                 <span className="text-[9px] text-signature">Live</span>
               </div>
@@ -335,7 +334,7 @@ export const StaffFooter: React.FC = () => {
           <div className="flex items-center gap-2 text-[11px] text-muted/70 font-mono">
             <ShieldCheck className="h-3.5 w-3.5 text-signature/70 shrink-0" />
             <p>
-              Made With ❤️ For Cinephiles.
+              Curated for Cinephiles.
             </p>
           </div>
         </div>

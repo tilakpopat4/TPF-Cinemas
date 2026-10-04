@@ -8,7 +8,7 @@ import {
   CheckCircle2,
   FileCheck2,
   Globe,
-  Sparkles,
+  Star,
   AlertTriangle,
   Send,
   Loader2,
@@ -179,7 +179,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
         {/* Header Bar */}
         <div className="flex items-center justify-between border-b border-white/[0.08] bg-[#10141c]/90 px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/15 border border-amber-500/25 text-amber-400">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-signature/10 text-signature">
               <FilmIcon className="h-4 w-4" />
             </div>
             <div>
@@ -187,11 +187,11 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                 <h2 className="font-display text-base font-bold text-white tracking-tight">
                   {f.title}
                 </h2>
-                <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-white/10 text-zinc-300">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-white/10 text-zinc-300">
                   {f.status}
                 </span>
                 {f.is_featured && (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-signature/10 text-signature">
                     Featured
                   </span>
                 )}
@@ -215,13 +215,9 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
               <button
                 onClick={handleFeatureToggle}
                 disabled={featuring}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
-                  f.is_featured
-                    ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                    : 'bg-white/5 text-zinc-300 border-white/10 hover:text-white'
-                }`}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/[0.06] hover:bg-white/[0.12] text-ivory border-none transition-colors"
               >
-                <Sparkles className="h-3.5 w-3.5" />
+                <Star className="h-3.5 w-3.5 text-signature" />
                 <span>{f.is_featured ? 'Featured on Billboard' : 'Feature on Billboard'}</span>
               </button>
             )}
@@ -335,20 +331,20 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
 
                 {/* Age classification */}
                 <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5">
-                  <div className="flex items-center gap-1 text-[11px] text-zinc-400 mb-1">
+                  <div className="flex items-center gap-1 text-[11px] text-muted mb-1 font-mono uppercase">
                     <span>OTT Rating</span>
                   </div>
-                  <span className="font-bold text-amber-400">
+                  <span className="font-semibold text-ivory font-mono">
                     {f.age_rating || 'Unrated'}
                   </span>
                 </div>
 
                 {/* Licence verification */}
                 <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5">
-                  <div className="flex items-center gap-1 text-[11px] text-zinc-400 mb-1">
+                  <div className="flex items-center gap-1 text-[11px] text-muted mb-1 font-mono uppercase">
                     <span>Licence Status</span>
                   </div>
-                  <span className={`inline-flex items-center gap-1 font-bold ${isLicenceVerified ? 'text-emerald-400' : 'text-amber-400'}`}>
+                  <span className={`inline-flex items-center gap-1 font-mono text-xs font-semibold ${isLicenceVerified ? 'text-emerald-400' : 'text-signature'}`}>
                     {isLicenceVerified ? <Check className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
                     <span>{isLicenceVerified ? 'Verified' : 'Unverified'}</span>
                   </span>
@@ -363,30 +359,30 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
             <div className="flex border-b border-white/[0.08] bg-[#0d1017]">
               <button
                 onClick={() => setActiveTab('decision')}
-                className={`flex-1 py-3 text-xs font-bold transition-all border-b-2 ${
+                className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wider transition-all border-b-2 ${
                   activeTab === 'decision'
-                    ? 'border-amber-500 text-amber-400 bg-amber-500/5'
-                    : 'border-transparent text-zinc-400 hover:text-white'
+                    ? 'border-signature text-ivory bg-white/[0.04]'
+                    : 'border-transparent text-muted hover:text-ivory'
                 }`}
               >
                 Curator Decision
               </button>
               <button
                 onClick={() => setActiveTab('media')}
-                className={`flex-1 py-3 text-xs font-bold transition-all border-b-2 ${
+                className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wider transition-all border-b-2 ${
                   activeTab === 'media'
-                    ? 'border-amber-500 text-amber-400 bg-amber-500/5'
-                    : 'border-transparent text-zinc-400 hover:text-white'
+                    ? 'border-signature text-ivory bg-white/[0.04]'
+                    : 'border-transparent text-muted hover:text-ivory'
                 }`}
               >
                 Metadata & Credits
               </button>
               <button
                 onClick={() => setActiveTab('licence')}
-                className={`flex-1 py-3 text-xs font-bold transition-all border-b-2 ${
+                className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wider transition-all border-b-2 ${
                   activeTab === 'licence'
-                    ? 'border-amber-500 text-amber-400 bg-amber-500/5'
-                    : 'border-transparent text-zinc-400 hover:text-white'
+                    ? 'border-signature text-ivory bg-white/[0.04]'
+                    : 'border-transparent text-muted hover:text-ivory'
                 }`}
               >
                 Licence Rights
@@ -400,7 +396,15 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                       : 'border-transparent text-zinc-400 hover:text-rose-300'
                   }`}
                 >
-                  {f.ip_hold ? '🔒 IP Hold' : '⚑ IP Hold'}
+                  {f.ip_hold ? (
+                    <span className="flex items-center justify-center gap-1.5">
+                      <Lock className="h-3.5 w-3.5" /> IP Hold
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-1.5">
+                      <Flag className="h-3.5 w-3.5" /> IP Hold
+                    </span>
+                  )}
                 </button>
               )}
             </div>
@@ -419,21 +423,21 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                     />
                   ) : f.status === 'approved' ? (
                     /* If Approved: Ready to Publish */
-                    <div className="rounded-2xl border border-purple-500/30 bg-purple-950/20 p-5 space-y-4">
-                      <div className="flex items-center gap-2 text-purple-400 font-bold text-sm">
+                    <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4">
+                      <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
                         <CheckCircle2 className="h-5 w-5" />
                         <span>Curator Approved for Streaming</span>
                       </div>
-                      <p className="text-xs text-zinc-300 leading-relaxed">
+                      <p className="text-xs text-muted leading-relaxed">
                         This film has received curator approval. Once the legal licence agreement is verified, it can be published live to audiences worldwide.
                       </p>
 
                       {!isLicenceVerified ? (
-                        <div className="p-3 bg-amber-950/30 border border-amber-500/30 rounded-xl text-xs text-amber-300 flex items-center justify-between">
+                        <div className="p-3 bg-white/[0.04] rounded-xl text-xs text-muted flex items-center justify-between">
                           <span>Licence agreement pending staff verification</span>
                           <button
                             onClick={() => setActiveTab('licence')}
-                            className="text-xs font-bold underline ml-2 shrink-0"
+                            className="text-xs font-semibold text-signature underline ml-2 shrink-0"
                           >
                             Verify Rights
                           </button>
@@ -442,7 +446,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                         <button
                           onClick={handlePublishFilm}
                           disabled={publishing}
-                          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold text-xs shadow-xl shadow-emerald-600/25 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-95"
+                          className="w-full py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all active:scale-95"
                         >
                           {publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                           <span>Publish Film Live to Catalogue</span>
@@ -512,8 +516,8 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                         <div className="flex items-center justify-between">
                           <span className="text-[11px] text-zinc-400 font-semibold">Portrait Poster (2:3)</span>
                           {f.poster_url
-                            ? <span className="text-emerald-400 text-[10px] font-bold">✓ Provided</span>
-                            : <span className="text-rose-400 text-[10px] font-bold">⚠ Missing</span>
+                            ? <span className="text-emerald-400 text-[10px] font-bold flex items-center gap-1"><Check className="h-3 w-3" /> Provided</span>
+                            : <span className="text-rose-400 text-[10px] font-bold flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Missing</span>
                           }
                         </div>
                         <div className="aspect-[2/3] w-full max-w-[120px] rounded-lg overflow-hidden border border-white/10 bg-black/60">
@@ -529,8 +533,8 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                         <div className="flex items-center justify-between">
                           <span className="text-[11px] text-zinc-400 font-semibold">Landscape Banner (16:9)</span>
                           {f.backdrop_url
-                            ? <span className="text-emerald-400 text-[10px] font-bold">✓ Provided</span>
-                            : <span className="text-rose-400 text-[10px] font-bold">⚠ Missing</span>
+                            ? <span className="text-emerald-400 text-[10px] font-bold flex items-center gap-1"><Check className="h-3 w-3" /> Provided</span>
+                            : <span className="text-rose-400 text-[10px] font-bold flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Missing</span>
                           }
                         </div>
                         <div className="aspect-video w-full rounded-lg overflow-hidden border border-white/10 bg-black/60">
@@ -607,21 +611,21 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                       {/* Verification Status */}
                       <div className="p-4 rounded-2xl border border-white/10 bg-[#121620] space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-zinc-300 font-bold">Staff Rights Verification</span>
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${isLicenceVerified ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                          <span className="text-ivory font-semibold text-xs">Staff Rights Verification</span>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono uppercase font-semibold ${isLicenceVerified ? 'bg-emerald-500/10 text-emerald-400' : 'bg-signature/10 text-signature'}`}>
                             {isLicenceVerified ? 'Verified' : 'Pending'}
                           </span>
                         </div>
 
                         {isLicenceVerified ? (
-                          <p className="text-[11px] text-zinc-400">
+                          <p className="text-[11px] text-muted">
                             Verified on {formatDate(licence.verified_at!)} by staff member.
                           </p>
                         ) : (
                           <button
                             onClick={handleVerifyLicence}
                             disabled={verifyingLicence}
-                            className="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs shadow-md shadow-amber-500/20 transition-all flex items-center justify-center gap-1.5"
+                            className="w-full py-2.5 px-4 rounded-xl bg-signature hover:bg-[#F2B94F] text-black font-semibold text-xs shadow-md shadow-signature/20 transition-all flex items-center justify-center gap-1.5"
                           >
                             {verifyingLicence ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileCheck2 className="h-4 w-4" />}
                             <span>Verify & Stamp Legal Clearance</span>
