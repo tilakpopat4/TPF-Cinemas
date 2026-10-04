@@ -161,6 +161,29 @@ export default function App() {
             </div>
           ) : currentTab === 'home' ? (
             /* Home Tab: Hero Billboard & Dynamic Curated Content Rails from UI Manager */
+            films.length === 0 ? (
+              <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-36 pb-24 text-center space-y-5">
+                <div className="inline-flex items-center justify-center p-4 rounded-2xl bg-white/[0.04] border border-white/[0.08] shadow-xl">
+                  <Film className="h-10 w-10 text-signature opacity-80" />
+                </div>
+                <h2 className="text-2xl sm:text-4xl font-normal font-display tracking-widest text-ivory uppercase">
+                  Festival Archive In Preparation
+                </h2>
+                <p className="font-editorial italic text-base sm:text-lg text-muted max-w-lg mx-auto leading-relaxed">
+                  No films are currently published. Curated festival premieres and debut selections will appear here once approved by our curation team.
+                </p>
+                <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
+                  <a
+                    href="https://tpfcinemas3.vercel.app"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-5 py-2.5 rounded-full bg-signature text-black font-semibold text-xs uppercase tracking-wider hover:opacity-90 transition-all shadow-lg shadow-signature/20"
+                  >
+                    Submit Film in Studio
+                  </a>
+                </div>
+              </div>
+            ) : (
             <div className="space-y-6">
               {/* Hero Billboard */}
               {heroConfig.enabled && (
@@ -281,6 +304,7 @@ export default function App() {
                   })}
               </div>
             </div>
+            )
           ) : currentTab === 'browse' ? (
             /* Browse Tab: Full Catalogue Grid + Genre Tags */
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 space-y-6">
@@ -321,18 +345,30 @@ export default function App() {
               </div>
 
               {/* Films Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 pt-2">
-                {filteredFilms.map((film) => (
-                  <FilmCard
-                    key={film.id}
-                    film={film}
-                    onPlay={(f) => handlePlay(f)}
-                    isInWatchlist={isInWatchlist(film.id)}
-                    onToggleWatchlist={toggleWatchlist}
-                    progressSeconds={getProgress(film.id)}
-                  />
-                ))}
-              </div>
+              {filteredFilms.length === 0 ? (
+                <div className="py-24 text-center text-muted space-y-3">
+                  <Film className="h-8 w-8 mx-auto opacity-30 text-signature" />
+                  <h3 className="font-editorial text-xl font-normal text-ivory">No films found</h3>
+                  <p className="font-sans text-xs text-muted max-w-sm mx-auto">
+                    {selectedGenre
+                      ? 'No films currently published under this category.'
+                      : 'No films are currently published in the catalogue. Check back soon for new festival releases!'}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 pt-2">
+                  {filteredFilms.map((film) => (
+                    <FilmCard
+                      key={film.id}
+                      film={film}
+                      onPlay={(f) => handlePlay(f)}
+                      isInWatchlist={isInWatchlist(film.id)}
+                      onToggleWatchlist={toggleWatchlist}
+                      progressSeconds={getProgress(film.id)}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           ) : currentTab === 'watchlist' ? (
             /* Watchlist Tab */
