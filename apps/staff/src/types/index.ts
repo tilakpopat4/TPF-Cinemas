@@ -86,6 +86,9 @@ export interface Film {
   backdrop_url?: string | null;
   video_provider: VideoProvider;
   video_ref: string | null;
+  trailer_ref?: string | null;
+  aspect_ratio?: string | null;
+  extra_languages?: string[] | null;
   is_debut: boolean;
   is_featured: boolean;
   status: FilmStatus;

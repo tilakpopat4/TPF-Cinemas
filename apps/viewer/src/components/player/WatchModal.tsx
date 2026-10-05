@@ -44,7 +44,13 @@ export const WatchModal: React.FC<WatchModalProps> = ({
 }) => {
   if (!film) return null;
 
-  const controller = useVideoPlayer((film.runtime_minutes || 0) * 60);
+  // In trailer mode stream the creator's trailer link; otherwise the full feature
+  const isTrailerStream = mode === 'trailer' && !!film.trailer_ref?.trim();
+  const playFilm: Film = isTrailerStream
+    ? { ...film, video_ref: film.trailer_ref!.trim(), video_provider: 'youtube' }
+    : film;
+
+  const controller = useVideoPlayer(isTrailerStream ? 0 : (film.runtime_minutes || 0) * 60);
 
   const [showControls, setShowControls] = useState(true);
   const [showDetailsDrawer, setShowDetailsDrawer] = useState(false);
@@ -189,24 +195,27 @@ export const WatchModal: React.FC<WatchModalProps> = ({
   const currentTimeRef = useRef(controller.currentTime);
   currentTimeRef.current = controller.currentTime;
 
+  // Trailers never write watch-history progress
+  const progressRecorder = isTrailerStream ? undefined : onRecordProgress;
+
   // Throttle progress updates to at most once every 15 seconds
   useEffect(() => {
-    if (!onRecordProgress || controller.currentTime < 5) return;
+    if (!progressRecorder || controller.currentTime < 5) return;
     const current = Math.round(controller.currentTime);
     if (Math.abs(current - lastRecordedTimeRef.current) >= 15) {
       lastRecordedTimeRef.current = current;
-      onRecordProgress(film.id, current);
+      progressRecorder(film.id, current);
     }
-  }, [film.id, controller.currentTime, onRecordProgress]);
+  }, [film.id, controller.currentTime, progressRecorder]);
 
   // Flush final progress when player is closed/unmounted
   useEffect(() => {
     return () => {
-      if (onRecordProgress && currentTimeRef.current > 5) {
-        onRecordProgress(film.id, Math.round(currentTimeRef.current));
+      if (progressRecorder && currentTimeRef.current > 5) {
+        progressRecorder(film.id, Math.round(currentTimeRef.current));
       }
     };
-  }, [film.id, onRecordProgress]);
+  }, [film.id, progressRecorder]);
 
   return createPortal(
     <div
@@ -219,9 +228,9 @@ export const WatchModal: React.FC<WatchModalProps> = ({
     >
       {/* Edge-to-Edge Custom Cinema Video Engine */}
       <CinematicPlayerEngine
-        film={film}
+        film={playFilm}
         controller={controller}
-        initialProgressSeconds={initialProgressSeconds}
+        initialProgressSeconds={isTrailerStream ? 0 : initialProgressSeconds}
         onTogglePlay={handleTogglePlay}
         onDoubleTapFullscreen={toggleFullscreen}
       />

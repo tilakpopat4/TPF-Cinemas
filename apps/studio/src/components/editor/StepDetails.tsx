@@ -14,10 +14,41 @@ const LANGUAGES = [
   'Hindi', 'Tamil', 'Telugu', 'Malayalam', 'Kannada',
   'Bengali', 'Marathi', 'Gujarati', 'Punjabi', 'English', 'Other'
 ];
+const ASPECT_PRESETS = ['16:9', '2.39:1', '1.85:1', '4:3', '1:1', '9:16'];
+const ASPECT_PATTERN = /^\d+(\.\d+)?\s*[:/]\s*\d+(\.\d+)?$/;
 
 export const StepDetails: React.FC<StepDetailsProps> = ({ formData, onChange }) => {
   const [slugChecking, setSlugChecking] = useState(false);
   const [slugTaken, setSlugTaken] = useState(false);
+  const [langInput, setLangInput] = useState('');
+
+  const currentAspect = formData.aspect_ratio || '16:9';
+  const isCustomAspect = !ASPECT_PRESETS.includes(currentAspect);
+  const [customAspectMode, setCustomAspectMode] = useState(isCustomAspect);
+  const showCustomAspect = customAspectMode || isCustomAspect;
+  const aspectInvalid = showCustomAspect && !ASPECT_PATTERN.test(currentAspect.trim());
+
+  const isCustomPrimary = !!formData.language && !LANGUAGES.includes(formData.language);
+  const [customPrimaryMode, setCustomPrimaryMode] = useState(isCustomPrimary);
+  const showCustomPrimary = customPrimaryMode || isCustomPrimary;
+
+  const extraLanguages = formData.extra_languages || [];
+
+  function addExtraLanguage(raw: string) {
+    const name = raw.trim().replace(/\s+/g, ' ');
+    if (!name) return;
+    const exists = [formData.language, ...extraLanguages].some(
+      (l) => l?.toLowerCase() === name.toLowerCase()
+    );
+    if (!exists && extraLanguages.length < 12) {
+      onChange({ extra_languages: [...extraLanguages, name] });
+    }
+    setLangInput('');
+  }
+
+  function removeExtraLanguage(name: string) {
+    onChange({ extra_languages: extraLanguages.filter((l) => l !== name) });
+  }
 
   useEffect(() => {
     const rawSlug = formData.slug?.trim();
@@ -167,16 +198,34 @@ export const StepDetails: React.FC<StepDetailsProps> = ({ formData, onChange }) 
         <div className="form-group">
           <label className="form-label">Language *</label>
           <select
-            value={formData.language || 'Hindi'}
-            onChange={(e) => onChange({ language: e.target.value })}
+            value={showCustomPrimary ? 'Other' : (formData.language || 'Hindi')}
+            onChange={(e) => {
+              if (e.target.value === 'Other') {
+                setCustomPrimaryMode(true);
+                onChange({ language: '' });
+              } else {
+                setCustomPrimaryMode(false);
+                onChange({ language: e.target.value });
+              }
+            }}
             className="form-select"
           >
             {LANGUAGES.map((lang) => (
               <option key={lang} value={lang}>
-                {lang}
+                {lang === 'Other' ? 'Other (type your own)' : lang}
               </option>
             ))}
           </select>
+          {showCustomPrimary && (
+            <input
+              type="text"
+              maxLength={40}
+              value={formData.language || ''}
+              onChange={(e) => onChange({ language: e.target.value })}
+              placeholder="e.g. Bhojpuri, Konkani, Assamese"
+              className="form-input mt-2"
+            />
+          )}
         </div>
 
         <div className="form-group">
@@ -204,6 +253,95 @@ export const StepDetails: React.FC<StepDetailsProps> = ({ formData, onChange }) 
               </option>
             ))}
           </select>
+        </div>
+      </div>
+
+      {/* Aspect Ratio & Additional Languages (creator-controlled) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="form-group">
+          <label className="form-label">Content Aspect Ratio *</label>
+          <select
+            value={showCustomAspect ? 'custom' : currentAspect}
+            onChange={(e) => {
+              if (e.target.value === 'custom') {
+                setCustomAspectMode(true);
+              } else {
+                setCustomAspectMode(false);
+                onChange({ aspect_ratio: e.target.value });
+              }
+            }}
+            className="form-select"
+          >
+            {ASPECT_PRESETS.map((r) => (
+              <option key={r} value={r}>
+                {r}{r === '16:9' ? ' (Widescreen, default)' : r === '2.39:1' ? ' (Anamorphic / Cinemascope)' : r === '9:16' ? ' (Vertical)' : ''}
+              </option>
+            ))}
+            <option value="custom">Custom ratio…</option>
+          </select>
+          {showCustomAspect && (
+            <input
+              type="text"
+              value={isCustomAspect ? currentAspect : ''}
+              onChange={(e) => onChange({ aspect_ratio: e.target.value })}
+              placeholder="e.g. 21:9 or 1.66:1"
+              className={`form-input mt-2 font-mono text-sm ${aspectInvalid ? 'border-amber-500/70' : ''}`}
+            />
+          )}
+          {aspectInvalid ? (
+            <p className="text-[11px] text-amber-400 mt-1">Enter the ratio as W:H, for example 21:9 or 1.66:1.</p>
+          ) : (
+            <p className="text-[11px] text-zinc-400 mt-1">
+              The player is sized to this ratio so your film is never cropped or stretched.
+            </p>
+          )}
+        </div>
+
+        <div className="form-group">
+          <label className="form-label">Additional Languages (dubs / subtitles)</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              maxLength={40}
+              value={langInput}
+              onChange={(e) => setLangInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ',') {
+                  e.preventDefault();
+                  addExtraLanguage(langInput);
+                }
+              }}
+              placeholder="Type a language and press Enter"
+              className="form-input"
+            />
+            <button
+              type="button"
+              onClick={() => addExtraLanguage(langInput)}
+              className="px-4 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold shrink-0"
+            >
+              Add
+            </button>
+          </div>
+          {extraLanguages.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {extraLanguages.map((lang) => (
+                <span
+                  key={lang}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 text-[11px] text-white"
+                >
+                  {lang}
+                  <button
+                    type="button"
+                    onClick={() => removeExtraLanguage(lang)}
+                    className="text-zinc-400 hover:text-rose-300 leading-none"
+                    aria-label={`Remove ${lang}`}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

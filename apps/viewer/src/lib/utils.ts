@@ -36,6 +36,21 @@ export function extractYouTubeId(urlOrId: string): string {
   return (match && match[2].length === 11) ? match[2] : trimmed;
 }
 
+/**
+ * Parses a creator-declared aspect ratio ("16:9", "2.39:1", "4/3", "1.85") into a
+ * numeric width/height value. Falls back to 16:9 for missing or invalid input.
+ */
+export function parseAspectRatio(value?: string | null): number {
+  const fallback = 16 / 9;
+  if (!value) return fallback;
+  const parts = value.trim().split(/[:/xX]/).map((p) => parseFloat(p));
+  let ratio = NaN;
+  if (parts.length === 1) ratio = parts[0];
+  else if (parts.length === 2 && parts[1] > 0) ratio = parts[0] / parts[1];
+  if (!isFinite(ratio) || ratio < 0.2 || ratio > 5) return fallback;
+  return ratio;
+}
+
 export interface FilmArtworks {
   portrait: string;
   landscape: string;

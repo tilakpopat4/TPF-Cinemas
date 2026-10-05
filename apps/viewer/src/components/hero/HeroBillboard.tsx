@@ -76,7 +76,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
       ref={containerRef}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className="relative w-full aspect-[16/9] min-h-[460px] sm:min-h-0 max-h-[88vh] overflow-hidden bg-canvas select-none"
+      className="relative w-full aspect-video overflow-hidden bg-canvas select-none"
     >
       {/* Background Media — Still Poster Art ONLY, Zero Autoplay Video */}
       <AnimatePresence mode="wait">
@@ -87,25 +87,14 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
           animate={{ opacity: 1, transition: { duration: 0.8, ease: [0.25, 1, 0.5, 1] } }}
           exit={{ opacity: 0, transition: { duration: 0.4, ease: [0.25, 1, 0.5, 1] } }}
         >
-          {/* Ambient blurred backdrop layer for ultrawide monitors or ratio shifts */}
-          <img
-            src={
-              (currentFilm.backdrop_url || currentFilm.poster_url) ||
-              'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1600&auto=format&fit=crop'
-            }
-            alt=""
-            aria-hidden="true"
-            className="absolute inset-0 w-full h-full object-cover filter blur-3xl opacity-30 scale-110 pointer-events-none"
-          />
-
-          {/* Still 16:9 Cinema Poster Artwork (100% Fidelity, No Cropping of Titles/Artwork) */}
+          {/* Exact 16:9 artwork: the container is aspect-video, so the image fills it edge to edge with no crop */}
           <img
             src={
               (currentFilm.backdrop_url || currentFilm.poster_url) ||
               'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1600&auto=format&fit=crop'
             }
             alt={currentFilm.title}
-            className="relative w-full h-full object-contain sm:object-cover md:object-cover object-center filter brightness-100 transition-opacity duration-500 opacity-100"
+            className="absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-500 opacity-100"
           />
 
           {/* Subtle Vignettes ONLY: Soft bottom feathering into content rails, soft top feathering for navbar */}
@@ -119,7 +108,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
       </AnimatePresence>
 
       {/* Hero Content Container — Asymmetric Editorial Layout */}
-      <div className="relative z-10 max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-8 sm:pb-12 md:pb-14 pt-20">
+      <div className="relative z-10 max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-3 sm:pb-8 md:pb-12 pt-14 sm:pt-20">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentFilm.id}
@@ -146,10 +135,12 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
             </div>
 
             {/* Architectural Metadata Badges */}
-            <div className="flex flex-wrap items-center gap-1.5 font-mono text-[10px] text-muted tracking-wider">
-              <span className="px-2.5 py-0.5 rounded-md bg-black/50 backdrop-blur-md border border-white/10 text-ivory">
-                2.39:1 ANAMORPHIC
-              </span>
+            <div className="hidden sm:flex flex-wrap items-center gap-1.5 font-mono text-[10px] text-muted tracking-wider">
+              {currentFilm.aspect_ratio && (
+                <span className="px-2.5 py-0.5 rounded-md bg-black/50 backdrop-blur-md border border-white/10 text-ivory">
+                  {currentFilm.aspect_ratio}
+                </span>
+              )}
 
               {currentFilm.age_rating && (
                 <span className="px-2.5 py-0.5 rounded-md bg-black/50 backdrop-blur-md border border-white/10 text-signature font-semibold">
@@ -171,7 +162,9 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
 
               {currentFilm.language && (
                 <span className="px-2.5 py-0.5 rounded-md bg-black/50 backdrop-blur-md border border-white/10 text-ivory/80 uppercase">
-                  {currentFilm.language}
+                  {[currentFilm.language, ...(currentFilm.extra_languages || [])]
+                    .filter((l, i, arr) => l && arr.indexOf(l) === i)
+                    .join(' · ')}
                 </span>
               )}
 
@@ -194,7 +187,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
 
             {/* Synopsis (Only rendered if substantive, avoids placeholder letters) */}
             {currentFilm.synopsis && currentFilm.synopsis.trim().length > 3 && (
-              <p className="font-sans text-xs sm:text-sm text-ivory/90 max-w-xl leading-[1.6] line-clamp-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
+              <p className="hidden md:block font-sans text-xs sm:text-sm text-ivory/90 max-w-xl leading-[1.6] line-clamp-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
                 {currentFilm.synopsis}
               </p>
             )}
@@ -211,15 +204,17 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
                 <span>Watch Movie</span>
               </button>
 
-              {/* Option 2: Watch Trailer (Secondary) */}
-              <button
-                onClick={() => onPlay(currentFilm, 'trailer')}
-                className="px-5 py-3 rounded-xl bg-black/60 hover:bg-black/80 border border-white/15 text-ivory hover:text-white font-medium text-xs uppercase tracking-wider transition-all duration-200 flex items-center gap-2 backdrop-blur-md hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap shadow-lg"
-                title="Watch Official Trailer"
-              >
-                <FilmIcon className="h-4 w-4 text-signature shrink-0" />
-                <span>Watch Trailer</span>
-              </button>
+              {/* Option 2: Watch Trailer (Secondary) — only when the creator supplied a trailer link */}
+              {currentFilm.trailer_ref?.trim() && (
+                <button
+                  onClick={() => onPlay(currentFilm, 'trailer')}
+                  className="px-5 py-3 rounded-xl bg-black/60 hover:bg-black/80 border border-white/15 text-ivory hover:text-white font-medium text-xs uppercase tracking-wider transition-all duration-200 flex items-center gap-2 backdrop-blur-md hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap shadow-lg"
+                  title="Watch Official Trailer"
+                >
+                  <FilmIcon className="h-4 w-4 text-signature shrink-0" />
+                  <span>Watch Trailer</span>
+                </button>
+              )}
 
               {/* Add to Queue / In Queue with Spacious Fitting & Balanced Padding */}
               <button

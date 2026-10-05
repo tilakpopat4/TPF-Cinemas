@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Film } from '../../types';
 import { VideoPlayerController } from '../../hooks/useVideoPlayer';
-import { extractYouTubeId } from '../../lib/utils';
+import { extractYouTubeId, parseAspectRatio } from '../../lib/utils';
 import { Film as FilmIcon, Loader2 } from 'lucide-react';
 
 interface CinematicPlayerEngineProps {
@@ -54,26 +54,36 @@ export const CinematicPlayerEngine: React.FC<CinematicPlayerEngineProps> = ({
     }
   };
 
+  const aspect = parseAspectRatio(film.aspect_ratio);
+  // Largest box of the declared ratio that fits inside the screen — no cropping
+  const stageStyle: React.CSSProperties = {
+    aspectRatio: String(aspect),
+    width: `min(100vw, calc(100vh * ${aspect}))`,
+  };
+  const isStandardWide = Math.abs(aspect - 16 / 9) < 0.01;
+
   return (
     <div className="relative w-full h-full bg-black overflow-hidden flex items-center justify-center select-none">
       {/* Native HTML5 Video Stream */}
       {isDirectVideo ? (
-        <video
-          ref={videoRef}
-          src={film.video_ref}
-          autoPlay
-          playsInline
-          className="w-full h-full object-contain pointer-events-none"
-        />
+        <div className="relative max-h-full" style={stageStyle}>
+          <video
+            ref={videoRef}
+            src={film.video_ref}
+            autoPlay
+            playsInline
+            className="w-full h-full object-contain pointer-events-none"
+          />
+        </div>
       ) : videoId ? (
-        /* Chromeless YouTube Player: scale slightly (105%) to hide subtle header/branding artifacts */
-        <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+        /* Chromeless YouTube Player inside a stage that matches the creator's aspect ratio */
+        <div className="relative max-h-full overflow-hidden pointer-events-none" style={stageStyle}>
           <iframe
             ref={iframeRef}
             src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1&enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}&start=${initialStartRef.current}`}
             title={film.title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            className="w-full h-full border-none pointer-events-none scale-[1.04]"
+            className={`w-full h-full border-none pointer-events-none ${isStandardWide ? 'scale-[1.04]' : ''}`}
           />
         </div>
       ) : (

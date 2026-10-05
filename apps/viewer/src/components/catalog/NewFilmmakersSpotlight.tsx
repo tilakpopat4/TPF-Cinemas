@@ -179,18 +179,20 @@ export const NewFilmmakersSpotlight: React.FC<NewFilmmakersSpotlightProps> = ({
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
-                      {/* Watch Trailer */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onPlay(film, 'trailer');
-                        }}
-                        className="p-1.5 sm:px-2.5 sm:py-1 rounded-lg bg-white/[0.08] hover:bg-white/[0.16] text-ivory text-[10px] uppercase font-mono tracking-wider transition-colors flex items-center gap-1.5"
-                        title="Watch Trailer"
-                      >
-                        <FilmIcon className="h-3 w-3 text-signature" />
-                        <span className="hidden sm:inline">Trailer</span>
-                      </button>
+                      {/* Watch Trailer — only if the creator supplied one */}
+                      {film.trailer_ref?.trim() && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onPlay(film, 'trailer');
+                          }}
+                          className="p-1.5 sm:px-2.5 sm:py-1 rounded-lg bg-white/[0.08] hover:bg-white/[0.16] text-ivory text-[10px] uppercase font-mono tracking-wider transition-colors flex items-center gap-1.5"
+                          title="Watch Trailer"
+                        >
+                          <FilmIcon className="h-3 w-3 text-signature" />
+                          <span className="hidden sm:inline">Trailer</span>
+                        </button>
+                      )}
 
                       {/* Queue Bookmark */}
                       <button

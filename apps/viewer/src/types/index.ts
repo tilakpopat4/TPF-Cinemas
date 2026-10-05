@@ -39,6 +39,9 @@ export interface Film {
   age_rating: AgeRating;
   video_provider: VideoProvider;
   video_ref: string;
+  trailer_ref?: string | null;
+  aspect_ratio?: string | null;
+  extra_languages?: string[] | null;
   poster_url: string;
   backdrop_url?: string | null;
   is_featured: boolean;

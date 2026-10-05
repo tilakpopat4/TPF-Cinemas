@@ -60,7 +60,7 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
 
   if (!film) return null;
 
-  const youtubeId = extractYouTubeId(film.video_ref);
+  const youtubeId = film.trailer_ref?.trim() ? extractYouTubeId(film.trailer_ref) : '';
 
   // Recommendations: Films in the same genre or other catalog titles
   const relatedFilms = allFilms
@@ -179,22 +179,24 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
                 <span>Watch Movie</span>
               </button>
 
-              {/* Option 2: Watch Trailer */}
-              <button
-                onClick={() => {
-                  if (youtubeId && !isPlayingTeaser) {
-                    setIsPlayingTeaser(true);
-                  } else {
-                    onClose();
-                    onPlay(film, 'trailer');
-                  }
-                }}
-                className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md font-medium text-xs uppercase tracking-wider transition-all flex items-center gap-2 active:scale-95 border-none"
-                title="Watch Official Teaser"
-              >
-                <FilmIcon className="h-4 w-4 text-signature" />
-                <span>{isPlayingTeaser ? 'Fullscreen Trailer' : 'Watch Trailer'}</span>
-              </button>
+              {/* Option 2: Watch Trailer — only when the creator supplied a trailer link */}
+              {film.trailer_ref?.trim() && (
+                <button
+                  onClick={() => {
+                    if (youtubeId && !isPlayingTeaser) {
+                      setIsPlayingTeaser(true);
+                    } else {
+                      onClose();
+                      onPlay(film, 'trailer');
+                    }
+                  }}
+                  className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md font-medium text-xs uppercase tracking-wider transition-all flex items-center gap-2 active:scale-95 border-none"
+                  title="Watch Official Teaser"
+                >
+                  <FilmIcon className="h-4 w-4 text-signature" />
+                  <span>{isPlayingTeaser ? 'Fullscreen Trailer' : 'Watch Trailer'}</span>
+                </button>
+              )}
 
               {/* Queue Button */}
               <button

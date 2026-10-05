@@ -54,6 +54,9 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
     backdrop_url: null,
     video_ref: '',
     video_provider: 'youtube',
+    trailer_ref: null,
+    aspect_ratio: '16:9',
+    extra_languages: [],
     is_debut: false,
     ...film,
   });
@@ -104,6 +107,8 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
         filmData.title?.trim() &&
         filmData.slug?.trim() &&
         filmData.synopsis?.trim() &&
+        filmData.language?.trim() &&
+        /^\d+(\.\d+)?\s*[:/]\s*\d+(\.\d+)?$/.test((filmData.aspect_ratio || '16:9').trim()) &&
         filmData.runtime_minutes &&
         Number(filmData.runtime_minutes) > 0
       );
@@ -140,6 +145,30 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
     return isStepComplete(currentStep);
   }
 
+  // Optional new columns (trailer / aspect ratio / extra languages).
+  // Only sent when meaningful or when the database already exposes them, so saving keeps
+  // working for creators who don't use these fields even before the migration is applied.
+  function newColumns(): Record<string, unknown> {
+    const cols: Record<string, unknown> = {};
+    const trailer = filmData.trailer_ref?.trim() || null;
+    const aspect = (filmData.aspect_ratio || '16:9').replace(/\s+/g, '');
+    const extras = filmData.extra_languages || [];
+    const migrated = !!film && 'aspect_ratio' in film;
+    if (trailer || migrated) cols.trailer_ref = trailer;
+    if (aspect !== '16:9' || migrated) cols.aspect_ratio = aspect;
+    if (extras.length > 0 || migrated) cols.extra_languages = extras;
+    return cols;
+  }
+
+  function describeSaveError(err: { code?: string; message?: string }): Error {
+    if (err.code === '42703' || err.code === 'PGRST204' || /trailer_ref|aspect_ratio|extra_languages/.test(err.message || '')) {
+      return new Error(
+        'The trailer / aspect ratio / languages fields are not enabled on the database yet. Ask the admin to run migration 20261005000001_add_trailer_aspect_ratio_languages.sql.'
+      );
+    }
+    return err as Error;
+  }
+
   // Save film draft
   async function handleSave(andSubmit = false) {
     setError(null);
@@ -172,6 +201,7 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
               poster_url: filmData.poster_url || null,
               backdrop_url: filmData.backdrop_url || null,
               is_debut: !!filmData.is_debut,
+              ...newColumns(),
             })
             .select('id')
             .single();
@@ -183,7 +213,7 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
               finalSlug = `${filmData.slug!.trim()}-${attempt + 1}`;
               continue;
             }
-            throw insertError;
+            throw describeSaveError(insertError);
           }
 
           savedFilmId = data.id;
@@ -215,6 +245,7 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
             poster_url: filmData.poster_url || null,
             backdrop_url: filmData.backdrop_url || null,
             is_debut: !!filmData.is_debut,
+            ...newColumns(),
           })
           .eq('id', savedFilmId);
 
@@ -222,7 +253,7 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
           if (updateError.code === '23505' || updateError.message?.includes('films_slug_key')) {
             throw new Error(`The URL slug "${filmData.slug}" is already in use by another film. Please choose a different slug in Step 1.`);
           }
-          throw updateError;
+          throw describeSaveError(updateError);
         }
       }
 

@@ -42,6 +42,7 @@ export const StepMedia: React.FC<StepMediaProps> = ({ formData, onChange, userId
 
   // Video input state
   const [videoInput, setVideoInput] = useState(formData.video_ref || '');
+  const [trailerInput, setTrailerInput] = useState(formData.trailer_ref || '');
 
   // Handle Portrait (2:3) upload
   async function handlePortraitSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -155,7 +156,15 @@ export const StepMedia: React.FC<StepMediaProps> = ({ formData, onChange, userId
     });
   }
 
+  // Handle optional trailer link (YouTube)
+  function handleTrailerChange(val: string) {
+    setTrailerInput(val);
+    const trimmed = val.trim();
+    onChange({ trailer_ref: trimmed ? extractYouTubeId(trimmed) || trimmed : null });
+  }
+
   const currentVideoId = extractYouTubeId(formData.video_ref || '');
+  const currentTrailerId = formData.trailer_ref ? extractYouTubeId(formData.trailer_ref) : '';
   const hasPortrait = !!portraitUrl;
   const hasBackdrop = !!backdropUrl;
 
@@ -514,6 +523,45 @@ export const StepMedia: React.FC<StepMediaProps> = ({ formData, onChange, userId
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Trailer Source Section (optional) */}
+        <div className="mt-8 border-t border-white/10 pt-6">
+          <label className="form-label flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Film className="h-4 w-4 text-signature" />
+              <span>Trailer Link (YouTube, optional)</span>
+            </span>
+            {currentTrailerId && (
+              <span className="text-emerald-400 flex items-center gap-1 text-[11px] font-bold">
+                <CheckCircle className="h-3 w-3" /> Trailer Linked
+              </span>
+            )}
+          </label>
+          <div className="mt-2">
+            <input
+              type="text"
+              value={trailerInput}
+              onChange={(e) => handleTrailerChange(e.target.value)}
+              placeholder="Paste your trailer link (e.g., https://youtu.be/dQw4w9WgXcQ or video ID)"
+              className="form-input"
+            />
+            <p className="text-[11px] text-zinc-400 mt-1.5">
+              When provided, viewers get a <strong>Watch Trailer</strong> button that streams this link.
+              Leave empty to hide the trailer button.
+            </p>
+          </div>
+          {currentTrailerId && (
+            <div className="mt-4 rounded-xl overflow-hidden border border-white/10 aspect-video bg-black max-w-lg shadow-xl">
+              <iframe
+                src={`https://www.youtube-nocookie.com/embed/${currentTrailerId}?rel=0`}
+                title="Trailer preview"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="h-full w-full"
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
