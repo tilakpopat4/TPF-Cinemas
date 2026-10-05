@@ -47,6 +47,7 @@ Requirements for initial release of the Viewer Home Page.
 - [x] **STUDIO-02**: Poster image upload handling and YouTube video ID validation with live test preview screening before submission.
 - [x] **STUDIO-03**: Digital non-exclusive licence agreement execution (Schedule A & C, music clearance declaration, terms versioning, record persistence in `licence_agreements`).
 - [x] **STUDIO-04**: Creator submission dashboard with status filters (Drafts, In Review, Live), curator feedback review modal, and revision re-submission flow via `submit_film()` RPC.
+- [ ] **STUDIO-05**: Post-publish edit workflow — creators can open a published film and submit metadata/media edits via `propose_film_update()` RPC; the live record is unchanged until the update is approved. Creator dashboard shows a "Pending Update" status badge alongside the live film.
 
 ### Staff Curation Console & Moderation Queue
 
@@ -54,6 +55,7 @@ Requirements for initial release of the Viewer Home Page.
 - [ ] **STAFF-02**: Inspection modal featuring an embedded video screening player, full metadata viewer, credits breakdown, and director notes.
 - [ ] **STAFF-03**: Curator decision engine executing `review_film()` RPC enforcing mandatory feedback notes for "changes requested" or "rejected", and `verify_licence()` RPC for music clearance confirmation.
 - [ ] **STAFF-04**: One-click publishing pipeline via `publish_film()` RPC with status badge synchronization and edge cache invalidation.
+- [ ] **STAFF-05**: Pending-update review queue — staff can inspect diff of proposed changes against the live published record, then approve via `apply_film_update()` RPC (merges changes to live) or reject with mandatory feedback notes (notifies creator).
 
 ### Admin Governance, Roles & Audit Logging
 
@@ -108,19 +110,21 @@ Which phases cover which requirements.
 | STUDIO-02 | Phase 6 | Complete |
 | STUDIO-03 | Phase 6 | Complete |
 | STUDIO-04 | Phase 6 | Complete |
+| STUDIO-05 | Phase 7 | Pending |
 | STAFF-01 | Phase 7 | Pending |
 | STAFF-02 | Phase 7 | Pending |
 | STAFF-03 | Phase 7 | Pending |
 | STAFF-04 | Phase 7 | Pending |
+| STAFF-05 | Phase 7 | Pending |
 | ADMIN-01 | Phase 8 | Pending |
 | ADMIN-02 | Phase 8 | Pending |
 | ADMIN-03 | Phase 8 | Pending |
 
 **Coverage:**
-- v1 requirements: 30 total
-- Mapped to phases: 30
+- v1 requirements: 32 total
+- Mapped to phases: 32
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-10-01*
-*Updated: 2026-10-02 (Added requirements for Studio, Staff, Admin portals)*
+*Updated: 2026-10-05 (Added STUDIO-05 + STAFF-05: post-publish edit workflow with staff approval gate)*

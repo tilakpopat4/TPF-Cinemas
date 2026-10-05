@@ -16,7 +16,7 @@ Deliver a complete cinematic streaming and management ecosystem:
 - [x] **Phase 4: Dynamic Content Rails & Ranked Lists** - "Continue Watching" rail with watched-progress bars from `watch_history`, "Top 10 in India" ranked badges, and smooth horizontal scrolling rails.
 - [ ] **Phase 5: Discovery Filter Chips & Polish** - Sticky category and language filter bar (Telugu, Hindi, Tamil, Short Films, Feature Films), instant search filtering, and mobile responsive touch polish.
 - [x] **Phase 6: Filmmaker Studio & Submission Pipeline** - Creator onboarding, multi-step submission wizard, media uploads & video preview validation, digital licence signing, and submission dashboard with revision tracking.
-- [ ] **Phase 7: Staff Curation Console & Moderation Queue** - Realtime submission review queue, screening preview player, curator decision box (`review_film` RPC with mandatory feedback notes), licence verification (`verify_licence` RPC), and one-click publishing (`publish_film` RPC).
+- [x] **Phase 7: Staff Curation Console & Moderation Queue** - Realtime submission review queue, screening preview player, curator decision box (`review_film` RPC), licence verification (`verify_licence` RPC), one-click publishing (`publish_film` RPC), and post-publish edit approval workflow (`propose_film_update` / `apply_film_update` / `reject_film_update` RPCs) with field-by-field diff view for staff and "Edit Published Film" flow for creators.
 - [ ] **Phase 8: Admin Governance, Roles & Audit Logging** - Platform role management (`set_user_role` RPC with self-demote safety checks), searchable real-time audit log stream, and emergency film takedown (`takedown_film` RPC) & featured toggles (`feature_film` RPC).
 
 ## Phase Details
@@ -115,20 +115,22 @@ Plans:
 - [x] 06-02: Connect creator dashboard with status tabs, feedback modal, film stats, and revision re-submission flow.
 
 ### Phase 7: Staff Curation Console & Moderation Queue
-**Goal**: Empower curators in `apps/staff` to review submitted films, screening playback, verify licences, provide mandatory feedback, and publish approved titles.
+**Goal**: Empower curators in `apps/staff` to review submitted films, screening playback, verify licences, provide mandatory feedback, and publish approved titles. Also handles the post-publish edit approval workflow — creators can propose metadata/media changes to live films which must be reviewed and approved before going live.
 **Depends on**: Phase 6
-**Requirements**: STAFF-01, STAFF-02, STAFF-03, STAFF-04
+**Requirements**: STUDIO-05, STAFF-01, STAFF-02, STAFF-03, STAFF-04, STAFF-05
 **Success Criteria** (what must be TRUE):
   1. Staff dashboard displays live submission queue with realtime status filters (`submitted`, `changes_requested`, `approved`, `published`).
   2. Inspection modal features embedded video player for staff screening alongside complete metadata, credits, and director notes.
   3. Decision engine executes `review_film()` RPC enforcing mandatory feedback notes for "changes requested" or "rejected".
   4. Curators can inspect music clearance and execute `verify_licence()` RPC.
   5. Approved films can be published to the catalog using `publish_film()` RPC with webhook cache invalidation.
+  6. Creator can propose edits to a published film via `propose_film_update()` RPC — the live record is frozen until staff decide. Creator dashboard shows a "Pending Update" badge.
+  7. Staff Pending Updates tab shows a side-by-side diff of proposed vs. live fields; curator can approve (`apply_film_update()` RPC — merges to live) or reject with mandatory feedback notes (notifies creator via dashboard).
 **Plans**: 2 plans
 
 Plans:
 - [ ] 07-01: Build and verify review queue table, status filters, realtime subscriptions, and screening inspection modal.
-- [ ] 07-02: Connect curator decision engine (`review_film`, `verify_licence`, `publish_film` RPCs) with mandatory feedback validation and error handling.
+- [ ] 07-02: Connect curator decision engine (`review_film`, `verify_licence`, `publish_film` RPCs) with mandatory feedback validation and error handling. Add Pending Updates tab with diff view and `propose_film_update` / `apply_film_update` RPCs (creator-side edit gating + staff approval).
 
 ### Phase 8: Admin Governance, Roles & Audit Logging
 **Goal**: Provide platform administrators in `apps/staff` with RBAC role management, platform audit logging, and global content controls (takedowns & featured toggles).
@@ -168,4 +170,4 @@ Plans:
 
 ---
 *Roadmap defined: 2026-10-01*
-*Updated: 2026-10-02 (Added Phases 6, 7, 8 for Studio, Staff, Admin portals; Phase 9 for Creator Legal Framework)*
+*Updated: 2026-10-05 (Phase 7 extended with post-publish edit approval workflow — STUDIO-05 + STAFF-05)*

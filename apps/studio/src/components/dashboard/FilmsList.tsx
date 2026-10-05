@@ -14,11 +14,13 @@ import {
   FileCheck2,
   Lock,
   AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 import { Film } from '../../types';
 import { formatDuration, formatDate } from '../../lib/utils';
 import { supabase } from '../../lib/supabase';
 import { RightsUndertakingModal } from '../legal/RightsUndertakingModal';
+import { ProposeUpdateModal } from '../editor/ProposeUpdateModal';
 
 interface FilmsListProps {
   films: Film[];
@@ -38,6 +40,7 @@ export const FilmsList: React.FC<FilmsListProps> = ({
   const [submittingId, setSubmittingId] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [rightsModalFilm, setRightsModalFilm] = useState<Film | null>(null);
+  const [proposeUpdateFilm, setProposeUpdateFilm] = useState<Film | null>(null);
 
   // Filter by search query
   const filteredFilms = films.filter((f) => {
@@ -125,6 +128,13 @@ export const FilmsList: React.FC<FilmsListProps> = ({
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-rose-500/10 text-rose-400">
             Rejected
+          </span>
+        );
+      case 'update_pending':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/25">
+            <RefreshCw className="h-3 w-3 animate-spin" style={{ animationDuration: '3s' }} />
+            Pending Staff Review
           </span>
         );
       default:
@@ -329,7 +339,7 @@ export const FilmsList: React.FC<FilmsListProps> = ({
                   {/* Bottom Action Footer */}
                   <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      {/* Edit Button */}
+                      {/* Edit Button — draft or changes_requested */}
                       {(film.status === 'draft' || film.status === 'changes_requested') && (
                         <button
                           onClick={() => onEdit(film)}
@@ -338,6 +348,26 @@ export const FilmsList: React.FC<FilmsListProps> = ({
                           <Edit3 className="h-3.5 w-3.5" />
                           <span>Edit</span>
                         </button>
+                      )}
+
+                      {/* Edit Published Film — propose update flow */}
+                      {film.status === 'published' && (
+                        <button
+                          onClick={() => setProposeUpdateFilm(film)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/25 transition-colors"
+                          title="Propose changes to this published film for curator review"
+                        >
+                          <RefreshCw className="h-3.5 w-3.5" />
+                          <span>Edit Published Film</span>
+                        </button>
+                      )}
+
+                      {/* Pending Staff Review — update already submitted */}
+                      {film.status === 'update_pending' && (
+                        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/5 text-amber-400/70 border border-amber-500/20 cursor-default">
+                          <RefreshCw className="h-3 w-3" style={{ animationDuration: '3s' }} />
+                          <span>Edit Pending Review</span>
+                        </span>
                       )}
 
                       {/* Curator Feedback Button */}
@@ -490,6 +520,18 @@ export const FilmsList: React.FC<FilmsListProps> = ({
         <RightsUndertakingModal
           film={rightsModalFilm}
           onClose={() => setRightsModalFilm(null)}
+        />
+      )}
+
+      {/* Propose Update Modal — for editing published films */}
+      {proposeUpdateFilm && (
+        <ProposeUpdateModal
+          film={proposeUpdateFilm}
+          onClose={() => setProposeUpdateFilm(null)}
+          onSuccess={() => {
+            setProposeUpdateFilm(null);
+            onRefresh();
+          }}
         />
       )}
     </div>

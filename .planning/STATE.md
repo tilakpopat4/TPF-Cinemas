@@ -5,8 +5,8 @@ current_phase_name: Filmmaker Studio & Submission Pipeline
 status: executing
 stopped_at: Phase 9 context gathered
 last_updated: "2026-10-02T09:27:55.770Z"
-last_activity: 2026-10-02
-last_activity_desc: Executed 06-01 and 06-02 for Phase 6 (Submission wizard validation, poster upload & YouTube stream screening preview, digital licence agreement signing, creator dashboard status tabs, and review history revision flow).
+last_activity: 2026-10-05
+last_activity_desc: Captured new requirement — post-publish edit workflow (STUDIO-05 + STAFF-05). Creators can propose edits to published films; live record unchanged until staff approve via apply_film_update() RPC. Assigned to Phase 7.
 state_head: ee6756812abaa3fdc5c8c351224f537ddd508847
 progress:
   total_phases: 9
@@ -68,6 +68,8 @@ Progress: [██████░░░░] 56%
 - [Phase 6]: YouTube Shorts URLs (/shorts/VIDEO_ID) supported in video link extractor alongside standard watch and youtu.be links.
 - [Phase 6]: Pre-submission client validation verifies poster, video, and music clearance declaration before calling submit_film RPC.
 - [Phase 6]: FeedbackModal sorts reviews chronologically (latest first) and provides expandable history of prior curation review rounds.
+- [Phase 7 — PRE-PLAN]: Post-publish edit workflow — creators propose metadata/media edits to a published film via `propose_film_update()` RPC. Live record is frozen (`update_pending`) until staff approve via `apply_film_update()` RPC or reject with mandatory feedback. Creator dashboard shows a "Pending Update" badge; staff see a field-by-field diff in a dedicated Pending Updates tab.
+
 
 ### Pending Todos
 

@@ -23,8 +23,10 @@ import {
   Lock,
   Unlock,
   Flag,
+  RefreshCw,
+  ArrowRight,
 } from 'lucide-react';
-import { Film } from '../../types';
+import { Film, FilmUpdate } from '../../types';
 import { extractYouTubeId, formatDuration, formatDate } from '../../lib/utils';
 import { DecisionBox } from './DecisionBox';
 import { supabase } from '../../lib/supabase';
@@ -47,7 +49,9 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
   const f = film;
   const reduced = useReducedMotion();
 
-  const [activeTab, setActiveTab] = useState<'decision' | 'media' | 'licence' | 'ip_hold'>('decision');
+  const [activeTab, setActiveTab] = useState<'decision' | 'media' | 'licence' | 'ip_hold' | 'changes'>(
+    f.status === 'update_pending' ? 'changes' : 'decision'
+  );
   const [verifyingLicence, setVerifyingLicence] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [featuring, setFeaturing] = useState(false);
@@ -56,6 +60,30 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
   const [holdReason, setHoldReason] = useState(f.ip_hold_reason || '');
   const [actionError, setActionError] = useState<string | null>(null);
   const [showRightsDeed, setShowRightsDeed] = useState(false);
+
+  // Pending update state (for update_pending films)
+  const [pendingUpdate, setPendingUpdate] = useState<FilmUpdate | null>(null);
+  const [loadingUpdate, setLoadingUpdate] = useState(false);
+  const [updateNotes, setUpdateNotes] = useState('');
+  const [applyingUpdate, setApplyingUpdate] = useState(false);
+  const [rejectingUpdate, setRejectingUpdate] = useState(false);
+  const [updateError, setUpdateError] = useState<string | null>(null);
+
+  // Auto-fetch the pending update when the film is update_pending
+  React.useEffect(() => {
+    if (f.status !== 'update_pending') return;
+    setLoadingUpdate(true);
+    supabase
+      .from('film_updates')
+      .select('*')
+      .eq('film_id', f.id)
+      .eq('status', 'pending')
+      .maybeSingle()
+      .then(({ data, error: err }) => {
+        if (!err && data) setPendingUpdate(data as FilmUpdate);
+        setLoadingUpdate(false);
+      });
+  }, [f.id, f.status]);
 
   const videoId = extractYouTubeId(f.video_ref);
   const licence = f.licence_agreements;
@@ -407,6 +435,21 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                   )}
                 </button>
               )}
+              {/* Proposed Changes tab — only for update_pending films */}
+              {f.status === 'update_pending' && (
+                <button
+                  onClick={() => setActiveTab('changes')}
+                  className={`flex-1 py-3 text-xs font-bold transition-all border-b-2 ${
+                    activeTab === 'changes'
+                      ? 'border-amber-400 text-amber-300 bg-amber-500/5'
+                      : 'border-transparent text-amber-500/70 hover:text-amber-300'
+                  }`}
+                >
+                  <span className="flex items-center justify-center gap-1.5">
+                    <RefreshCw className="h-3.5 w-3.5" /> Proposed Changes
+                  </span>
+                </button>
+              )}
             </div>
 
             {/* Tab Contents */}
@@ -496,6 +539,146 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                           </div>
                         ))}
                       </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tab: Proposed Changes (update_pending) */}
+              {activeTab === 'changes' && (
+                <div className="space-y-5 animate-fade-in">
+                  <div className="flex items-center gap-2 text-amber-400">
+                    <RefreshCw className="h-4 w-4" />
+                    <h4 className="text-sm font-bold">Creator's Proposed Edit</h4>
+                  </div>
+                  <p className="text-xs text-zinc-400 leading-relaxed">
+                    The creator has submitted changes to this published film. The live version is
+                    unchanged until you approve. Review each field carefully.
+                  </p>
+
+                  {updateError && (
+                    <div className="p-3 bg-rose-950/40 border border-rose-500/30 rounded-xl text-xs text-rose-300 flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4 shrink-0" />
+                      <span>{updateError}</span>
+                    </div>
+                  )}
+
+                  {loadingUpdate ? (
+                    <div className="flex items-center justify-center py-10">
+                      <Loader2 className="h-6 w-6 animate-spin text-amber-400" />
+                    </div>
+                  ) : pendingUpdate ? (
+                    <div className="space-y-4">
+                      {/* Field-by-field diff */}
+                      <div className="rounded-xl border border-white/10 overflow-hidden">
+                        <div className="grid grid-cols-2 text-[10px] font-mono uppercase tracking-wider text-zinc-500 bg-white/[0.03] border-b border-white/10">
+                          <div className="px-3 py-2 border-r border-white/10">Current Live Value</div>
+                          <div className="px-3 py-2 text-amber-400/70">Proposed Value</div>
+                        </div>
+                        {Object.entries(pendingUpdate.proposed_changes).map(([field, newVal]) => {
+                          const liveVal = (f as unknown as Record<string, unknown>)[field];
+                          const isImage = field === 'poster_url';
+                          return (
+                            <div key={field} className="grid grid-cols-2 text-xs border-b border-white/[0.06] last:border-b-0">
+                              <div className="px-3 py-3 border-r border-white/10">
+                                <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-mono mb-1">{field.replace(/_/g, ' ')}</p>
+                                {isImage ? (
+                                  <div className="w-16 h-20 rounded overflow-hidden bg-black/40">
+                                    {liveVal ? <img src={String(liveVal)} alt="current" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-zinc-700 text-[9px]">None</div>}
+                                  </div>
+                                ) : (
+                                  <p className="text-zinc-300 line-clamp-3">{liveVal !== null && liveVal !== undefined ? String(liveVal) : <span className="text-zinc-600 italic">empty</span>}</p>
+                                )}
+                              </div>
+                              <div className="px-3 py-3 bg-amber-500/[0.03]">
+                                <p className="text-[10px] text-amber-500/60 uppercase tracking-wider font-mono mb-1">→ New</p>
+                                {isImage ? (
+                                  <div className="w-16 h-20 rounded overflow-hidden bg-black/40">
+                                    {newVal ? <img src={String(newVal)} alt="proposed" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-zinc-700 text-[9px]">None</div>}
+                                  </div>
+                                ) : (
+                                  <p className="text-amber-200 line-clamp-3">{newVal !== null && newVal !== undefined ? String(newVal) : <span className="text-zinc-600 italic">empty</span>}</p>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Notes field */}
+                      <div className="form-group">
+                        <label className="form-label text-[11px]">
+                          Curator Notes <span className="text-zinc-500 font-normal">(optional for approval, required for rejection)</span>
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={updateNotes}
+                          onChange={(e) => setUpdateNotes(e.target.value)}
+                          placeholder="Explain your decision or provide feedback to the creator..."
+                          className="form-textarea text-xs"
+                        />
+                      </div>
+
+                      {/* Action buttons */}
+                      <div className="flex gap-3">
+                        <button
+                          onClick={async () => {
+                            setUpdateError(null);
+                            setApplyingUpdate(true);
+                            try {
+                              const { error: err } = await supabase.rpc('apply_film_update', {
+                                p_update_id: pendingUpdate.id,
+                                p_notes: updateNotes.trim() || null,
+                              });
+                              if (err) throw err;
+                              onActionComplete();
+                            } catch (err) {
+                              setUpdateError((err as Error).message);
+                            } finally {
+                              setApplyingUpdate(false);
+                            }
+                          }}
+                          disabled={applyingUpdate || rejectingUpdate}
+                          className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+                        >
+                          {applyingUpdate ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                          Apply Changes
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (!updateNotes.trim() || updateNotes.trim().length < 10) {
+                              setUpdateError('Rejection notes must be at least 10 characters.');
+                              return;
+                            }
+                            setUpdateError(null);
+                            setRejectingUpdate(true);
+                            try {
+                              const { error: err } = await supabase.rpc('reject_film_update', {
+                                p_update_id: pendingUpdate.id,
+                                p_notes: updateNotes.trim(),
+                              });
+                              if (err) throw err;
+                              onActionComplete();
+                            } catch (err) {
+                              setUpdateError((err as Error).message);
+                            } finally {
+                              setRejectingUpdate(false);
+                            }
+                          }}
+                          disabled={applyingUpdate || rejectingUpdate}
+                          className="flex-1 py-2.5 px-4 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+                        >
+                          {rejectingUpdate ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-3.5 w-3.5" />}
+                          Reject Edit
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-zinc-600 text-center">
+                        Approving merges the changes to the live film. Rejecting restores live status with your feedback visible to the creator.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="py-10 text-center text-zinc-500 text-xs">
+                      No pending update found for this film.
                     </div>
                   )}
                 </div>

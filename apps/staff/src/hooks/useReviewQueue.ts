@@ -87,6 +87,13 @@ export function useReviewQueue(isStaff: boolean) {
           fetchQueue();
         }
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'film_updates' },
+        () => {
+          fetchQueue();
+        }
+      )
       .subscribe();
 
     return () => {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Film as FilmIcon, Eye, CheckCircle2, Clock, AlertTriangle, FileCheck2, ArrowRight, Lock } from 'lucide-react';
+import { Search, Film as FilmIcon, Eye, CheckCircle2, Clock, AlertTriangle, FileCheck2, ArrowRight, Lock, RefreshCw } from 'lucide-react';
 import { Film } from '../../types';
 import { formatDuration, formatDate } from '../../lib/utils';
 
@@ -10,7 +10,7 @@ interface QueueTableProps {
 
 export const QueueTable: React.FC<QueueTableProps> = ({ films, onSelectFilm }) => {
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'submitted' | 'approved' | 'published' | 'changes_requested' | 'rejected' | 'all'>('submitted');
+  const [statusFilter, setStatusFilter] = useState<'submitted' | 'approved' | 'published' | 'changes_requested' | 'rejected' | 'update_pending' | 'all'>('submitted');
 
   // Filtered list
   const filtered = films.filter((f) => {
@@ -36,6 +36,7 @@ export const QueueTable: React.FC<QueueTableProps> = ({ films, onSelectFilm }) =
   const approvedCount = films.filter((f) => f.status === 'approved').length;
   const publishedCount = films.filter((f) => f.status === 'published').length;
   const changesCount = films.filter((f) => f.status === 'changes_requested').length;
+  const updatePendingCount = films.filter((f) => f.status === 'update_pending').length;
 
   const getStatusBadge = (status: string, ipHold?: boolean) => {
     if (ipHold) {
@@ -47,6 +48,13 @@ export const QueueTable: React.FC<QueueTableProps> = ({ films, onSelectFilm }) =
       );
     }
     switch (status) {
+      case 'update_pending':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <RefreshCw className="h-3 w-3" />
+            Pending Update
+          </span>
+        );
       case 'published':
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-emerald-500/10 text-emerald-400">
@@ -93,7 +101,7 @@ export const QueueTable: React.FC<QueueTableProps> = ({ films, onSelectFilm }) =
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Top Curation KPI Overview */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Needs Review */}
         <div
           onClick={() => setStatusFilter('submitted')}
@@ -177,6 +185,26 @@ export const QueueTable: React.FC<QueueTableProps> = ({ films, onSelectFilm }) =
           <p className="mt-2 text-2xl sm:text-3xl font-black text-ivory font-display">{changesCount}</p>
           <span className="text-[11px] text-muted mt-0.5 block">Sent back with curator notes</span>
         </div>
+        {/* Pending Updates */}
+        <div
+          onClick={() => setStatusFilter('update_pending')}
+          className={`cursor-pointer rounded-2xl border p-4 transition-all ${
+            statusFilter === 'update_pending'
+              ? 'border-amber-500/40 bg-amber-500/10 shadow-lg'
+              : 'border-white/[0.08] bg-[#0E1015] hover:border-white/20'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-400 font-mono">
+              Pending Updates
+            </span>
+            <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400">
+              <RefreshCw className="h-3.5 w-3.5" />
+            </div>
+          </div>
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-ivory font-display">{updatePendingCount}</p>
+          <span className="text-[11px] text-muted mt-0.5 block">Creator edits awaiting approval</span>
+        </div>
       </div>
 
       {/* Toolbar: Search & Filter Tabs */}
@@ -232,6 +260,23 @@ export const QueueTable: React.FC<QueueTableProps> = ({ films, onSelectFilm }) =
             }`}
           >
             In Revision ({changesCount})
+          </button>
+
+          <button
+            onClick={() => setStatusFilter('update_pending')}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all flex items-center gap-2 ${
+              statusFilter === 'update_pending'
+                ? 'bg-amber-500/15 text-amber-300 shadow-sm border border-amber-500/20'
+                : 'text-muted hover:text-ivory hover:bg-white/[0.04]'
+            }`}
+          >
+            <RefreshCw className="h-3 w-3" />
+            <span>Pending Updates</span>
+            {updatePendingCount > 0 && (
+              <span className="rounded-full bg-amber-500 text-black px-1.5 py-0.2 text-[10px] font-mono font-bold">
+                {updatePendingCount}
+              </span>
+            )}
           </button>
 
           <button

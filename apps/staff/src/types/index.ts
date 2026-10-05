@@ -7,7 +7,8 @@ export type FilmStatus =
   | 'approved'
   | 'published'
   | 'rejected'
-  | 'archived';
+  | 'archived'
+  | 'update_pending';
 
 export type VideoProvider = 'youtube' | 'mux';
 export type ReviewDecision = 'approved' | 'changes_requested' | 'rejected';
@@ -117,4 +118,22 @@ export interface AuditLogItem {
     display_name: string;
     role: AppRole;
   };
+}
+
+export interface FilmUpdate {
+  id: string;
+  film_id: string;
+  filmmaker_id: string;
+  /** Only the changed fields (diff against live record) */
+  proposed_changes: Record<string, unknown>;
+  status: 'pending' | 'approved' | 'rejected';
+  reviewer_id: string | null;
+  reviewer_notes: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  /** Joined film snapshot (id, title, slug, poster_url, status, language, runtime_minutes) */
+  film?: Pick<Film, 'id' | 'title' | 'slug' | 'poster_url' | 'status' | 'language' | 'runtime_minutes'>;
+  /** Joined filmmaker profile */
+  filmmaker?: Pick<Profile, 'id' | 'display_name' | 'avatar_url'>;
 }

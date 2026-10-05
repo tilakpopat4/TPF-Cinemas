@@ -7,7 +7,9 @@ export type FilmStatus =
   | 'approved'
   | 'published'
   | 'rejected'
-  | 'archived';
+  | 'archived'
+  | 'update_pending';
+
 
 export type VideoProvider = 'youtube' | 'mux';
 export type ReviewDecision = 'approved' | 'changes_requested' | 'rejected';
