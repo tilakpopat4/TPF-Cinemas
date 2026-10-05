@@ -7,9 +7,11 @@ import {
   AlertCircle,
   Check,
   Info,
+  Play,
 } from 'lucide-react';
 import { Film, AgeRating } from '../../types';
 import { supabase } from '../../lib/supabase';
+import { extractYouTubeId } from '../../lib/utils';
 
 interface ProposeUpdateModalProps {
   film: Film;
@@ -28,6 +30,7 @@ type EditableFields = {
   age_rating: AgeRating | '';
   poster_url: string;
   video_ref: string;
+  trailer_ref: string;
 };
 
 const AGE_RATINGS: AgeRating[] = ['U', 'UA7+', 'UA13+', 'UA16+', 'A'];
@@ -42,6 +45,7 @@ const FIELD_LABELS: Record<keyof EditableFields, string> = {
   age_rating: 'Age Rating (OTT)',
   poster_url: 'Portrait Poster URL',
   video_ref: 'Video Reference',
+  trailer_ref: 'Trailer Link',
 };
 
 export const ProposeUpdateModal: React.FC<ProposeUpdateModalProps> = ({
@@ -60,6 +64,7 @@ export const ProposeUpdateModal: React.FC<ProposeUpdateModalProps> = ({
     age_rating: film.age_rating ?? '',
     poster_url: film.poster_url ?? '',
     video_ref: film.video_ref ?? '',
+    trailer_ref: film.trailer_ref ?? '',
   };
 
   const [fields, setFields] = useState<EditableFields>(initial);
@@ -104,6 +109,10 @@ export const ProposeUpdateModal: React.FC<ProposeUpdateModalProps> = ({
         proposed[key] = val === '' ? null : parseInt(val as string, 10);
       } else if (key === 'age_rating') {
         proposed[key] = val === '' ? null : val;
+      } else if (key === 'video_ref' || key === 'trailer_ref') {
+        // Extract YouTube ID if a full URL is pasted
+        const raw = (val as string).trim();
+        proposed[key] = raw ? (extractYouTubeId(raw) ?? raw) : null;
       } else {
         proposed[key] = val === '' ? null : val;
       }
@@ -348,6 +357,29 @@ export const ProposeUpdateModal: React.FC<ProposeUpdateModalProps> = ({
                   className={`form-input text-sm ${isChanged('video_ref') ? 'border-amber-500/50 bg-amber-500/5' : ''}`}
                 />
               </div>
+
+              {/* Trailer Ref */}
+              <div className="form-group">
+                <label className="form-label text-[11px] flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Play className="h-3 w-3 text-zinc-500" />
+                    <span>{FIELD_LABELS.trailer_ref}</span>
+                    <span className="text-zinc-600 font-normal">(optional)</span>
+                  </div>
+                  {isChanged('trailer_ref') && <span className="text-amber-400 text-[10px] font-bold">Modified</span>}
+                </label>
+                <input
+                  type="text"
+                  value={fields.trailer_ref}
+                  onChange={(e) => updateField('trailer_ref', e.target.value)}
+                  placeholder="YouTube trailer URL or ID (optional)"
+                  className={`form-input text-sm ${isChanged('trailer_ref') ? 'border-amber-500/50 bg-amber-500/5' : ''}`}
+                />
+                <p className="mt-1 text-[10px] text-zinc-600">
+                  Paste a full YouTube URL or just the video ID. Used for hover previews on the viewer site.
+                </p>
+              </div>
+
 
               {/* Changed fields summary */}
               {hasChanges && (
