@@ -26,14 +26,18 @@ export const CinematicPlayerEngine: React.FC<CinematicPlayerEngineProps> = ({
   const videoId = extractYouTubeId(film.video_ref);
   const isDirectVideo = film.video_provider === 'mux' || film.video_ref?.match(/\.(mp4|webm|m3u8)($|\?)/i);
 
-  // Register iframe or video element with controller
+  // Freeze initial start offset on mount so the iframe src remains constant and NEVER reloads during playback
+  const initialStartRef = useRef(initialProgressSeconds || 0);
+
+  // Register iframe or video element with controller once on mount
   useEffect(() => {
     if (isDirectVideo && videoRef.current) {
       controller.registerVideoElement(videoRef.current);
     } else if (iframeRef.current) {
       controller.registerIframe(iframeRef.current);
     }
-  }, [isDirectVideo, controller]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDirectVideo]);
 
   // Click vs Double-click gesture handler for video canvas
   const handleOverlayClick = () => {
@@ -66,7 +70,7 @@ export const CinematicPlayerEngine: React.FC<CinematicPlayerEngineProps> = ({
         <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
           <iframe
             ref={iframeRef}
-            src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1&enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}&start=${initialProgressSeconds || 0}`}
+            src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1&enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}&start=${initialStartRef.current}`}
             title={film.title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             className="w-full h-full border-none pointer-events-none scale-[1.04]"

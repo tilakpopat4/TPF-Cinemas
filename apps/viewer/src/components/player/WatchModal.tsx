@@ -185,11 +185,28 @@ export const WatchModal: React.FC<WatchModalProps> = ({
     toggleFullscreen,
   ]);
 
+  const lastRecordedTimeRef = useRef(initialProgressSeconds || 0);
+  const currentTimeRef = useRef(controller.currentTime);
+  currentTimeRef.current = controller.currentTime;
+
+  // Throttle progress updates to at most once every 15 seconds
   useEffect(() => {
-    if (onRecordProgress && controller.currentTime > 5) {
-      onRecordProgress(film.id, Math.round(controller.currentTime));
+    if (!onRecordProgress || controller.currentTime < 5) return;
+    const current = Math.round(controller.currentTime);
+    if (Math.abs(current - lastRecordedTimeRef.current) >= 15) {
+      lastRecordedTimeRef.current = current;
+      onRecordProgress(film.id, current);
     }
   }, [film.id, controller.currentTime, onRecordProgress]);
+
+  // Flush final progress when player is closed/unmounted
+  useEffect(() => {
+    return () => {
+      if (onRecordProgress && currentTimeRef.current > 5) {
+        onRecordProgress(film.id, Math.round(currentTimeRef.current));
+      }
+    };
+  }, [film.id, onRecordProgress]);
 
   return createPortal(
     <div
