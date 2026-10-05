@@ -45,7 +45,8 @@ export const App: React.FC = () => {
   const filteredFilms = films.filter((f) => {
     if (filterTab === 'drafts') return f.status === 'draft' || f.status === 'changes_requested';
     if (filterTab === 'review') return f.status === 'submitted' || f.status === 'approved';
-    if (filterTab === 'published') return f.status === 'published';
+    // update_pending = still live, just awaiting edit approval
+    if (filterTab === 'published') return f.status === 'published' || f.status === 'update_pending';
     return true;
   });
 
@@ -119,7 +120,7 @@ export const App: React.FC = () => {
                       : 'text-muted hover:text-ivory hover:bg-white/[0.04]'
                   }`}
                 >
-                  Live ({films.filter((f) => f.status === 'published').length})
+                  Live ({films.filter((f) => f.status === 'published' || f.status === 'update_pending').length})
                 </button>
               </div>
 
