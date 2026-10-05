@@ -31,7 +31,6 @@ export function useCatalogue() {
           )
         `)
         .eq('status', 'published')
-        .eq('ip_hold', false)
         .order('published_at', { ascending: false });
 
       if (filmsErr) throw filmsErr;
@@ -48,7 +47,10 @@ export function useCatalogue() {
         setGenres(genresData as Genre[]);
       }
 
-      const published = (filmsData as unknown as Film[]) ?? [];
+      // Filter out any films marked on IP hold (gracefully handles environments where column is absent)
+      const published = ((filmsData as unknown as Film[]) ?? []).filter(
+        (film) => !film.ip_hold
+      );
       setFilms(published);
     } catch (err) {
       console.error('Catalogue load error:', err);
