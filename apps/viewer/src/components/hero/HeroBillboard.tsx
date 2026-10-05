@@ -76,7 +76,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
       ref={containerRef}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className="relative w-full h-[82vh] min-h-[580px] max-h-[860px] overflow-hidden bg-canvas select-none"
+      className="relative w-full aspect-[16/9] min-h-[460px] sm:min-h-0 max-h-[88vh] overflow-hidden bg-canvas select-none"
     >
       {/* Background Media — Still Poster Art ONLY, Zero Autoplay Video */}
       <AnimatePresence mode="wait">
@@ -87,72 +87,90 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
           animate={{ opacity: 1, transition: { duration: 0.8, ease: [0.25, 1, 0.5, 1] } }}
           exit={{ opacity: 0, transition: { duration: 0.4, ease: [0.25, 1, 0.5, 1] } }}
         >
-          {/* Still Backdrop Poster with Cinema Fidelity Lighting */}
+          {/* Ambient blurred backdrop layer for ultrawide monitors or ratio shifts */}
+          <img
+            src={
+              (currentFilm.backdrop_url || currentFilm.poster_url) ||
+              'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1600&auto=format&fit=crop'
+            }
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full object-cover filter blur-3xl opacity-30 scale-110 pointer-events-none"
+          />
+
+          {/* Still 16:9 Cinema Poster Artwork (100% Fidelity, No Cropping of Titles/Artwork) */}
           <img
             src={
               (currentFilm.backdrop_url || currentFilm.poster_url) ||
               'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1600&auto=format&fit=crop'
             }
             alt={currentFilm.title}
-            className="w-full h-full object-cover object-center filter brightness-[0.85] transition-opacity duration-500 opacity-100"
+            className="relative w-full h-full object-contain sm:object-cover md:object-cover object-center filter brightness-100 transition-opacity duration-500 opacity-100"
           />
 
-          {/* Letterbox Mask & Layering (Canvas to Transparent Gradients) */}
-          <div className="absolute inset-0 bg-gradient-to-r from-canvas via-canvas/80 via-45% to-transparent z-[1]" />
-          <div className="absolute inset-0 bg-gradient-to-t from-canvas via-canvas/60 via-30% to-transparent z-[1]" />
+          {/* Subtle Vignettes ONLY: Soft bottom feathering into content rails, soft top feathering for navbar */}
+          {/* Note: Heavy left gradient is completely removed so poster's embedded typography remains vibrant and readable */}
+          <div className="absolute inset-x-0 bottom-0 h-36 sm:h-52 bg-gradient-to-t from-canvas via-canvas/60 via-40% to-transparent pointer-events-none z-[1]" />
+          <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-canvas/80 via-canvas/20 to-transparent pointer-events-none z-[1]" />
 
           {/* Film Grain Texture Overlay */}
-          <div className="absolute inset-0 film-grain pointer-events-none z-[2]" />
+          <div className="absolute inset-0 film-grain pointer-events-none z-[2] opacity-35" />
         </motion.div>
       </AnimatePresence>
 
       {/* Hero Content Container — Asymmetric Editorial Layout */}
-      <div className="relative z-10 max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-16 md:pb-20 pt-20">
+      <div className="relative z-10 max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-8 sm:pb-12 md:pb-14 pt-20">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentFilm.id}
-            className="max-w-2xl lg:max-w-3xl space-y-4"
+            className="max-w-2xl lg:max-w-3xl space-y-3"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 1, 0.5, 1], staggerChildren: 0.1 } }}
             exit={{ opacity: 0, y: -8, transition: { duration: 0.25, ease: [0.25, 1, 0.5, 1] } }}
           >
-            {/* Curatorial Header Stamp */}
-            <div className="flex items-center gap-3">
-              <div className="h-3.5 w-1 bg-signature" />
-              <span className="font-mono text-[10px] tracking-[0.24em] text-muted uppercase">
-                {customTagline || (currentFilm.is_debut ? 'Director Debut Spotlight' : 'Official Festival Selection')}
-              </span>
+            {/* Curatorial Header Stamp with frosted pill */}
+            <div className="flex flex-wrap items-center gap-2.5">
+              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 shadow-lg">
+                <div className="h-2 w-2 rounded-full bg-signature animate-pulse" />
+                <span className="font-mono text-[10px] tracking-[0.2em] text-ivory/90 uppercase font-semibold">
+                  {customTagline || (currentFilm.is_debut ? 'Director Debut Spotlight' : 'Official Festival Selection')}
+                </span>
+              </div>
 
               {currentFilm.profiles?.display_name && (
-                <>
-                  <span className="text-white/20">|</span>
-                  <span className="font-editorial italic text-xs sm:text-sm text-ivory/80">
-                    Directed by <strong className="text-ivory font-medium not-italic">{currentFilm.profiles.display_name}</strong>
-                  </span>
-                </>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-md border border-white/10 shadow-lg text-[11px] text-ivory/90 font-editorial italic">
+                  <span>Directed by</span>
+                  <strong className="text-white font-medium not-italic">{currentFilm.profiles.display_name}</strong>
+                </div>
               )}
             </div>
 
             {/* Architectural Metadata Badges */}
-            <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] text-muted tracking-wider">
-              <span className="px-2.5 py-0.5 rounded-md bg-white/[0.08] text-ivory">
+            <div className="flex flex-wrap items-center gap-1.5 font-mono text-[10px] text-muted tracking-wider">
+              <span className="px-2.5 py-0.5 rounded-md bg-black/50 backdrop-blur-md border border-white/10 text-ivory">
                 2.39:1 ANAMORPHIC
               </span>
 
-              <span className="px-2.5 py-0.5 rounded-md bg-white/[0.08] text-signature font-semibold">
-                {currentFilm.age_rating}
-              </span>
+              {currentFilm.age_rating && (
+                <span className="px-2.5 py-0.5 rounded-md bg-black/50 backdrop-blur-md border border-white/10 text-signature font-semibold">
+                  {currentFilm.age_rating}
+                </span>
+              )}
 
-              <span className="px-2.5 py-0.5 rounded-md bg-white/[0.08] text-muted">
-                {formatRuntime(currentFilm.runtime_minutes)}
-              </span>
+              {currentFilm.runtime_minutes && (
+                <span className="px-2.5 py-0.5 rounded-md bg-black/50 backdrop-blur-md border border-white/10 text-ivory/80">
+                  {formatRuntime(currentFilm.runtime_minutes)}
+                </span>
+              )}
 
-              <span className="px-2.5 py-0.5 rounded-md bg-white/[0.08] text-muted">
-                {currentFilm.release_year}
-              </span>
+              {currentFilm.release_year && (
+                <span className="px-2.5 py-0.5 rounded-md bg-black/50 backdrop-blur-md border border-white/10 text-ivory/80">
+                  {currentFilm.release_year}
+                </span>
+              )}
 
               {currentFilm.language && (
-                <span className="px-2.5 py-0.5 rounded-md bg-white/[0.08] text-muted uppercase">
+                <span className="px-2.5 py-0.5 rounded-md bg-black/50 backdrop-blur-md border border-white/10 text-ivory/80 uppercase">
                   {currentFilm.language}
                 </span>
               )}
@@ -165,7 +183,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
                       key={fg.genre_id}
                       type="button"
                       onClick={() => onSelectGenre?.(fg.genres?.slug || '')}
-                      className="px-2.5 py-0.5 rounded-md bg-white/[0.06] hover:bg-white/[0.12] text-muted hover:text-ivory transition-colors"
+                      className="px-2.5 py-0.5 rounded-md bg-black/50 backdrop-blur-md border border-white/10 hover:border-signature/40 text-ivory/80 hover:text-white transition-colors"
                     >
                       {fg.genres?.name}
                     </button>
@@ -174,17 +192,19 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
               )}
             </div>
 
-            {/* Synopsis */}
-            <p className="font-sans text-xs sm:text-sm text-ivory/80 max-w-xl leading-[1.6] line-clamp-3">
-              {currentFilm.synopsis}
-            </p>
+            {/* Synopsis (Only rendered if substantive, avoids placeholder letters) */}
+            {currentFilm.synopsis && currentFilm.synopsis.trim().length > 3 && (
+              <p className="font-sans text-xs sm:text-sm text-ivory/90 max-w-xl leading-[1.6] line-clamp-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
+                {currentFilm.synopsis}
+              </p>
+            )}
 
             {/* Action Buttons: Seamless Cinema UI with Generous Fitting */}
-            <div className="flex flex-wrap items-center gap-3 pt-3">
+            <div className="flex flex-wrap items-center gap-3 pt-1">
               {/* Option 1: Watch Movie (Primary) */}
               <button
                 onClick={() => onPlay(currentFilm, 'movie')}
-                className="px-6 py-3 rounded-xl bg-signature hover:bg-signature-hover text-black font-bold text-xs uppercase tracking-wider transition-all duration-200 flex items-center gap-2.5 shadow-[0_4px_16px_rgba(0,0,0,0.5)] hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
+                className="px-6 py-3 rounded-xl bg-signature hover:bg-signature-hover text-black font-bold text-xs uppercase tracking-wider transition-all duration-200 flex items-center gap-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.6)] hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
                 title="Watch Full Feature Movie"
               >
                 <Play className="h-4 w-4 fill-current ml-0.5 shrink-0" />
@@ -194,7 +214,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
               {/* Option 2: Watch Trailer (Secondary) */}
               <button
                 onClick={() => onPlay(currentFilm, 'trailer')}
-                className="px-5 py-3 rounded-xl bg-white/[0.08] hover:bg-white/[0.16] text-ivory hover:text-white font-medium text-xs uppercase tracking-wider transition-all duration-200 flex items-center gap-2 backdrop-blur-md hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
+                className="px-5 py-3 rounded-xl bg-black/60 hover:bg-black/80 border border-white/15 text-ivory hover:text-white font-medium text-xs uppercase tracking-wider transition-all duration-200 flex items-center gap-2 backdrop-blur-md hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap shadow-lg"
                 title="Watch Official Trailer"
               >
                 <FilmIcon className="h-4 w-4 text-signature shrink-0" />
@@ -204,10 +224,10 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
               {/* Add to Queue / In Queue with Spacious Fitting & Balanced Padding */}
               <button
                 onClick={() => onToggleWatchlist(currentFilm.id)}
-                className={`px-5 py-3 rounded-xl text-xs uppercase tracking-wider font-semibold flex items-center gap-2 transition-all duration-200 backdrop-blur-md active:scale-95 whitespace-nowrap ${
+                className={`px-5 py-3 rounded-xl text-xs uppercase tracking-wider font-semibold flex items-center gap-2 transition-all duration-200 backdrop-blur-md active:scale-95 whitespace-nowrap shadow-lg border ${
                   inList
-                    ? 'bg-signature/15 text-signature hover:bg-signature/25'
-                    : 'bg-white/[0.08] hover:bg-white/[0.16] text-ivory hover:text-white'
+                    ? 'bg-signature/20 border-signature/40 text-signature hover:bg-signature/30'
+                    : 'bg-black/60 hover:bg-black/80 border-white/15 text-ivory hover:text-white'
                 }`}
                 title={inList ? 'Remove from Queue' : 'Add to Queue'}
               >
@@ -228,7 +248,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
               {onMoreInfo && (
                 <button
                   onClick={() => onMoreInfo(currentFilm)}
-                  className="px-4 py-3 rounded-xl text-muted hover:text-ivory text-xs uppercase tracking-wider flex items-center gap-2 bg-white/[0.04] hover:bg-white/[0.10] transition-all duration-200 backdrop-blur-md active:scale-95 whitespace-nowrap"
+                  className="px-4 py-3 rounded-xl text-ivory/80 hover:text-ivory text-xs uppercase tracking-wider flex items-center gap-2 bg-black/60 hover:bg-black/80 border border-white/15 transition-all duration-200 backdrop-blur-md active:scale-95 whitespace-nowrap shadow-lg"
                   title="Curatorial Notes & Credits"
                 >
                   <Info className="h-3.5 w-3.5 shrink-0" />
