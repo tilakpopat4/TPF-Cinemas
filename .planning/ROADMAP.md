@@ -167,6 +167,7 @@ Plans:
 Plans:
 - [x] 09-01: Build creator legal onboarding flow — dynamic agreement document, canvas signature widget, PDF generation, and Supabase Storage upload.
 - [x] 09-02: Extend Staff Console with Legal Verification tab — agreement status badge, signature preview, PDF download, and verify action with audit logging.
+- [x] 09-03: Comprehensive creator onboarding profile fields, Times New Roman legal document formatting, and embedding production/contact metadata in signature block.
 
 ---
 *Roadmap defined: 2026-10-01*
