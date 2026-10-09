@@ -9,6 +9,7 @@ export interface AgreementPdfOptions {
   ipAddress?: string;
   userAgent?: string;
   referenceCode?: string;
+  filmTitle?: string;
 }
 
 export interface GeneratedPdfResult {
@@ -21,12 +22,10 @@ export async function generateAgreementPdf(options: AgreementPdfOptions): Promis
   const {
     legalName,
     email,
-    filmType = 'all',
     signatureDataUrl,
     timestamp = new Date(),
-    ipAddress = 'Recorded via Secure Session',
-    userAgent = navigator.userAgent || 'Modern Web Browser',
-    referenceCode = `TPF-DEED-${Date.now().toString(36).toUpperCase()}-${timestamp.getFullYear()}`,
+    referenceCode = `TPF-CONSENT-${Date.now().toString(36).toUpperCase()}-${timestamp.getFullYear()}`,
+    filmTitle = 'All titles submitted via TPF Filmmaker Studio',
   } = options;
 
   const doc = new jsPDF({
@@ -37,9 +36,23 @@ export async function generateAgreementPdf(options: AgreementPdfOptions): Promis
 
   const pageWidth = 210;
   const pageHeight = 297;
-  const margin = 18;
+  const margin = 20;
   const contentWidth = pageWidth - margin * 2;
   let y = margin;
+
+  const formattedDate = timestamp.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+
+  const expiryDate = new Date(timestamp);
+  expiryDate.setFullYear(expiryDate.getFullYear() + 2);
+  const formattedExpiry = expiryDate.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
 
   // Helper for adding horizontal lines
   const drawHr = (currY: number, color = [40, 40, 40]) => {
@@ -50,7 +63,7 @@ export async function generateAgreementPdf(options: AgreementPdfOptions): Promis
 
   // Helper for page break check
   const ensureSpace = (neededHeight: number) => {
-    if (y + neededHeight > pageHeight - margin - 12) {
+    if (y + neededHeight > pageHeight - margin - 15) {
       doc.addPage();
       y = margin;
       renderPageHeader();
@@ -58,219 +71,217 @@ export async function generateAgreementPdf(options: AgreementPdfOptions): Promis
   };
 
   const renderPageHeader = () => {
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(120, 120, 120);
-    doc.text('TPF CINEMAS • OFFICIAL OTT DIGITAL DEED ARCHIVE', margin, y);
+    doc.setFont('times', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(100, 100, 100);
+    doc.text('TPF CINEMAS • NON-COMMERCIAL STREAMING RIGHTS CONSENT FORM', margin, y);
     doc.text(`REF: ${referenceCode}`, pageWidth - margin, y, { align: 'right' });
     y += 3;
     drawHr(y, [210, 210, 210]);
     y += 6;
   };
 
-  // --- PAGE 1: OFFICIAL LETTERHEAD ---
-  doc.setFont('times', 'bold');
-  doc.setFontSize(22);
-  doc.setTextColor(15, 15, 20);
-  doc.text('TPF CINEMAS', margin, y + 4);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
+  // Top ref line
+  doc.setFont('times', 'normal');
+  doc.setFontSize(8.5);
   doc.setTextColor(100, 100, 100);
-  doc.text('TILAK POPAT FILMS • OFFICIAL CURATORIAL OTT PLATFORM', margin, y + 9);
+  doc.text('TPF CINEMAS • OFFICIAL CURATORIAL OTT PLATFORM', margin, y + 2);
+  doc.text(`REF: ${referenceCode}`, pageWidth - margin, y + 2, { align: 'right' });
+  y += 5;
+  drawHr(y, [40, 40, 40]);
+  y += 9;
 
-  // Top right metadata box
-  doc.setFont('courier', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(30, 30, 30);
-  doc.text('FORM: TPF-OTT/DEED-2026/V1', pageWidth - margin, y + 3, { align: 'right' });
-  doc.text(`REF: ${referenceCode}`, pageWidth - margin, y + 7, { align: 'right' });
-  doc.setTextColor(16, 124, 65);
-  doc.text('IMMUTABLE LEGAL RECORD', pageWidth - margin, y + 11, { align: 'right' });
+  // Title: NON-COMMERCIAL STREAMING RIGHTS CONSENT FORM (16pt bold Times)
+  doc.setFont('times', 'bold');
+  doc.setFontSize(16);
+  doc.setTextColor(10, 10, 10);
+  doc.text('NON-COMMERCIAL STREAMING RIGHTS CONSENT FORM', pageWidth / 2, y, {
+    align: 'center',
+  });
+  y += 10;
 
-  y += 16;
-  drawHr(y, [20, 20, 20]);
-  y += 8;
+  // Date line
+  doc.setFont('times', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(20, 20, 20);
+  doc.text(`Date: ${formattedDate}`, margin, y);
+  y += 9;
 
-  // Title
+  // --- 1. Film Details ---
   doc.setFont('times', 'bold');
   doc.setFontSize(13);
-  doc.setTextColor(15, 15, 20);
-  doc.text('DEED OF DIGITAL STREAMING RIGHTS GRANT & IP SELF-DECLARATION', pageWidth / 2, y, {
-    align: 'center',
-  });
-  y += 5;
-
-  doc.setFont('helvetica', 'italic');
-  doc.setFontSize(8.5);
-  doc.setTextColor(90, 90, 90);
-  doc.text(
-    'Executed electronically under the Indian Copyright Act, 1957 & Information Technology Act, 2000',
-    pageWidth / 2,
-    y,
-    { align: 'center' }
-  );
-  y += 8;
-
-  // Scope pill
-  doc.setFillColor(245, 245, 247);
-  doc.roundedRect(margin, y, contentWidth, 7, 1.5, 1.5, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(40, 40, 40);
-  const scopeLabel =
-    filmType === 'short'
-      ? 'SCOPE: SHORT FILM RIGHTS GRANT (PRESERVES FESTIVAL & MARKET PREMIERES)'
-      : filmType === 'feature'
-      ? 'SCOPE: FEATURE FILM RIGHTS GRANT (NON-EXCLUSIVE OTT DISTRIBUTION)'
-      : 'SCOPE: UNIVERSAL FILMMAKER DIGITAL RIGHTS GRANT';
-  doc.text(scopeLabel, margin + 4, y + 4.8);
-  y += 12;
-
-  // Preamble
-  doc.setFont('times', 'normal');
-  doc.setFontSize(9.5);
-  doc.setTextColor(30, 30, 30);
-  const preamble =
-    `This Deed of Digital Streaming Rights and Undertaking (the "Agreement") is entered into as of ` +
-    `${timestamp.toUTCString()}, by and between:\n\n` +
-    `1. THE CREATOR / LICENSOR: ${legalName} (Email: ${email}), having full authority and capacity to enter into this deed;\n\n` +
-    `AND\n\n` +
-    `2. THE PLATFORM / LICENSEE: TPF Cinemas (a division of Tilak Popat Films, registered in India).`;
-
-  const preambleLines = doc.splitTextToSize(preamble, contentWidth);
-  doc.text(preambleLines, margin, y);
-  y += preambleLines.length * 4.6 + 4;
-
-  // Section 1
-  ensureSpace(28);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9.5);
-  doc.setTextColor(15, 15, 20);
-  doc.text('1. NON-EXCLUSIVE STREAMING RIGHTS GRANT', margin, y);
-  y += 5;
+  doc.text('1. Film Details', margin, y);
+  y += 6;
 
   doc.setFont('times', 'normal');
-  doc.setFontSize(9);
-  doc.setTextColor(40, 40, 40);
-  const s1Text =
-    `1.1. The Licensor grants TPF Cinemas a worldwide, non-exclusive digital licence to transcode, display, and stream submitted films on its platform.\n` +
-    `1.2. The Licensor retains 100% of underlying copyright, authorial moral rights, and commercial ownership.\n` +
-    `1.3. The Licensor remains fully entitled to enter film festivals, seek theatrical distribution, and negotiate television broadcasting without encumbrance.`;
-  const s1Lines = doc.splitTextToSize(s1Text, contentWidth);
-  doc.text(s1Lines, margin, y);
-  y += s1Lines.length * 4.4 + 5;
+  doc.setFontSize(11);
+  doc.text(`Title of Film / Web Series: ${filmTitle}`, margin + 3, y);
+  y += 5.5;
+  doc.text(`Director / Filmmaker: ${legalName}`, margin + 3, y);
+  y += 5.5;
+  doc.text(`Production House (if applicable): Independent Production`, margin + 3, y);
+  y += 8.5;
 
-  // Section 2
-  ensureSpace(28);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9.5);
-  doc.setTextColor(15, 15, 20);
-  doc.text('2. INTELLECTUAL PROPERTY & MUSIC CLEARANCE DECLARATION', margin, y);
-  y += 5;
+  // --- 2. Consent and Permission ---
+  doc.setFont('times', 'bold');
+  doc.setFontSize(13);
+  doc.text('2. Consent and Permission', margin, y);
+  y += 6;
 
   doc.setFont('times', 'normal');
-  doc.setFontSize(9);
-  doc.setTextColor(40, 40, 40);
-  const s2Text =
-    `2.1. The Licensor solemnly warrants that they are the legal author/producer with full chain-of-title rights.\n` +
-    `2.2. The Licensor affirms that all musical cues, background score recordings, and sound assets are lawfully cleared, original, or held under appropriate synchronization licences.\n` +
-    `2.3. The submitted works do not infringe third-party trademarks, privacy, or proprietary rights.`;
-  const s2Lines = doc.splitTextToSize(s2Text, contentWidth);
-  doc.text(s2Lines, margin, y);
-  y += s2Lines.length * 4.4 + 5;
+  doc.setFontSize(11);
+  const consentP1 = 'I, the undersigned, confirm that I am the filmmaker, producer, or authorized rights holder of the above-mentioned audiovisual work.';
+  const p1Lines = doc.splitTextToSize(consentP1, contentWidth - 3);
+  doc.text(p1Lines, margin + 3, y);
+  y += p1Lines.length * 5 + 2;
 
-  // Section 3 & 4
-  ensureSpace(32);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9.5);
-  doc.setTextColor(15, 15, 20);
-  doc.text('3. INTERMEDIARY INDEMNITY & PERMANENT EVIDENTIARY ARCHIVE', margin, y);
-  y += 5;
+  const consentP2 = 'I hereby grant Tilak Popat Films permission to stream and showcase this work on TPF Cinemas for non-commercial purposes only.';
+  const p2Lines = doc.splitTextToSize(consentP2, contentWidth - 3);
+  doc.text(p2Lines, margin + 3, y);
+  y += p2Lines.length * 5 + 2;
+
+  const consentP3 = 'This permission is granted free of charge and does not involve any transfer of copyright ownership.';
+  const p3Lines = doc.splitTextToSize(consentP3, contentWidth - 3);
+  doc.text(p3Lines, margin + 3, y);
+  y += p3Lines.length * 5 + 4;
+
+  // --- 3. Terms of Permission ---
+  ensureSpace(42);
+  doc.setFont('times', 'bold');
+  doc.setFontSize(13);
+  doc.text('3. Terms of Permission', margin, y);
+  y += 6;
 
   doc.setFont('times', 'normal');
-  doc.setFontSize(9);
-  doc.setTextColor(40, 40, 40);
-  const s3Text =
-    `3.1. TPF Cinemas acts as an intermediary curatorial platform in good faith under Section 79 of the IT Act, 2000. Licensor indemnifies TPF Cinemas against third-party copyright claims.\n` +
-    `3.2. Term: Valid for 24 months standard, auto-renewing. Takedown available upon 14 days digital notice.\n` +
-    `3.3. Permanent Retention: While film video files are removed upon takedown, this executed agreement, signature image, and timestamp audit logs are PERMANENTLY RETAINED as evidence that TPF Cinemas operated in good faith.`;
-  const s3Lines = doc.splitTextToSize(s3Text, contentWidth);
-  doc.text(s3Lines, margin, y);
-  y += s3Lines.length * 4.4 + 6;
+  doc.setFontSize(11);
+  const termsBullets = [
+    'The work will be streamed solely for non-commercial purposes.',
+    'No payment, royalties, or licensing fees will be charged or paid under this consent.',
+    'The work will not be monetized, sold, or commercially exploited without further written permission.',
+    'Appropriate filmmaker and production credits will be provided wherever reasonably possible.',
+    'All copyright and ownership rights will remain with the original rights holder.',
+    'This consent applies only to the streaming and promotional use expressly authorized above.',
+  ];
 
-  // --- EXECUTION & SIGNATURE BLOCK ---
-  ensureSpace(60);
-  doc.setFillColor(250, 250, 252);
-  doc.setDrawColor(210, 210, 215);
-  doc.roundedRect(margin, y, contentWidth, 54, 2, 2, 'FD');
+  for (const bullet of termsBullets) {
+    const lines = doc.splitTextToSize(`•  ${bullet}`, contentWidth - 5);
+    doc.text(lines, margin + 3, y);
+    y += lines.length * 4.8 + 1;
+  }
+  y += 3;
 
-  const blockPadding = 5;
-  const blockInnerY = y + blockPadding;
+  // --- 4. Permission Duration ---
+  ensureSpace(20);
+  doc.setFont('times', 'bold');
+  doc.setFontSize(13);
+  doc.text('4. Permission Duration', margin, y);
+  y += 6;
 
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(15, 15, 20);
-  doc.text('DIGITAL EXECUTION & ELECTRONIC ATTESTATION', margin + blockPadding, blockInnerY + 2);
+  doc.setFont('times', 'normal');
+  doc.setFontSize(11);
+  const durationText = `This consent shall remain valid from ${formattedDate} to ${formattedExpiry}.`;
+  doc.text(durationText, margin + 3, y);
+  y += 8.5;
 
-  // Left column: Metadata
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(70, 70, 70);
-  doc.text(`Full Legal Name: ${legalName}`, margin + blockPadding, blockInnerY + 8);
-  doc.text(`Verified Account: ${email}`, margin + blockPadding, blockInnerY + 13);
-  doc.text(`Execution Timestamp: ${timestamp.toISOString()}`, margin + blockPadding, blockInnerY + 18);
-  doc.text(`Signer IP: ${ipAddress}`, margin + blockPadding, blockInnerY + 23);
+  // --- 5. Declaration ---
+  ensureSpace(68);
+  doc.setFont('times', 'bold');
+  doc.setFontSize(13);
+  doc.text('5. Declaration', margin, y);
+  y += 6;
 
-  const cleanUa = userAgent.length > 55 ? userAgent.substring(0, 52) + '...' : userAgent;
-  doc.text(`Client User Agent: ${cleanUa}`, margin + blockPadding, blockInnerY + 28);
-  doc.text(`Agreement Version: 1.0.0`, margin + blockPadding, blockInnerY + 33);
+  doc.setFont('times', 'normal');
+  doc.setFontSize(11);
+  const declText = 'I confirm that I have the authority to grant this permission and voluntarily consent to the non-commercial streaming of the above-mentioned work under the terms stated in this document.';
+  const declLines = doc.splitTextToSize(declText, contentWidth - 3);
+  doc.text(declLines, margin + 3, y);
+  y += declLines.length * 5 + 6;
 
-  // Right column: Signature Image
-  const sigBoxX = pageWidth - margin - 65;
-  const sigBoxY = blockInnerY + 4;
-  const sigBoxWidth = 60;
-  const sigBoxHeight = 30;
+  // Two columns for signatures
+  const colWidth = (contentWidth - 8) / 2;
+  const col1X = margin;
+  const col2X = margin + colWidth + 8;
+  const boxHeight = 52;
 
-  doc.setFillColor(255, 255, 255);
-  doc.setDrawColor(200, 200, 200);
-  doc.rect(sigBoxX, sigBoxY, sigBoxWidth, sigBoxHeight, 'FD');
+  // Column 1: Filmmaker / Rights Holder
+  doc.setDrawColor(30, 30, 30);
+  doc.setLineWidth(0.3);
+  doc.rect(col1X, y, colWidth, boxHeight);
+
+  doc.setFont('times', 'bold');
+  doc.setFontSize(11);
+  doc.text('Filmmaker / Rights Holder', col1X + 4, y + 6);
+  doc.setLineWidth(0.15);
+  doc.line(col1X + 4, y + 8, col1X + colWidth - 4, y + 8);
+
+  doc.setFont('times', 'normal');
+  doc.setFontSize(9.5);
+  doc.text(`Full Name: ${legalName}`, col1X + 4, y + 13);
+  doc.text('Signature:', col1X + 4, y + 18);
+
+  // Signature image box
+  const sigImgWidth = 45;
+  const sigImgHeight = 16;
+  const sigX = col1X + 4;
+  const sigY = y + 20;
 
   try {
-    doc.addImage(signatureDataUrl, 'PNG', sigBoxX + 2, sigBoxY + 2, sigBoxWidth - 4, sigBoxHeight - 6);
+    doc.addImage(signatureDataUrl, 'PNG', sigX, sigY, sigImgWidth, sigImgHeight);
   } catch (err) {
     console.error('Error adding signature image to PDF:', err);
-    doc.setFont('helvetica', 'italic');
-    doc.setFontSize(8);
-    doc.text('Signature Attached Digitally', sigBoxX + 5, sigBoxY + 15);
+    doc.text('(Digitally Executed)', sigX + 2, sigY + 8);
   }
 
-  doc.setFont('courier', 'bold');
-  doc.setFontSize(7);
-  doc.setTextColor(50, 50, 50);
-  doc.text(`DIGITALLY SIGNED BY: ${legalName.toUpperCase()}`, sigBoxX + sigBoxWidth / 2, sigBoxY + sigBoxHeight - 2, {
-    align: 'center',
-  });
+  doc.text(`Contact Information: ${email}`, col1X + 4, y + 41);
+  doc.text(`Date: ${formattedDate}`, col1X + 4, y + 47);
 
-  y += 58;
+  // Column 2: Person / Platform Receiving Permission
+  doc.setLineWidth(0.3);
+  doc.rect(col2X, y, colWidth, boxHeight);
 
-  // Footer on bottom of all pages
+  doc.setFont('times', 'bold');
+  doc.setFontSize(11);
+  doc.text('Person / Platform Receiving Permission', col2X + 4, y + 6);
+  doc.setLineWidth(0.15);
+  doc.line(col2X + 4, y + 8, col2X + colWidth - 4, y + 8);
+
+  doc.setFont('times', 'normal');
+  doc.setFontSize(9.5);
+  doc.text('Full Name: Tilak Popat / TPF Cinemas', col2X + 4, y + 13);
+  doc.text('Signature:', col2X + 4, y + 18);
+
+  // Stamp box
+  doc.setFont('times', 'bold');
+  doc.setFontSize(10);
+  doc.text('TILAK POPAT FILMS', col2X + 6, y + 27);
+  doc.setFont('times', 'italic');
+  doc.setFontSize(8);
+  doc.setTextColor(40, 120, 60);
+  doc.text('Curator Verified & Digitally Attested', col2X + 6, y + 32);
+  doc.setTextColor(20, 20, 20);
+
+  doc.setFont('times', 'normal');
+  doc.setFontSize(9.5);
+  doc.text('Contact Information: curators@tilakpopatfilms.com', col2X + 4, y + 41);
+  doc.text(`Date: ${formattedDate}`, col2X + 4, y + 47);
+
+  // Bottom footer on all pages
   const totalPages = doc.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.5);
-    doc.setTextColor(130, 130, 130);
-    drawHr(pageHeight - margin + 4, [220, 220, 220]);
+    doc.setFont('times', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(120, 120, 120);
+    drawHr(pageHeight - margin + 6, [210, 210, 210]);
     doc.text(
-      `TPF Cinemas Digital Deed Ref: ${referenceCode} • Page ${i} of ${totalPages}`,
+      `TPF Cinemas Non-Commercial Streaming Rights Consent Ref: ${referenceCode} • Page ${i} of ${totalPages}`,
       margin,
-      pageHeight - margin + 8
+      pageHeight - margin + 10
     );
     doc.text(
-      `Secure SHA Verification: ${referenceCode}`,
+      `Indian Information Technology Act, 2000 Attestation`,
       pageWidth - margin,
-      pageHeight - margin + 8,
+      pageHeight - margin + 10,
       { align: 'right' }
     );
   }
