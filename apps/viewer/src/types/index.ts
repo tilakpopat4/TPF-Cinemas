@@ -33,6 +33,7 @@ export interface Film {
   title: string;
   slug: string;
   synopsis: string;
+  director_note?: string | null;
   runtime_minutes: number;
   release_year: number;
   language: string;

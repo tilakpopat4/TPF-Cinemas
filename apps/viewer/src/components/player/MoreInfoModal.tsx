@@ -62,6 +62,13 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
 
   const youtubeId = film.trailer_ref?.trim() ? extractYouTubeId(film.trailer_ref) : '';
 
+  // Check for genuine director's / curator's note (omit meaningless placeholders)
+  const rawNote = film.director_note?.trim();
+  const hasSubstantiveNote =
+    !!rawNote &&
+    rawNote.length > 3 &&
+    !['nothing', 'none', 'n/a', 'no note', 'null', 'nil'].includes(rawNote.toLowerCase());
+
   // Recommendations: Films in the same genre or other catalog titles
   const relatedFilms = allFilms
     .filter((f) => f.id !== film.id)
@@ -81,7 +88,7 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
       onClick={onClose}
     >
       <motion.div
-        className="relative w-full max-w-5xl my-auto sm:my-8 rounded-none sm:rounded-md overflow-hidden shadow-2xl border border-hairline/80 flex flex-col min-h-screen sm:min-h-0 text-ivory selection:bg-signature selection:text-black"
+        className="relative w-full max-w-5xl my-auto sm:my-8 rounded-none sm:rounded-2xl overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.95)] border-0 flex flex-col min-h-screen sm:min-h-0 text-ivory selection:bg-signature selection:text-black"
         style={{ backgroundColor: '#141417' }}
         initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.96, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0, transition: { duration: 0.22, ease: 'easeOut' } }}
@@ -91,7 +98,7 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
         {/* Top-Right Circular Close Button — Netflix Style */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-30 h-9 w-9 rounded-full bg-black/80 hover:bg-black text-ivory border border-white/20 flex items-center justify-center transition-colors shadow-lg focus:outline-none"
+          className="absolute top-4 right-4 z-30 h-9 w-9 rounded-full bg-black/70 hover:bg-black text-ivory border-0 flex items-center justify-center transition-colors shadow-lg focus:outline-none"
           aria-label="Close modal"
         >
           <X className="h-5 w-5" />
@@ -140,7 +147,7 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
           {isPlayingTeaser && (
             <button
               onClick={() => setIsMuted(!isMuted)}
-              className="absolute top-4 right-16 z-30 h-9 w-9 rounded-full bg-black/80 hover:bg-black text-ivory border border-white/20 flex items-center justify-center transition-colors shadow-lg"
+              className="absolute top-4 right-16 z-30 h-9 w-9 rounded-full bg-black/70 hover:bg-black text-ivory border-0 flex items-center justify-center transition-colors shadow-lg focus:outline-none"
               title={isMuted ? 'Unmute' : 'Mute'}
             >
               {isMuted ? <VolumeX className="h-4 w-4 text-muted" /> : <Volume2 className="h-4 w-4 text-signature" />}
@@ -261,17 +268,21 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
                 <p className="font-sans text-sm sm:text-base text-ivory/85 leading-[1.7]">
                   {film.synopsis || 'No curatorial overview provided for this title.'}
                 </p>
-              </div>
 
-              {/* Director's Vision & Festival Note */}
-              <div className="p-4.5 rounded-xl bg-white/[0.04] space-y-2">
-                <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-signature">
-                  <FilmIcon className="h-3.5 w-3.5" />
-                  <span>Curator&apos;s Dispatch</span>
-                </div>
-                <p className="font-editorial italic text-sm text-ivory/90 leading-relaxed">
-                  &ldquo;A poignant exploration of time, memory, and physical space. Presented in its original 2.39:1 anamorphic theatrical aspect ratio with uncompressed master audio.&rdquo;
-                </p>
+                {/* Director's Vision / Curator's Note (Only rendered if an authentic note was provided) */}
+                {hasSubstantiveNote && (
+                  <div className="pt-2">
+                    <div className="rounded-xl bg-white/[0.03] p-4 space-y-1.5 border-l-2 border-signature/80">
+                      <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-signature font-semibold">
+                        <FilmIcon className="h-3.5 w-3.5 shrink-0" />
+                        <span>Director&apos;s Vision</span>
+                      </div>
+                      <p className="font-editorial italic text-sm text-ivory/90 leading-relaxed">
+                        &ldquo;{rawNote}&rdquo;
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -318,7 +329,7 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
                     {film.film_genres.map((fg) => (
                       <span
                         key={fg.genre_id}
-                        className="px-2 py-0.5 rounded-sm bg-canvas border border-hairline text-ivory text-[10px] font-mono uppercase tracking-wider"
+                        className="px-2.5 py-1 rounded-sm bg-white/[0.06] hover:bg-white/[0.1] text-ivory text-[10px] font-mono uppercase tracking-wider border-0 transition-colors"
                       >
                         {fg.genres?.name}
                       </span>
@@ -328,7 +339,7 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
               )}
 
               {/* Exhibition Format */}
-              <div className="pt-2 border-t border-hairline/60 space-y-1.5 text-[11px]">
+              <div className="pt-3 border-t border-white/[0.06] space-y-1.5 text-[11px]">
                 <div>
                   <span className="text-muted">Audio / Subtitles: </span>
                   <span className="text-ivory font-medium uppercase">{film.language} (Original Audio), English Subtitles</span>
@@ -347,7 +358,7 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
 
           {/* "More Like This" Section — Netflix Hallmark */}
           {relatedFilms.length > 0 && (
-            <div className="pt-8 border-t border-hairline space-y-5">
+            <div className="pt-8 border-t border-white/[0.06] space-y-5">
               <div className="flex items-baseline justify-between">
                 <h3 className="font-editorial text-2xl font-normal text-ivory tracking-tight">
                   More Like This
@@ -411,7 +422,7 @@ export const MoreInfoModal: React.FC<MoreInfoModalProps> = ({
           )}
 
           {/* About This Production — Netflix Dossier Footer */}
-          <div className="pt-8 border-t border-hairline space-y-3 text-xs text-muted">
+          <div className="pt-8 border-t border-white/[0.06] space-y-3 text-xs text-muted">
             <h4 className="font-editorial text-xl font-normal text-ivory">
               About <span className="font-medium text-ivory">{film.title}</span>
             </h4>
