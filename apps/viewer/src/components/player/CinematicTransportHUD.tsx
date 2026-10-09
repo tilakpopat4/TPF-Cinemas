@@ -12,6 +12,7 @@ import {
   Minimize2,
   Info,
   Check,
+  Tv,
 } from 'lucide-react';
 import { VideoPlayerController } from '../../hooks/useVideoPlayer';
 import { AmberScrubber } from './AmberScrubber';
@@ -24,6 +25,9 @@ interface CinematicTransportHUDProps {
   showDetailsDrawer: boolean;
   onToggleDetailsDrawer: () => void;
   lastGesture: { type: 'play' | 'pause' | 'skip-forward' | 'skip-backward'; id: number } | null;
+  isEpisodic?: boolean;
+  showEpisodeDrawer?: boolean;
+  onToggleEpisodeDrawer?: () => void;
 }
 
 export const CinematicTransportHUD: React.FC<CinematicTransportHUDProps> = ({
@@ -34,6 +38,9 @@ export const CinematicTransportHUD: React.FC<CinematicTransportHUDProps> = ({
   showDetailsDrawer,
   onToggleDetailsDrawer,
   lastGesture,
+  isEpisodic = false,
+  showEpisodeDrawer = false,
+  onToggleEpisodeDrawer,
 }) => {
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [isVolumeHovered, setIsVolumeHovered] = useState(false);
@@ -250,6 +257,22 @@ export const CinematicTransportHUD: React.FC<CinematicTransportHUDProps> = ({
             <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full font-mono text-[9px] uppercase tracking-wider bg-signature/10 text-signature font-semibold">
               4K UHD
             </span>
+
+            {/* Episodic Drawer Toggle */}
+            {isEpisodic && onToggleEpisodeDrawer && (
+              <button
+                onClick={onToggleEpisodeDrawer}
+                className={`h-9 px-3 rounded-full flex items-center gap-1.5 transition-all backdrop-blur-sm text-xs font-mono uppercase tracking-wider ${
+                  showEpisodeDrawer
+                    ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20'
+                    : 'bg-white/10 hover:bg-white/20 text-white/80 hover:text-white'
+                }`}
+                title="Episodes (E)"
+              >
+                <Tv className="h-3.5 w-3.5" />
+                <span className="hidden md:inline">Episodes</span>
+              </button>
+            )}
 
             {/* Film Info & Notes Drawer Toggle */}
             <button

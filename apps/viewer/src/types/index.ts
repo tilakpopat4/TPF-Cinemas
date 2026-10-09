@@ -84,3 +84,89 @@ export interface Comment {
   created_at: string;
   profile?: Profile;
 }
+
+export type SeriesStatus =
+  | 'draft'
+  | 'submitted'
+  | 'in_review'
+  | 'changes_requested'
+  | 'approved'
+  | 'published'
+  | 'rejected'
+  | 'archived';
+
+export interface SeriesCredit {
+  id: string;
+  series_id: string;
+  person_name: string;
+  credit_role: string;
+  sort_order: number;
+}
+
+export interface Episode {
+  id: string;
+  season_id: string;
+  episode_number: number;
+  title: string;
+  slug: string;
+  synopsis?: string | null;
+  runtime_minutes: number;
+  video_provider: VideoProvider;
+  video_ref: string;
+  thumbnail_url?: string | null;
+  is_free_preview: boolean;
+  view_count: number;
+  created_at: string;
+}
+
+export interface Season {
+  id: string;
+  series_id: string;
+  season_number: number;
+  title: string;
+  synopsis?: string | null;
+  trailer_ref?: string | null;
+  poster_url?: string | null;
+  release_year?: number | null;
+  created_at: string;
+  episodes?: Episode[];
+}
+
+export interface Series {
+  id: string;
+  creator_id: string;
+  title: string;
+  slug: string;
+  synopsis: string;
+  creator_note?: string | null;
+  release_year: number;
+  language: string;
+  age_rating: AgeRating;
+  aspect_ratio?: string | null;
+  poster_url: string;
+  backdrop_url?: string | null;
+  trailer_ref?: string | null;
+  is_featured: boolean;
+  status: SeriesStatus;
+  rights_declaration: boolean;
+  rights_notes?: string | null;
+  submitted_at?: string | null;
+  reviewed_at?: string | null;
+  published_at?: string | null;
+  created_at: string;
+  updated_at: string;
+  profiles?: Profile | null;
+  seasons?: Season[];
+  series_credits?: SeriesCredit[];
+  series_genres?: { genre_id: number; genres: Genre }[];
+}
+
+export interface EpisodeWatchHistoryEntry {
+  user_id: string;
+  episode_id: string;
+  progress_seconds: number;
+  completed: boolean;
+  updated_at: string;
+  episode?: Episode;
+}
+

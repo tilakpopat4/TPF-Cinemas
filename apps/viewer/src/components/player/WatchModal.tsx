@@ -9,30 +9,44 @@ import {
   Info,
   Maximize2,
   Minimize2,
+  Tv,
+  Play,
+  Sparkles,
 } from 'lucide-react';
-import { Film, Profile } from '../../types';
+import { Film, Profile, Series, Season, Episode } from '../../types';
 import { formatRuntime } from '../../lib/utils';
 import { FilmComments } from '../comments/FilmComments';
 import { useVideoPlayer } from '../../hooks/useVideoPlayer';
 import { CinematicPlayerEngine } from './CinematicPlayerEngine';
 import { CinematicTransportHUD } from './CinematicTransportHUD';
 
+export interface EpisodicContext {
+  series: Series;
+  season: Season;
+  episode: Episode;
+  allEpisodes: Episode[];
+}
+
 interface WatchModalProps {
-  film: Film | null;
-  mode?: 'movie' | 'trailer';
+  film?: Film | null;
+  mode?: 'movie' | 'trailer' | 'episode';
+  episodicContext?: EpisodicContext | null;
+  onSelectEpisode?: (episode: Episode) => void;
   onClose: () => void;
   user: any;
   profile: Profile | null;
   onOpenAuth: () => void;
   isInWatchlist: boolean;
-  onToggleWatchlist: (filmId: string) => void;
+  onToggleWatchlist: (id: string) => void;
   initialProgressSeconds?: number;
-  onRecordProgress?: (filmId: string, seconds: number, completed?: boolean) => void;
+  onRecordProgress?: (id: string, seconds: number, completed?: boolean) => void;
 }
 
 export const WatchModal: React.FC<WatchModalProps> = ({
   film,
   mode = 'movie',
+  episodicContext,
+  onSelectEpisode,
   onClose,
   user,
   profile,
@@ -42,23 +56,70 @@ export const WatchModal: React.FC<WatchModalProps> = ({
   initialProgressSeconds = 0,
   onRecordProgress,
 }) => {
-  if (!film) return null;
+  if (!film && !episodicContext) return null;
 
-  // In trailer mode stream the creator's trailer link; otherwise the full feature
-  const isTrailerStream = mode === 'trailer' && !!film.trailer_ref?.trim();
-  const playFilm: Film = isTrailerStream
-    ? { ...film, video_ref: film.trailer_ref!.trim(), video_provider: 'youtube' }
-    : film;
+  const isEpisodic = mode === 'episode' || !!episodicContext;
+  const currentEpisode = episodicContext?.episode;
+  const currentSeries = episodicContext?.series;
+  const currentSeason = episodicContext?.season;
 
-  const controller = useVideoPlayer(isTrailerStream ? 0 : (film.runtime_minutes || 0) * 60);
+  // In trailer mode stream the creator's trailer link; in episode mode stream episode; otherwise film feature
+  const isTrailerStream = !isEpisodic && mode === 'trailer' && !!film?.trailer_ref?.trim();
+
+  const playFilm: Film = isEpisodic && currentEpisode && currentSeries
+    ? {
+        id: currentEpisode.id,
+        filmmaker_id: currentSeries.creator_id,
+        title: currentEpisode.title,
+        slug: currentEpisode.slug,
+        synopsis: currentEpisode.synopsis || currentSeries.synopsis,
+        runtime_minutes: currentEpisode.runtime_minutes,
+        release_year: currentSeries.release_year,
+        language: currentSeries.language,
+        age_rating: currentSeries.age_rating,
+        video_provider: currentEpisode.video_provider,
+        video_ref: currentEpisode.video_ref,
+        poster_url: currentEpisode.thumbnail_url || currentSeries.poster_url,
+        backdrop_url: currentSeries.backdrop_url,
+        is_featured: false,
+        is_debut: false,
+        status: 'published',
+        published_at: currentEpisode.created_at,
+        view_count: currentEpisode.view_count,
+        created_at: currentEpisode.created_at,
+        profiles: currentSeries.profiles,
+      }
+    : isTrailerStream
+    ? { ...film!, video_ref: film!.trailer_ref!.trim(), video_provider: 'youtube' }
+    : film!;
+
+  const controller = useVideoPlayer(
+    isTrailerStream ? 0 : (playFilm.runtime_minutes || 0) * 60
+  );
 
   const [showControls, setShowControls] = useState(true);
   const [showDetailsDrawer, setShowDetailsDrawer] = useState(false);
+  const [showEpisodeDrawer, setShowEpisodeDrawer] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [lastGesture, setLastGesture] = useState<{
     type: 'play' | 'pause' | 'skip-forward' | 'skip-backward';
     id: number;
   } | null>(null);
+
+  // Next Episode Auto-Advance State
+  const currentIndex = episodicContext?.allEpisodes
+    ? episodicContext.allEpisodes.findIndex((ep) => ep.id === currentEpisode?.id)
+    : -1;
+  const nextEpisode =
+    episodicContext &&
+    currentIndex >= 0 &&
+    currentIndex < episodicContext.allEpisodes.length - 1
+      ? episodicContext.allEpisodes[currentIndex + 1]
+      : null;
+
+  const [showNextPrompt, setShowNextPrompt] = useState(false);
+  const [countdown, setCountdown] = useState(5);
+  const [nextPromptDismissed, setNextPromptDismissed] = useState(false);
 
   const hideControlsTimerRef = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -75,12 +136,12 @@ export const WatchModal: React.FC<WatchModalProps> = ({
     if (hideControlsTimerRef.current) {
       clearTimeout(hideControlsTimerRef.current);
     }
-    if (!showDetailsDrawer) {
+    if (!showDetailsDrawer && !showEpisodeDrawer) {
       hideControlsTimerRef.current = setTimeout(() => {
         setShowControls(false);
       }, 3500);
     }
-  }, [showDetailsDrawer]);
+  }, [showDetailsDrawer, showEpisodeDrawer]);
 
   // Mandatory requirement: authentication required to watch cinema
   useEffect(() => {
@@ -96,6 +157,55 @@ export const WatchModal: React.FC<WatchModalProps> = ({
       if (hideControlsTimerRef.current) clearTimeout(hideControlsTimerRef.current);
     };
   }, [resetHideTimer]);
+
+  // Reset next episode prompt when episode changes
+  useEffect(() => {
+    setShowNextPrompt(false);
+    setNextPromptDismissed(false);
+    setCountdown(5);
+  }, [currentEpisode?.id]);
+
+  // Monitor progress for Next Episode prompt (>= 95% completion or < 15s remaining)
+  useEffect(() => {
+    if (!isEpisodic || !nextEpisode || nextPromptDismissed || showNextPrompt) return;
+
+    const duration = controller.duration;
+    const current = controller.currentTime;
+
+    if (duration > 15) {
+      const isNearEnd = current / duration >= 0.95 || duration - current <= 15;
+      if (isNearEnd) {
+        setShowNextPrompt(true);
+        setCountdown(5);
+      }
+    }
+  }, [
+    isEpisodic,
+    nextEpisode,
+    nextPromptDismissed,
+    showNextPrompt,
+    controller.currentTime,
+    controller.duration,
+  ]);
+
+  // Countdown timer for Next Episode
+  useEffect(() => {
+    if (!showNextPrompt || !nextEpisode) return;
+
+    if (countdown <= 0) {
+      if (onSelectEpisode) {
+        onSelectEpisode(nextEpisode);
+      }
+      setShowNextPrompt(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setCountdown((c) => c - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [showNextPrompt, countdown, nextEpisode, onSelectEpisode]);
 
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
@@ -167,11 +277,20 @@ export const WatchModal: React.FC<WatchModalProps> = ({
         case 'KeyI':
           e.preventDefault();
           setShowDetailsDrawer((prev) => !prev);
+          setShowEpisodeDrawer(false);
+          break;
+        case 'KeyE':
+          if (isEpisodic) {
+            e.preventDefault();
+            setShowEpisodeDrawer((prev) => !prev);
+            setShowDetailsDrawer(false);
+          }
           break;
         case 'Escape':
           e.preventDefault();
-          if (showDetailsDrawer) {
+          if (showDetailsDrawer || showEpisodeDrawer) {
             setShowDetailsDrawer(false);
+            setShowEpisodeDrawer(false);
           } else {
             onClose();
           }
@@ -184,6 +303,8 @@ export const WatchModal: React.FC<WatchModalProps> = ({
   }, [
     onClose,
     showDetailsDrawer,
+    showEpisodeDrawer,
+    isEpisodic,
     resetHideTimer,
     handleTogglePlay,
     handleSkip,
@@ -204,18 +325,21 @@ export const WatchModal: React.FC<WatchModalProps> = ({
     const current = Math.round(controller.currentTime);
     if (Math.abs(current - lastRecordedTimeRef.current) >= 15) {
       lastRecordedTimeRef.current = current;
-      progressRecorder(film.id, current);
+      const isCompleted =
+        controller.duration > 0 &&
+        controller.currentTime / controller.duration >= 0.95;
+      progressRecorder(playFilm.id, current, isCompleted);
     }
-  }, [film.id, controller.currentTime, progressRecorder]);
+  }, [playFilm.id, controller.currentTime, controller.duration, progressRecorder]);
 
   // Flush final progress when player is closed/unmounted
   useEffect(() => {
     return () => {
       if (progressRecorder && currentTimeRef.current > 5) {
-        progressRecorder(film.id, Math.round(currentTimeRef.current));
+        progressRecorder(playFilm.id, Math.round(currentTimeRef.current));
       }
     };
-  }, [film.id, progressRecorder]);
+  }, [playFilm.id, progressRecorder]);
 
   return createPortal(
     <div
@@ -223,7 +347,9 @@ export const WatchModal: React.FC<WatchModalProps> = ({
       onMouseMove={resetHideTimer}
       onClick={resetHideTimer}
       className={`fixed inset-0 z-[100] w-screen h-screen bg-canvas overflow-hidden select-none flex flex-col justify-between ${
-        !showControls && !showDetailsDrawer && controller.isPlaying ? 'cursor-none' : 'cursor-default'
+        !showControls && !showDetailsDrawer && !showEpisodeDrawer && controller.isPlaying
+          ? 'cursor-none'
+          : 'cursor-default'
       }`}
     >
       {/* Edge-to-Edge Custom Cinema Video Engine */}
@@ -235,23 +361,27 @@ export const WatchModal: React.FC<WatchModalProps> = ({
         onDoubleTapFullscreen={toggleFullscreen}
       />
 
-      {/* Floating Cinema Top Bar (Graphite/Canvas Layering) */}
+      {/* Floating Cinema Top Bar */}
       <motion.div
         className={`absolute top-0 left-0 right-0 z-40 px-4 sm:px-8 py-4 flex items-center justify-between bg-gradient-to-b from-canvas via-canvas/75 to-transparent transition-opacity duration-200 ${
-          showControls || showDetailsDrawer ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          showControls || showDetailsDrawer || showEpisodeDrawer
+            ? 'opacity-100 pointer-events-auto'
+            : 'opacity-0 pointer-events-none'
         }`}
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        {/* Left: Back Arrow + Film Title + Badges */}
+        {/* Left: Back Arrow + Film / Series Title + Badges */}
         <div className="flex items-center gap-3 sm:gap-4 truncate mr-4">
           <button
             onClick={onClose}
             className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-all shrink-0 active:scale-95 border-none"
-            title="Back to Catalogue (Esc)"
+            title="Back (Esc)"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline font-mono text-xs uppercase tracking-wider">Back</span>
+            <span className="hidden sm:inline font-mono text-xs uppercase tracking-wider">
+              Back
+            </span>
           </button>
 
           <div className="h-4 w-px bg-white/15 hidden sm:block shrink-0" />
@@ -259,43 +389,69 @@ export const WatchModal: React.FC<WatchModalProps> = ({
           <div className="truncate">
             <div className="flex items-center gap-2 truncate">
               <span className="px-2 py-0.5 rounded-full font-mono text-[9px] uppercase tracking-wider bg-white/10 text-white/80 shrink-0">
-                {film.age_rating}
+                {playFilm.age_rating}
               </span>
-              <span className={`px-2.5 py-0.5 rounded-full font-mono text-[9px] uppercase tracking-wider shrink-0 ${
-                mode === 'trailer'
-                  ? 'bg-amber-500 text-black font-bold'
-                  : 'bg-white/10 text-white font-medium'
-              }`}>
-                {mode === 'trailer' ? 'Official Trailer' : 'Full Feature'}
+              <span
+                className={`px-2.5 py-0.5 rounded-full font-mono text-[9px] uppercase tracking-wider shrink-0 ${
+                  isEpisodic
+                    ? 'bg-amber-500 text-black font-bold'
+                    : mode === 'trailer'
+                    ? 'bg-amber-500 text-black font-bold'
+                    : 'bg-white/10 text-white font-medium'
+                }`}
+              >
+                {isEpisodic
+                  ? `S${currentSeason?.season_number || 1} E${currentEpisode?.episode_number || 1}`
+                  : mode === 'trailer'
+                  ? 'Official Trailer'
+                  : 'Full Feature'}
               </span>
+
+              {isEpisodic && currentSeries && (
+                <span className="font-editorial text-sm sm:text-base text-amber-400/90 truncate hidden md:inline">
+                  {currentSeries.title} <span className="text-zinc-500 mx-1">/</span>
+                </span>
+              )}
+
               <h1 className="font-editorial text-base sm:text-xl font-normal text-ivory tracking-tight truncate leading-none">
-                {film.title}
+                {playFilm.title}
               </h1>
             </div>
 
             <div className="hidden md:flex items-center gap-2 font-mono text-[10px] text-muted mt-0.5">
-              <span>{film.release_year}</span>
+              <span>{playFilm.release_year}</span>
               <span>•</span>
-              <span>{formatRuntime(film.runtime_minutes)}</span>
+              <span>{formatRuntime(playFilm.runtime_minutes)}</span>
               <span>•</span>
-              <span className="uppercase">{film.language}</span>
-              {film.film_genres && film.film_genres.length > 0 && (
-                <>
-                  <span>•</span>
-                  <span className="text-ivory/80 font-editorial italic">
-                    {film.film_genres.map((fg) => fg.genres?.name).filter(Boolean).slice(0, 2).join(', ')}
-                  </span>
-                </>
-              )}
+              <span className="uppercase">{playFilm.language}</span>
             </div>
           </div>
         </div>
 
         {/* Right: Quick Actions */}
         <div className="flex items-center gap-2.5 shrink-0">
+          {/* Episode Drawer Button for Series */}
+          {isEpisodic && (
+            <button
+              onClick={() => {
+                setShowEpisodeDrawer(!showEpisodeDrawer);
+                setShowDetailsDrawer(false);
+              }}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-mono text-xs uppercase tracking-wider transition-all backdrop-blur-md active:scale-95 border-none ${
+                showEpisodeDrawer
+                  ? 'bg-amber-500 text-black font-bold shadow-lg shadow-amber-500/20'
+                  : 'bg-white/10 hover:bg-white/20 text-white'
+              }`}
+              title="Episodes (E)"
+            >
+              <Tv className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Episodes</span>
+            </button>
+          )}
+
           {/* Watchlist Toggle */}
           <button
-            onClick={() => onToggleWatchlist(film.id)}
+            onClick={() => onToggleWatchlist(isEpisodic && currentSeries ? currentSeries.id : playFilm.id)}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-mono text-xs uppercase tracking-wider transition-all backdrop-blur-md active:scale-95 border-none ${
               isInWatchlist
                 ? 'bg-amber-500 text-black font-bold shadow-lg shadow-amber-500/20'
@@ -309,13 +465,16 @@ export const WatchModal: React.FC<WatchModalProps> = ({
 
           {/* Details Drawer Toggle */}
           <button
-            onClick={() => setShowDetailsDrawer(!showDetailsDrawer)}
+            onClick={() => {
+              setShowDetailsDrawer(!showDetailsDrawer);
+              setShowEpisodeDrawer(false);
+            }}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-mono text-xs uppercase tracking-wider transition-all backdrop-blur-md active:scale-95 border-none ${
               showDetailsDrawer
                 ? 'bg-amber-500 text-black font-bold shadow-lg shadow-amber-500/20'
                 : 'bg-white/10 hover:bg-white/20 text-white'
             }`}
-            title="Curatorial Notes & Discussion (I)"
+            title="Curatorial Notes (I)"
           >
             <Info className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Notes</span>
@@ -341,22 +500,206 @@ export const WatchModal: React.FC<WatchModalProps> = ({
         </div>
       </motion.div>
 
+      {/* Next Episode Auto-Advance Floating Countdown Banner */}
+      <AnimatePresence>
+        {showNextPrompt && nextEpisode && (
+          <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 30, scale: 0.95 }}
+            className="absolute bottom-28 right-6 sm:right-10 z-50 max-w-sm w-full p-4 rounded-2xl bg-[#141418]/95 backdrop-blur-2xl border border-amber-500/40 shadow-2xl shadow-black/90 text-white space-y-3"
+          >
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>Next Episode in {countdown}s</span>
+              </span>
+              <button
+                onClick={() => {
+                  setShowNextPrompt(false);
+                  setNextPromptDismissed(true);
+                }}
+                className="p-1 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+                title="Dismiss"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="relative aspect-video w-24 rounded-lg overflow-hidden bg-black/60 shrink-0 border border-white/10">
+                <img
+                  src={
+                    nextEpisode.thumbnail_url ||
+                    playFilm.poster_url ||
+                    'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=400&auto=format&fit=crop'
+                  }
+                  alt={nextEpisode.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider block">
+                  Episode {nextEpisode.episode_number}
+                </span>
+                <h4 className="font-editorial text-sm text-white font-medium truncate">
+                  {nextEpisode.title}
+                </h4>
+                <span className="text-[10px] font-mono text-amber-400/90 block">
+                  {formatRuntime(nextEpisode.runtime_minutes)}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                onClick={() => {
+                  if (onSelectEpisode) onSelectEpisode(nextEpisode);
+                  setShowNextPrompt(false);
+                }}
+                className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-xs font-mono uppercase tracking-wider transition-colors shadow-md shadow-amber-500/20 active:scale-95"
+              >
+                <Play className="w-3.5 h-3.5 fill-black" />
+                <span>Play Now</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowNextPrompt(false);
+                  setNextPromptDismissed(true);
+                }}
+                className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white/80 hover:text-white text-xs font-mono uppercase tracking-wider transition-colors"
+              >
+                Stay Here
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Floating Bottom Cinema Transport HUD */}
       <motion.div
         className={`transition-opacity duration-200 ${
-          showControls || showDetailsDrawer ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          showControls || showDetailsDrawer || showEpisodeDrawer
+            ? 'opacity-100 pointer-events-auto'
+            : 'opacity-0 pointer-events-none'
         }`}
       >
         <CinematicTransportHUD
           controller={controller}
-          filmTitle={film.title}
+          filmTitle={
+            isEpisodic && currentSeries
+              ? `${currentSeries.title}: ${playFilm.title}`
+              : playFilm.title
+          }
           isFullscreen={isFullscreen}
           onToggleFullscreen={toggleFullscreen}
           showDetailsDrawer={showDetailsDrawer}
-          onToggleDetailsDrawer={() => setShowDetailsDrawer(!showDetailsDrawer)}
+          onToggleDetailsDrawer={() => {
+            setShowDetailsDrawer(!showDetailsDrawer);
+            setShowEpisodeDrawer(false);
+          }}
           lastGesture={lastGesture}
+          isEpisodic={isEpisodic}
+          showEpisodeDrawer={showEpisodeDrawer}
+          onToggleEpisodeDrawer={() => {
+            setShowEpisodeDrawer(!showEpisodeDrawer);
+            setShowDetailsDrawer(false);
+          }}
         />
       </motion.div>
+
+      {/* Slide-out Sidebar Drawer for Episodic Selector */}
+      <AnimatePresence>
+        {showEpisodeDrawer && episodicContext && (
+          <motion.div
+            className="fixed top-0 bottom-0 right-0 z-50 w-full sm:w-[440px] bg-[#12141a]/95 backdrop-blur-2xl border-l border-white/10 p-6 flex flex-col justify-between shadow-2xl text-ivory overflow-hidden pointer-events-auto"
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ duration: 0.35, ease: [0.25, 1, 0.5, 1] }}
+          >
+            {/* Drawer Header */}
+            <div className="flex items-center justify-between pb-3.5 border-b border-white/10 shrink-0">
+              <div className="flex items-center gap-2">
+                <span className="font-display text-[10px] uppercase tracking-[0.2em] text-amber-500 font-bold flex items-center gap-1.5">
+                  <Tv className="w-3.5 h-3.5" />
+                  <span>Season {currentSeason?.season_number || 1}</span>
+                </span>
+                <span className="text-zinc-600">|</span>
+                <h3 className="font-editorial text-base text-white truncate max-w-[200px]">
+                  {currentSeries?.title}
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowEpisodeDrawer(false)}
+                className="h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white flex items-center justify-center transition-colors"
+                title="Close Drawer (Esc)"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Scrollable Episodes List */}
+            <div className="flex-1 overflow-y-auto py-4 space-y-3 pr-1">
+              {episodicContext.allEpisodes.map((ep) => {
+                const isPlayingThis = ep.id === currentEpisode?.id;
+                return (
+                  <div
+                    key={ep.id}
+                    onClick={() => {
+                      if (onSelectEpisode) onSelectEpisode(ep);
+                    }}
+                    className={`group flex items-center gap-3.5 p-3 rounded-xl border transition-all cursor-pointer ${
+                      isPlayingThis
+                        ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 shadow-md shadow-amber-500/10'
+                        : 'bg-white/[0.03] hover:bg-white/[0.08] border-white/[0.06] text-white'
+                    }`}
+                  >
+                    {/* Thumbnail */}
+                    <div className="relative aspect-video w-28 rounded-lg overflow-hidden bg-black/60 shrink-0 border border-white/10">
+                      <img
+                        src={
+                          ep.thumbnail_url ||
+                          playFilm.poster_url ||
+                          'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=300&auto=format&fit=crop'
+                        }
+                        alt={ep.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                        {isPlayingThis ? (
+                          <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-amber-400 bg-black/70 px-2 py-0.5 rounded-full border border-amber-500/40">
+                            Playing
+                          </span>
+                        ) : (
+                          <Play className="w-4 h-4 fill-white/80" />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Metadata */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono font-bold text-amber-400">
+                          E{ep.episode_number}
+                        </span>
+                        <h4 className="font-editorial text-sm font-medium truncate group-hover:text-amber-300 transition-colors">
+                          {ep.title}
+                        </h4>
+                      </div>
+                      <span className="text-[10px] font-mono text-zinc-400 block mt-0.5">
+                        {formatRuntime(ep.runtime_minutes)}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Slide-out Sidebar Drawer for Editorial Notes & Discussion */}
       <AnimatePresence>
@@ -376,7 +719,7 @@ export const WatchModal: React.FC<WatchModalProps> = ({
                 </span>
                 <span className="text-hairline">|</span>
                 <h3 className="font-editorial text-base text-ivory">
-                  {film.title}
+                  {playFilm.title}
                 </h3>
               </div>
               <button
@@ -396,7 +739,7 @@ export const WatchModal: React.FC<WatchModalProps> = ({
                   Synopsis
                 </h4>
                 <p className="font-sans text-xs sm:text-sm text-ivory/80 leading-[1.6]">
-                  {film.synopsis}
+                  {playFilm.synopsis}
                 </p>
               </div>
 
@@ -404,73 +747,55 @@ export const WatchModal: React.FC<WatchModalProps> = ({
               <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/[0.08] space-y-2.5 font-mono text-xs">
                 <div className="flex items-center justify-between text-muted">
                   <span>Runtime</span>
-                  <span className="text-ivory">{formatRuntime(film.runtime_minutes)}</span>
+                  <span className="text-ivory">{formatRuntime(playFilm.runtime_minutes)}</span>
                 </div>
                 <div className="flex items-center justify-between text-muted">
                   <span>Release Year</span>
-                  <span className="text-ivory">{film.release_year}</span>
+                  <span className="text-ivory">{playFilm.release_year}</span>
                 </div>
                 <div className="flex items-center justify-between text-muted">
                   <span>Language</span>
-                  <span className="text-ivory uppercase">{film.language}</span>
+                  <span className="text-ivory uppercase">{playFilm.language}</span>
                 </div>
                 <div className="flex items-center justify-between text-muted">
                   <span>Age Rating</span>
-                  <span className="text-ivory font-mono font-semibold">{film.age_rating}</span>
+                  <span className="text-ivory font-mono font-semibold">{playFilm.age_rating}</span>
                 </div>
-                {film.is_debut && (
-                  <div className="pt-2 border-t border-white/[0.08] text-signature text-[10px] tracking-wider uppercase font-mono font-medium">
-                    • Official First-Time Director Debut
-                  </div>
-                )}
               </div>
 
-              {/* Filmmaker Bio */}
+              {/* Creator / Filmmaker Bio */}
               <div>
                 <h4 className="font-mono text-[10px] font-bold uppercase tracking-widest text-muted mb-2">
-                  Filmmaker
+                  {isEpisodic ? 'Showrunner / Creator' : 'Filmmaker'}
                 </h4>
                 <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/[0.08]">
                   <p className="font-editorial text-base font-semibold text-ivory">
-                    {film.profiles?.display_name || 'Independent Director'}
+                    {playFilm.profiles?.display_name || 'Independent Creator'}
                   </p>
-                  {film.profiles?.city && (
-                    <p className="font-mono text-[10px] text-muted mt-0.5">{film.profiles.city}</p>
+                  {playFilm.profiles?.city && (
+                    <p className="font-mono text-[10px] text-muted mt-0.5">
+                      {playFilm.profiles.city}
+                    </p>
                   )}
-                  {film.profiles?.bio && (
+                  {playFilm.profiles?.bio && (
                     <p className="font-sans text-xs text-ivory/70 mt-2 leading-[1.5]">
-                      {film.profiles.bio}
+                      {playFilm.profiles.bio}
                     </p>
                   )}
                 </div>
               </div>
 
-              {/* Cast & Crew */}
-              {film.film_credits && film.film_credits.length > 0 && (
-                <div>
-                  <h4 className="font-mono text-[10px] font-bold uppercase tracking-widest text-muted mb-2">
-                    Credits
-                  </h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    {film.film_credits.map((c) => (
-                      <div key={c.id} className="p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08]">
-                        <p className="text-xs font-medium text-ivory truncate">{c.person_name}</p>
-                        <p className="font-mono text-[9px] text-muted truncate uppercase tracking-wider">{c.credit_role}</p>
-                      </div>
-                    ))}
-                  </div>
+              {/* Audience Discussion Section (for films) */}
+              {!isEpisodic && (
+                <div className="pt-2 border-t border-hairline">
+                  <FilmComments
+                    filmId={playFilm.id}
+                    user={user}
+                    profile={profile}
+                    onOpenAuth={onOpenAuth}
+                  />
                 </div>
               )}
-
-              {/* Audience Discussion Section */}
-              <div className="pt-2 border-t border-hairline">
-                <FilmComments
-                  filmId={film.id}
-                  user={user}
-                  profile={profile}
-                  onOpenAuth={onOpenAuth}
-                />
-              </div>
             </div>
           </motion.div>
         )}

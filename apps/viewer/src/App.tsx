@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'motion/react';
-import { Film, Bookmark, History } from 'lucide-react';
+import { Film, Bookmark, History, Tv } from 'lucide-react';
 import { useViewerAuth } from './hooks/useViewerAuth';
 import { useCatalogue } from './hooks/useCatalogue';
+import { useSeriesCatalogue } from './hooks/useSeriesCatalogue';
 import { useWatchlist } from './hooks/useWatchlist';
 import { useWatchHistory } from './hooks/useWatchHistory';
 import { useUIManager, getFilmsForSection } from './hooks/useUIManager';
@@ -10,15 +11,17 @@ import { ViewerHeader } from './components/navigation/ViewerHeader';
 import { ViewerFooter } from './components/navigation/ViewerFooter';
 import { HeroBillboard } from './components/hero/HeroBillboard';
 import { ContentRail } from './components/catalog/ContentRail';
+import { SeriesRail } from './components/series/SeriesRail';
+import { SeriesDetailModal } from './components/series/SeriesDetailModal';
 import { NewFilmmakersSpotlight } from './components/catalog/NewFilmmakersSpotlight';
 import { ContinueWatchingRail } from './components/catalog/ContinueWatchingRail';
 import { Top10Rail } from './components/catalog/Top10Rail';
 import { FilmCard } from './components/catalog/FilmCard';
-import { WatchModal } from './components/player/WatchModal';
+import { WatchModal, EpisodicContext } from './components/player/WatchModal';
 import { MoreInfoModal } from './components/player/MoreInfoModal';
 import { ViewerAuthModal } from './components/auth/ViewerAuthModal';
 import { LanguageProvider } from './context/LanguageContext';
-import { Film as FilmType } from './types';
+import { Film as FilmType, Series, Season, Episode } from './types';
 
 export default function App() {
   const { user, profile, role, signOut } = useViewerAuth();
@@ -34,6 +37,15 @@ export default function App() {
     debutFilms,
   } = useCatalogue();
 
+  const {
+    seriesList,
+    watchlistIds: seriesWatchlistIds,
+    toggleSeriesWatchlist,
+    isInWatchlist: isInSeriesWatchlist,
+    recordEpisodeProgress,
+    getEpisodeProgress,
+  } = useSeriesCatalogue(user?.id);
+
   const { watchlistIds, toggleWatchlist, isInWatchlist } = useWatchlist(user?.id);
   const { history, recordProgress, getProgress, dismissFromHistory, getInProgressFilms } = useWatchHistory(user?.id);
 
@@ -48,9 +60,16 @@ export default function App() {
 
   const [activeWatchFilm, setActiveWatchFilm] = useState<FilmType | null>(null);
   const [activeWatchMode, setActiveWatchMode] = useState<'movie' | 'trailer'>('movie');
+  const [selectedSeries, setSelectedSeries] = useState<Series | null>(null);
+  const [activeEpisodicWatch, setActiveEpisodicWatch] = useState<EpisodicContext | null>(null);
   const [moreInfoFilm, setMoreInfoFilm] = useState<FilmType | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [pendingWatchFilm, setPendingWatchFilm] = useState<{ film: FilmType; mode: 'movie' | 'trailer' } | null>(null);
+  const [pendingPlayEpisode, setPendingPlayEpisode] = useState<{
+    series: Series;
+    season: Season;
+    episode: Episode;
+  } | null>(null);
 
   // Mandatory requirement: Authentication required to watch cinema content
   const handlePlay = (film: FilmType, mode: 'movie' | 'trailer' = 'movie') => {
@@ -59,8 +78,25 @@ export default function App() {
       setShowAuthModal(true);
       return;
     }
+    setActiveEpisodicWatch(null);
     setActiveWatchFilm(film);
     setActiveWatchMode(mode);
+  };
+
+  const handlePlayEpisode = (series: Series, season: Season, episode: Episode) => {
+    if (!user) {
+      setPendingPlayEpisode({ series, season, episode });
+      setShowAuthModal(true);
+      return;
+    }
+    setActiveWatchFilm(null);
+    setSelectedSeries(null);
+    setActiveEpisodicWatch({
+      series,
+      season,
+      episode,
+      allEpisodes: season.episodes || [],
+    });
   };
 
   // Automatically start playback once the user completes sign-in / sign-up
@@ -70,7 +106,15 @@ export default function App() {
       setActiveWatchMode(pendingWatchFilm.mode);
       setPendingWatchFilm(null);
     }
-  }, [user, pendingWatchFilm]);
+    if (user && pendingPlayEpisode) {
+      handlePlayEpisode(
+        pendingPlayEpisode.series,
+        pendingPlayEpisode.season,
+        pendingPlayEpisode.episode
+      );
+      setPendingPlayEpisode(null);
+    }
+  }, [user, pendingWatchFilm, pendingPlayEpisode]);
 
   // Curated list of featured films for the hero carousel rotation
   const featuredCarouselFilms = (() => {
@@ -89,6 +133,7 @@ export default function App() {
 
   // Filtered lists for specific rails
   const watchlistFilms = films.filter((f) => watchlistIds.has(f.id));
+  const watchlistSeries = seriesList.filter((s) => seriesWatchlistIds.has(s.id));
   const historyFilms = films.filter((f) => history.has(f.id));
   const inProgressFilms = getInProgressFilms(films);
   const top10Films = [...films]
@@ -99,7 +144,7 @@ export default function App() {
     <LanguageProvider>
       <div className="min-h-screen bg-canvas text-ivory flex flex-col font-sans selection:bg-signature selection:text-black">
         {/* Navigation Header (Hidden in Theater Mode) */}
-        {!activeWatchFilm && (
+        {!activeWatchFilm && !activeEpisodicWatch && (
           <ViewerHeader
             currentTab={currentTab}
             onSelectTab={(tab) => {
@@ -302,6 +347,16 @@ export default function App() {
                       />
                     );
                   })}
+
+                {/* Dedicated Original Web Series Rail */}
+                {seriesList.length > 0 && (
+                  <SeriesRail
+                    seriesList={seriesList}
+                    onSelectSeries={setSelectedSeries}
+                    isInWatchlist={isInSeriesWatchlist}
+                    onToggleWatchlist={toggleSeriesWatchlist}
+                  />
+                )}
               </div>
             </div>
             )
@@ -383,12 +438,12 @@ export default function App() {
                 </p>
               </div>
 
-              {watchlistFilms.length === 0 ? (
+              {watchlistFilms.length === 0 && watchlistSeries.length === 0 ? (
                 <div className="py-24 text-center text-muted space-y-3">
                   <Bookmark className="h-10 w-10 mx-auto opacity-30 text-signature" />
                   <h3 className="font-editorial text-xl font-normal text-ivory">Your screening queue is clear</h3>
                   <p className="font-sans text-xs text-muted max-w-sm mx-auto">
-                    Explore our festival catalogue and bookmark films to assemble your private program.
+                    Explore our festival catalogue and bookmark films or series to assemble your private program.
                   </p>
                   <div className="pt-2">
                     <button
@@ -400,17 +455,66 @@ export default function App() {
                   </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-                  {watchlistFilms.map((film) => (
-                    <FilmCard
-                      key={film.id}
-                      film={film}
-                      onPlay={(f) => handlePlay(f)}
-                      isInWatchlist={true}
-                      onToggleWatchlist={toggleWatchlist}
-                      progressSeconds={getProgress(film.id)}
-                    />
-                  ))}
+                <div className="space-y-8">
+                  {watchlistSeries.length > 0 && (
+                    <div className="space-y-3">
+                      <h2 className="text-sm font-mono uppercase tracking-widest text-amber-400 flex items-center gap-2">
+                        <Tv className="w-4 h-4" />
+                        <span>Saved Web Series ({watchlistSeries.length})</span>
+                      </h2>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+                        {watchlistSeries.map((series) => (
+                          <div key={series.id}>
+                            {/* Render card */}
+                            <div
+                              onClick={() => setSelectedSeries(series)}
+                              className="group relative cursor-pointer select-none aspect-[2/3] w-full rounded-xl overflow-hidden bg-[#12141a] transition-all duration-300 group-hover:-translate-y-1.5 shadow-[0_6px_20px_rgba(0,0,0,0.6)] border border-white/[0.04] group-hover:border-amber-500/30"
+                            >
+                              <img
+                                src={
+                                  series.poster_url ||
+                                  'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?q=80&w=600&auto=format&fit=crop'
+                                }
+                                alt={series.title}
+                                className="w-full h-full object-cover"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent p-3 flex flex-col justify-end">
+                                <span className="text-[10px] font-mono text-amber-400">
+                                  {series.seasons?.length || 1} Seasons
+                                </span>
+                                <h3 className="font-editorial text-sm text-white font-medium truncate">
+                                  {series.title}
+                                </h3>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {watchlistFilms.length > 0 && (
+                    <div className="space-y-3">
+                      {watchlistSeries.length > 0 && (
+                        <h2 className="text-sm font-mono uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                          <Film className="w-4 h-4" />
+                          <span>Saved Films ({watchlistFilms.length})</span>
+                        </h2>
+                      )}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+                        {watchlistFilms.map((film) => (
+                          <FilmCard
+                            key={film.id}
+                            film={film}
+                            onPlay={(f) => handlePlay(f)}
+                            isInWatchlist={true}
+                            onToggleWatchlist={toggleWatchlist}
+                            progressSeconds={getProgress(film.id)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -478,6 +582,41 @@ export default function App() {
             />
           )}
 
+          {/* Episodic Series Streaming Player Modal */}
+          {activeEpisodicWatch && (
+            <WatchModal
+              mode="episode"
+              episodicContext={activeEpisodicWatch}
+              onSelectEpisode={(ep) =>
+                setActiveEpisodicWatch((prev) =>
+                  prev ? { ...prev, episode: ep } : null
+                )
+              }
+              onClose={() => setActiveEpisodicWatch(null)}
+              user={user}
+              profile={profile}
+              onOpenAuth={() => setShowAuthModal(true)}
+              isInWatchlist={isInSeriesWatchlist(activeEpisodicWatch.series.id)}
+              onToggleWatchlist={toggleSeriesWatchlist}
+              initialProgressSeconds={getEpisodeProgress(activeEpisodicWatch.episode.id)}
+              onRecordProgress={(id, seconds, completed) =>
+                recordEpisodeProgress(id, seconds, completed)
+              }
+            />
+          )}
+
+          {/* Web Series Season & Episode Details Modal */}
+          {selectedSeries && (
+            <SeriesDetailModal
+              series={selectedSeries}
+              onClose={() => setSelectedSeries(null)}
+              onPlayEpisode={handlePlayEpisode}
+              isInWatchlist={isInSeriesWatchlist(selectedSeries.id)}
+              onToggleWatchlist={toggleSeriesWatchlist}
+              getEpisodeProgress={getEpisodeProgress}
+            />
+          )}
+
           {/* Netflix-Style Cinema More Info Details Modal */}
           {moreInfoFilm && (
             <MoreInfoModal
@@ -500,9 +639,12 @@ export default function App() {
           onClose={() => {
             setShowAuthModal(false);
             setPendingWatchFilm(null);
+            setPendingPlayEpisode(null);
           }}
           contextPrompt={
-            pendingWatchFilm
+            pendingPlayEpisode
+              ? `Sign in or sign up to stream "${pendingPlayEpisode.series.title}: ${pendingPlayEpisode.episode.title}"`
+              : pendingWatchFilm
               ? `Sign in or sign up to stream "${pendingWatchFilm.film.title}"`
               : undefined
           }
