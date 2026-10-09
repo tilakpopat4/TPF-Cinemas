@@ -134,6 +134,13 @@ export const LegalOnboardingModal: React.FC<LegalOnboardingModalProps> = ({
         timestamp: executionTimestamp,
       });
 
+      // 0. Ensure user has filmmaker role first so storage RLS allows uploads
+      try {
+        await supabase.rpc('become_filmmaker');
+      } catch (e) {
+        console.warn('become_filmmaker notice:', e);
+      }
+
       // 2. Convert base64 signature to Blob for storage upload
       const signatureResponse = await fetch(signatureDataUrl);
       const signatureBlob = await signatureResponse.blob();
@@ -143,6 +150,7 @@ export const LegalOnboardingModal: React.FC<LegalOnboardingModalProps> = ({
       const pdfPath = `${userId}/consent_${timeKey}.pdf`;
 
       // 3. Upload signature image to private licences bucket
+      let storedSignatureRef = signaturePath;
       const { error: sigUploadErr } = await supabase.storage
         .from('licences')
         .upload(signaturePath, signatureBlob, {
@@ -151,10 +159,12 @@ export const LegalOnboardingModal: React.FC<LegalOnboardingModalProps> = ({
         });
 
       if (sigUploadErr) {
-        console.warn('Signature upload error:', sigUploadErr);
+        console.warn('Signature upload warning, using data URL fallback:', sigUploadErr);
+        storedSignatureRef = signatureDataUrl;
       }
 
       // 4. Upload PDF document to private licences bucket
+      let storedPdfRef = pdfPath;
       const { error: pdfUploadErr } = await supabase.storage
         .from('licences')
         .upload(pdfPath, pdfResult.blob, {
@@ -163,7 +173,7 @@ export const LegalOnboardingModal: React.FC<LegalOnboardingModalProps> = ({
         });
 
       if (pdfUploadErr) {
-        console.warn('PDF upload error:', pdfUploadErr);
+        console.warn('PDF upload warning:', pdfUploadErr);
       }
 
       // 5. Update user profile with comprehensive creator details
@@ -200,9 +210,9 @@ export const LegalOnboardingModal: React.FC<LegalOnboardingModalProps> = ({
         music_cleared: true,
         terms_version: '1.0.0',
         agreement_version: '1.0.0',
-        agreement_path: pdfPath,
-        agreement_pdf_url: pdfPath,
-        signature_image_url: signaturePath,
+        agreement_path: storedPdfRef,
+        agreement_pdf_url: storedPdfRef,
+        signature_image_url: storedSignatureRef,
         legal_name: trimmedName,
         production_name: trimmedProduction,
         contact_no: trimmedContact,

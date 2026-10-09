@@ -93,16 +93,25 @@ export function useLegalAgreements(isStaff: boolean) {
 
   const createSignedUrl = useCallback(async (path: string): Promise<string | null> => {
     if (!path) return null;
+    if (path.startsWith('data:') || path.startsWith('http://') || path.startsWith('https://')) {
+      return path;
+    }
+    const cleanPath = path.replace(/^licences\//, '');
     try {
       const { data, error: urlErr } = await supabase.storage
         .from('licences')
-        .createSignedUrl(path, 3600);
+        .createSignedUrl(cleanPath, 3600);
 
-      if (urlErr) throw urlErr;
+      if (urlErr) {
+        console.warn('Could not create signed URL, trying getPublicUrl:', cleanPath, urlErr);
+        const { data: pubData } = supabase.storage.from('licences').getPublicUrl(cleanPath);
+        return pubData?.publicUrl || null;
+      }
       return data?.signedUrl || null;
     } catch (err) {
       console.error('Error creating signed download URL:', err);
-      return null;
+      const { data: pubData } = supabase.storage.from('licences').getPublicUrl(cleanPath);
+      return pubData?.publicUrl || null;
     }
   }, []);
 
