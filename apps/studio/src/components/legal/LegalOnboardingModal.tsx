@@ -115,8 +115,15 @@ export const LegalOnboardingModal: React.FC<LegalOnboardingModalProps> = ({
         console.warn('PDF upload error:', pdfUploadErr);
       }
 
-      // 5. Insert master creator agreement row in Supabase
-      const { error: dbErr } = await supabase.from('licence_agreements').insert({
+      // 5. Check if master creator agreement already exists for this filmmaker
+      const { data: existingMaster } = await supabase
+        .from('licence_agreements')
+        .select('id')
+        .eq('filmmaker_id', userId)
+        .is('film_id', null)
+        .maybeSingle();
+
+      const agreementPayload = {
         filmmaker_id: userId,
         film_id: null,
         licence_type: 'non_exclusive',
@@ -132,7 +139,21 @@ export const LegalOnboardingModal: React.FC<LegalOnboardingModalProps> = ({
         legal_name: trimmedName,
         signed_user_agent: navigator.userAgent || 'Web Browser',
         signed_at: executionTimestamp.toISOString(),
-      });
+      };
+
+      let dbErr = null;
+      if (existingMaster) {
+        const { error: updateErr } = await supabase
+          .from('licence_agreements')
+          .update(agreementPayload)
+          .eq('id', existingMaster.id);
+        dbErr = updateErr;
+      } else {
+        const { error: insertErr } = await supabase
+          .from('licence_agreements')
+          .insert(agreementPayload);
+        dbErr = insertErr;
+      }
 
       if (dbErr) {
         if (dbErr.message?.includes('schema cache') || dbErr.message?.includes('column') || dbErr.code === 'PGRST204') {

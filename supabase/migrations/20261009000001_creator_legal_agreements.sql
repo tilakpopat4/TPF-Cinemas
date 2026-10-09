@@ -78,11 +78,11 @@ CREATE POLICY licences_insert ON public.licence_agreements
     )
   );
 
--- Ensure owner can update their own unverified agreement
+-- Ensure owner can update their own agreement
 DROP POLICY IF EXISTS licences_update ON public.licence_agreements;
 CREATE POLICY licences_update ON public.licence_agreements
   FOR UPDATE TO authenticated
-  USING (filmmaker_id = auth.uid() AND verified_at IS NULL)
+  USING (filmmaker_id = auth.uid())
   WITH CHECK (filmmaker_id = auth.uid());
 
 -- 7. RPC: Staff verify creator agreement and record in audit log
