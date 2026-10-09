@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useStaffAuth } from './hooks/useStaffAuth';
 import { useReviewQueue } from './hooks/useReviewQueue';
+import { useSeriesQueue } from './hooks/useSeriesQueue';
 import { useAuditLog } from './hooks/useAuditLog';
-import { Film } from './types';
+import { Film, Series } from './types';
 import { StaffHeader } from './components/layout/StaffHeader';
 import { StaffFooter } from './components/layout/StaffFooter';
 import { QueueTable } from './components/queue/QueueTable';
 import { ReviewModal } from './components/queue/ReviewModal';
+import { SeriesQueueTable } from './components/queue/SeriesQueueTable';
+import { SeriesReviewModal } from './components/queue/SeriesReviewModal';
 import { RoleManager } from './components/admin/RoleManager';
 import { AuditLogView } from './components/admin/AuditLogView';
 import { UIManagerView } from './components/admin/UIManagerView';
@@ -18,10 +21,12 @@ import { LanguageProvider } from './context/LanguageContext';
 export const App: React.FC = () => {
   const { user, profile, role, isStaff, isAdmin, loading: authLoading, signOut, refreshProfile } = useStaffAuth();
   const { films, loading: queueLoading, refreshQueue } = useReviewQueue(isStaff);
+  const { seriesList, loading: seriesLoading, refreshQueue: refreshSeriesQueue } = useSeriesQueue(isStaff);
   const { logs, loading: auditLoading, refreshLogs } = useAuditLog(isAdmin);
 
-  const [activeTab, setActiveTab] = useState<'queue' | 'roles' | 'audit' | 'uimanager' | 'legal'>('queue');
+  const [activeTab, setActiveTab] = useState<'queue' | 'series' | 'roles' | 'audit' | 'uimanager' | 'legal'>('queue');
   const [selectedFilm, setSelectedFilm] = useState<Film | null>(null);
+  const [selectedSeries, setSelectedSeries] = useState<Series | null>(null);
 
   if (authLoading) {
     return (
@@ -45,6 +50,7 @@ export const App: React.FC = () => {
   }
 
   const pendingCount = films.filter((f) => f.status === 'submitted').length;
+  const seriesPendingCount = seriesList.filter((s) => s.status === 'submitted').length;
 
   return (
     <LanguageProvider>
@@ -58,6 +64,7 @@ export const App: React.FC = () => {
           onTabChange={setActiveTab}
           onSignOut={signOut}
           queueCount={pendingCount}
+          seriesQueueCount={seriesPendingCount}
         />
 
         {/* Main Content */}
@@ -66,6 +73,15 @@ export const App: React.FC = () => {
             <QueueTable
               films={films}
               onSelectFilm={(film) => setSelectedFilm(film)}
+            />
+          )}
+
+          {activeTab === 'series' && (
+            <SeriesQueueTable
+              seriesList={seriesList}
+              onSelectSeries={(ser) => setSelectedSeries(ser)}
+              onRefresh={refreshSeriesQueue}
+              loading={seriesLoading}
             />
           )}
 
@@ -100,6 +116,19 @@ export const App: React.FC = () => {
               refreshQueue();
               if (isAdmin) refreshLogs();
               setSelectedFilm(null);
+            }}
+          />
+        )}
+
+        {/* Series Review & Inspection Modal */}
+        {selectedSeries && (
+          <SeriesReviewModal
+            series={selectedSeries}
+            onClose={() => setSelectedSeries(null)}
+            onRefresh={() => {
+              refreshSeriesQueue();
+              if (isAdmin) refreshLogs();
+              setSelectedSeries(null);
             }}
           />
         )}

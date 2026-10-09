@@ -149,3 +149,79 @@ export interface FilmUpdate {
   /** Joined filmmaker profile */
   filmmaker?: Pick<Profile, 'id' | 'display_name' | 'avatar_url'>;
 }
+
+export interface Episode {
+  id: string;
+  season_id: string;
+  series_id: string;
+  episode_number: number;
+  title: string;
+  synopsis: string | null;
+  runtime_minutes: number | null;
+  video_provider: VideoProvider;
+  video_ref: string;
+  thumbnail_url: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Season {
+  id: string;
+  series_id: string;
+  season_number: number;
+  title: string;
+  synopsis: string | null;
+  release_year: number | null;
+  poster_url: string | null;
+  created_at: string;
+  updated_at: string;
+  episodes?: Episode[];
+}
+
+export interface SeriesCredit {
+  id?: string;
+  series_id?: string;
+  person_name: string;
+  credit_role: string;
+  sort_order: number;
+}
+
+export interface SeriesReview {
+  id: string;
+  series_id: string;
+  reviewer_id: string;
+  decision: ReviewDecision;
+  notes: string;
+  created_at: string;
+  reviewer?: {
+    display_name: string;
+    role: AppRole;
+  };
+}
+
+export interface Series {
+  id: string;
+  filmmaker_id: string;
+  title: string;
+  slug: string;
+  synopsis: string | null;
+  creator_note: string | null;
+  language: string;
+  age_rating: AgeRating | null;
+  poster_url: string | null;
+  backdrop_url: string | null;
+  trailer_ref: string | null;
+  total_seasons: number;
+  status: FilmStatus;
+  is_featured: boolean;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+  seasons?: Season[];
+  series_genres?: { genre_id: number; genres?: Genre }[];
+  series_credits?: SeriesCredit[];
+  series_reviews?: SeriesReview[];
+  profiles?: Profile;
+  episode_count?: number;
+}
+

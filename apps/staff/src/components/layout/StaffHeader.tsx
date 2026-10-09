@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { LogOut, Globe, ChevronDown, Check, CheckSquare, Users, History, Menu, X, Sliders, ShieldCheck } from 'lucide-react';
+import { LogOut, Globe, ChevronDown, Check, CheckSquare, Users, History, Menu, X, Sliders, ShieldCheck, Tv } from 'lucide-react';
 import { Profile, AppRole } from '../../types';
 import { useLanguage, SUPPORTED_LANGUAGES } from '../../context/LanguageContext';
 
@@ -8,10 +8,11 @@ interface StaffHeaderProps {
   profile: Profile | null;
   email?: string;
   role: AppRole;
-  activeTab: 'queue' | 'roles' | 'audit' | 'uimanager' | 'legal';
-  onTabChange: (tab: 'queue' | 'roles' | 'audit' | 'uimanager' | 'legal') => void;
+  activeTab: 'queue' | 'series' | 'roles' | 'audit' | 'uimanager' | 'legal';
+  onTabChange: (tab: 'queue' | 'series' | 'roles' | 'audit' | 'uimanager' | 'legal') => void;
   onSignOut: () => void;
   queueCount: number;
+  seriesQueueCount?: number;
 }
 
 export const StaffHeader: React.FC<StaffHeaderProps> = ({
@@ -22,6 +23,7 @@ export const StaffHeader: React.FC<StaffHeaderProps> = ({
   onTabChange,
   onSignOut,
   queueCount,
+  seriesQueueCount = 0,
 }) => {
   const { currentLanguage, setLanguage, isTranslating } = useLanguage();
   const [showMenu, setShowMenu] = useState(false);
@@ -105,6 +107,23 @@ export const StaffHeader: React.FC<StaffHeaderProps> = ({
               {queueCount > 0 && (
                 <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold bg-signature/20 text-signature border border-signature/30">
                   {queueCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => onTabChange('series')}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs uppercase tracking-wider transition-all duration-150 ${
+                activeTab === 'series'
+                  ? 'text-ivory font-semibold bg-white/[0.08] shadow-sm'
+                  : 'text-muted hover:text-ivory hover:bg-white/[0.04] font-medium'
+              }`}
+            >
+              <Tv className="h-3.5 w-3.5 text-amber-500" />
+              <span>Web Series</span>
+              {(seriesQueueCount ?? 0) > 0 && (
+                <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                  {seriesQueueCount}
                 </span>
               )}
             </button>
@@ -302,6 +321,28 @@ export const StaffHeader: React.FC<StaffHeaderProps> = ({
                 {queueCount > 0 && (
                   <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold bg-signature/20 text-signature">
                     {queueCount}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => {
+                  onTabChange('series');
+                  setShowMobileNav(false);
+                }}
+                className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs uppercase font-medium tracking-wider transition-all ${
+                  activeTab === 'series'
+                    ? 'text-ivory font-semibold bg-white/[0.14] shadow-sm'
+                    : 'text-muted hover:text-ivory hover:bg-white/[0.04]'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <Tv className="h-3.5 w-3.5 text-amber-500" />
+                  <span>Web Series</span>
+                </span>
+                {(seriesQueueCount ?? 0) > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-400">
+                    {seriesQueueCount}
                   </span>
                 )}
               </button>
