@@ -25,6 +25,18 @@ export interface HeroBillboardProps {
   customTagline?: string;
 }
 
+/**
+ * Helper to truncate billboard synopsis to concise 2-3 lines max (~190 chars)
+ */
+function truncateBillboardSynopsis(text: string, maxLength = 190): string {
+  if (!text) return '';
+  const clean = text.replace(/\s+/g, ' ').trim();
+  if (clean.length <= maxLength) return clean;
+  const sliced = clean.slice(0, maxLength);
+  const lastSpace = sliced.lastIndexOf(' ');
+  return (lastSpace > 100 ? sliced.slice(0, lastSpace) : sliced).trim() + '…';
+}
+
 export const HeroBillboard: React.FC<HeroBillboardProps> = ({
   film: singleFilm,
   films = [],
@@ -119,15 +131,14 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
           >
             {/* Curatorial Header Stamp with frosted pill */}
             <div className="flex flex-wrap items-center gap-2.5">
-              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 shadow-lg">
-                <div className="h-2 w-2 rounded-full bg-signature animate-pulse" />
+              <div className="inline-flex items-center px-3 py-1 rounded-full bg-black/40 backdrop-blur-md shadow-md">
                 <span className="font-mono text-[10px] tracking-[0.2em] text-ivory/90 uppercase font-semibold">
                   {customTagline || (currentFilm.is_debut ? 'Director Debut Spotlight' : 'Official Festival Selection')}
                 </span>
               </div>
 
               {currentFilm.profiles?.display_name && (
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-md border border-white/10 shadow-lg text-[11px] text-ivory/90 font-editorial italic">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/40 backdrop-blur-md shadow-md text-[11px] text-ivory/90 font-editorial italic">
                   <span>Directed by</span>
                   <strong className="text-white font-medium not-italic">{currentFilm.profiles.display_name}</strong>
                 </div>
@@ -137,31 +148,31 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
             {/* Architectural Metadata Badges */}
             <div className="hidden sm:flex flex-wrap items-center gap-1.5 font-mono text-[10px] text-muted tracking-wider">
               {currentFilm.aspect_ratio && (
-                <span className="px-2.5 py-0.5 rounded-md bg-black/50 backdrop-blur-md border border-white/10 text-ivory">
+                <span className="px-2 py-0.5 rounded-md bg-white/[0.08] backdrop-blur-sm text-ivory">
                   {currentFilm.aspect_ratio}
                 </span>
               )}
 
               {currentFilm.age_rating && (
-                <span className="px-2.5 py-0.5 rounded-md bg-black/50 backdrop-blur-md border border-white/10 text-signature font-semibold">
+                <span className="px-2 py-0.5 rounded-md bg-signature/15 backdrop-blur-sm text-signature font-semibold">
                   {currentFilm.age_rating}
                 </span>
               )}
 
               {currentFilm.runtime_minutes && (
-                <span className="px-2.5 py-0.5 rounded-md bg-black/50 backdrop-blur-md border border-white/10 text-ivory/80">
+                <span className="px-2 py-0.5 rounded-md bg-white/[0.08] backdrop-blur-sm text-ivory/80">
                   {formatRuntime(currentFilm.runtime_minutes)}
                 </span>
               )}
 
               {currentFilm.release_year && (
-                <span className="px-2.5 py-0.5 rounded-md bg-black/50 backdrop-blur-md border border-white/10 text-ivory/80">
+                <span className="px-2 py-0.5 rounded-md bg-white/[0.08] backdrop-blur-sm text-ivory/80">
                   {currentFilm.release_year}
                 </span>
               )}
 
               {currentFilm.language && (
-                <span className="px-2.5 py-0.5 rounded-md bg-black/50 backdrop-blur-md border border-white/10 text-ivory/80 uppercase">
+                <span className="px-2 py-0.5 rounded-md bg-white/[0.08] backdrop-blur-sm text-ivory/80 uppercase">
                   {[currentFilm.language, ...(currentFilm.extra_languages || [])]
                     .filter((l, i, arr) => l && arr.indexOf(l) === i)
                     .join(' · ')}
@@ -176,7 +187,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
                       key={fg.genre_id}
                       type="button"
                       onClick={() => onSelectGenre?.(fg.genres?.slug || '')}
-                      className="px-2.5 py-0.5 rounded-md bg-black/50 backdrop-blur-md border border-white/10 hover:border-signature/40 text-ivory/80 hover:text-white transition-colors"
+                      className="px-2.5 py-0.5 rounded-md bg-white/[0.08] hover:bg-white/[0.14] backdrop-blur-sm text-ivory/80 hover:text-white transition-colors"
                     >
                       {fg.genres?.name}
                     </button>
@@ -185,14 +196,22 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
               )}
             </div>
 
-            {/* Synopsis (Only rendered if substantive, avoids placeholder letters) */}
+            {/* Synopsis: concise 2-3 lines max for cinematic billboard appearance */}
             {currentFilm.synopsis && currentFilm.synopsis.trim().length > 3 && (
-              <p className="hidden md:block font-sans text-xs sm:text-sm text-ivory/90 max-w-xl leading-[1.6] line-clamp-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
-                {currentFilm.synopsis}
+              <p
+                className="hidden md:block font-sans text-xs sm:text-sm text-ivory/85 max-w-xl leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]"
+                style={{
+                  display: '-webkit-box',
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                }}
+              >
+                {truncateBillboardSynopsis(currentFilm.synopsis, 190)}
               </p>
             )}
 
-            {/* Action Buttons: Seamless Cinema UI with Generous Fitting */}
+            {/* Action Buttons: Seamless Cinema UI with Soft Frosted Finishes */}
             <div className="flex flex-wrap items-center gap-3 pt-1">
               {/* Option 1: Watch Movie (Primary) */}
               <button
@@ -208,7 +227,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
               {currentFilm.trailer_ref?.trim() && (
                 <button
                   onClick={() => onPlay(currentFilm, 'trailer')}
-                  className="px-5 py-3 rounded-xl bg-black/60 hover:bg-black/80 border border-white/15 text-ivory hover:text-white font-medium text-xs uppercase tracking-wider transition-all duration-200 flex items-center gap-2 backdrop-blur-md hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap shadow-lg"
+                  className="px-5 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-ivory hover:text-white font-medium text-xs uppercase tracking-wider transition-all duration-200 flex items-center gap-2 backdrop-blur-md hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap shadow-md"
                   title="Watch Official Trailer"
                 >
                   <FilmIcon className="h-4 w-4 text-signature shrink-0" />
@@ -216,13 +235,13 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
                 </button>
               )}
 
-              {/* Add to Queue / In Queue with Spacious Fitting & Balanced Padding */}
+              {/* Add to Queue / In Queue with Soft Frosted Styling */}
               <button
                 onClick={() => onToggleWatchlist(currentFilm.id)}
-                className={`px-5 py-3 rounded-xl text-xs uppercase tracking-wider font-semibold flex items-center gap-2 transition-all duration-200 backdrop-blur-md active:scale-95 whitespace-nowrap shadow-lg border ${
+                className={`px-5 py-3 rounded-xl text-xs uppercase tracking-wider font-semibold flex items-center gap-2 transition-all duration-200 backdrop-blur-md active:scale-95 whitespace-nowrap shadow-md ${
                   inList
-                    ? 'bg-signature/20 border-signature/40 text-signature hover:bg-signature/30'
-                    : 'bg-black/60 hover:bg-black/80 border-white/15 text-ivory hover:text-white'
+                    ? 'bg-signature/20 text-signature hover:bg-signature/30'
+                    : 'bg-white/10 hover:bg-white/15 text-ivory hover:text-white'
                 }`}
                 title={inList ? 'Remove from Queue' : 'Add to Queue'}
               >
@@ -243,7 +262,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
               {onMoreInfo && (
                 <button
                   onClick={() => onMoreInfo(currentFilm)}
-                  className="px-4 py-3 rounded-xl text-ivory/80 hover:text-ivory text-xs uppercase tracking-wider flex items-center gap-2 bg-black/60 hover:bg-black/80 border border-white/15 transition-all duration-200 backdrop-blur-md active:scale-95 whitespace-nowrap shadow-lg"
+                  className="px-4 py-3 rounded-xl text-ivory/80 hover:text-ivory text-xs uppercase tracking-wider flex items-center gap-2 bg-white/10 hover:bg-white/15 transition-all duration-200 backdrop-blur-md active:scale-95 whitespace-nowrap shadow-md"
                   title="Curatorial Notes & Credits"
                 >
                   <Info className="h-3.5 w-3.5 shrink-0" />
