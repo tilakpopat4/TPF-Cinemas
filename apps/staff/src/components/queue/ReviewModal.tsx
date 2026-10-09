@@ -89,15 +89,32 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
   const licence = f.licence_agreements;
   const isLicenceVerified = !!licence?.verified_at;
 
-  // Verify Licence RPC
+  // Verify Licence RPC (tries creator agreement first, falls back to film licence)
   async function handleVerifyLicence() {
     setActionError(null);
     try {
       setVerifyingLicence(true);
-      const { error } = await supabase.rpc('verify_licence', {
-        p_film_id: f.id,
-      });
-      if (error) throw error;
+      let success = false;
+      let lastErr: any = null;
+
+      if (licence?.id) {
+        const { error: creatorErr } = await supabase.rpc('verify_creator_agreement', {
+          p_agreement_id: licence.id,
+        });
+        if (!creatorErr) {
+          success = true;
+        } else {
+          lastErr = creatorErr;
+        }
+      }
+
+      if (!success) {
+        const { error: filmLicErr } = await supabase.rpc('verify_licence', {
+          p_film_id: f.id,
+        });
+        if (filmLicErr) throw (lastErr || filmLicErr);
+      }
+
       onActionComplete();
     } catch (err) {
       console.error('Licence verification failed:', err);
@@ -119,6 +136,48 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
       onActionComplete();
     } catch (err) {
       console.error('Publishing failed:', err);
+      setActionError((err as Error).message);
+    } finally {
+      setPublishing(false);
+    }
+  }
+
+  // Combined 1-click: Verify Rights and Publish Live immediately
+  async function handleVerifyAndPublish() {
+    setActionError(null);
+    try {
+      setPublishing(true);
+      if (!isLicenceVerified) {
+        let success = false;
+        let lastErr: any = null;
+
+        if (licence?.id) {
+          const { error: creatorErr } = await supabase.rpc('verify_creator_agreement', {
+            p_agreement_id: licence.id,
+          });
+          if (!creatorErr) {
+            success = true;
+          } else {
+            lastErr = creatorErr;
+          }
+        }
+
+        if (!success) {
+          const { error: filmLicErr } = await supabase.rpc('verify_licence', {
+            p_film_id: f.id,
+          });
+          if (filmLicErr) throw (lastErr || filmLicErr);
+        }
+      }
+
+      const { error: pubErr } = await supabase.rpc('publish_film', {
+        p_film_id: f.id,
+      });
+      if (pubErr) throw pubErr;
+
+      onActionComplete();
+    } catch (err) {
+      console.error('Verify & Publish failed:', err);
       setActionError((err as Error).message);
     } finally {
       setPublishing(false);
@@ -465,36 +524,91 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                       onDecisionSubmitted={onActionComplete}
                     />
                   ) : f.status === 'approved' ? (
-                    /* If Approved: Ready to Publish */
-                    <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4">
-                      <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
-                        <CheckCircle2 className="h-5 w-5" />
-                        <span>Curator Approved for Streaming</span>
+                    /* If Approved: Ready to Publish Workstation */
+                    <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.04] p-5 sm:p-6 space-y-5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5 text-emerald-400 font-bold text-sm">
+                          <CheckCircle2 className="h-5 w-5" />
+                          <span>Curator Approved for Streaming</span>
+                        </div>
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                          {isLicenceVerified ? 'Ready for Release' : 'Awaiting Clearance'}
+                        </span>
                       </div>
-                      <p className="text-xs text-muted leading-relaxed">
-                        This film has received curator approval. Once the legal licence agreement is verified, it can be published live to audiences worldwide.
+
+                      <p className="text-xs text-zinc-300 leading-relaxed">
+                        This film has passed editorial and curation review. To release it to global viewers on <strong className="text-white">tpfcinemas.com</strong>, verify legal chain of title and publish live.
                       </p>
 
-                      {!isLicenceVerified ? (
-                        <div className="p-3 bg-white/[0.04] rounded-xl text-xs text-muted flex items-center justify-between">
-                          <span>Licence agreement pending staff verification</span>
-                          <button
-                            onClick={() => setActiveTab('licence')}
-                            className="text-xs font-semibold text-signature underline ml-2 shrink-0"
-                          >
-                            Verify Rights
-                          </button>
+                      {/* Release Pipeline Checklist */}
+                      <div className="rounded-xl border border-white/[0.06] bg-black/40 p-3.5 space-y-2.5 text-xs">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-zinc-300">
+                            <Check className="h-3.5 w-3.5 text-emerald-400" />
+                            <span>1. Curation &amp; Content Review</span>
+                          </div>
+                          <span className="text-[10px] font-mono text-emerald-400 font-bold">Passed</span>
                         </div>
-                      ) : (
-                        <button
-                          onClick={handlePublishFilm}
-                          disabled={publishing}
-                          className="w-full py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all active:scale-95"
-                        >
-                          {publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                          <span>Publish Film Live to Catalogue</span>
-                        </button>
-                      )}
+
+                        <div className="flex items-center justify-between border-t border-white/5 pt-2">
+                          <div className="flex items-center gap-2 text-zinc-300">
+                            {isLicenceVerified ? (
+                              <Check className="h-3.5 w-3.5 text-emerald-400" />
+                            ) : (
+                              <Clock className="h-3.5 w-3.5 text-amber-400" />
+                            )}
+                            <span>2. Legal Licence &amp; Music Rights</span>
+                          </div>
+                          {isLicenceVerified ? (
+                            <span className="text-[10px] font-mono text-emerald-400 font-bold">Verified</span>
+                          ) : (
+                            <span className="text-[10px] font-mono text-amber-400 font-bold">Pending Verification</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Action Controls */}
+                      <div className="space-y-2.5 pt-1">
+                        {isLicenceVerified ? (
+                          <button
+                            onClick={handlePublishFilm}
+                            disabled={publishing}
+                            className="w-full py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all active:scale-95"
+                          >
+                            {publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                            <span>Publish Film Live to Catalogue</span>
+                          </button>
+                        ) : (
+                          <div className="space-y-2.5">
+                            <button
+                              onClick={handleVerifyAndPublish}
+                              disabled={publishing || verifyingLicence}
+                              className="w-full py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all active:scale-95"
+                            >
+                              {publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                              <span>Verify Rights &amp; Publish Live Now</span>
+                            </button>
+
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={handleVerifyLicence}
+                                disabled={verifyingLicence || publishing}
+                                className="flex-1 py-2 px-3 rounded-lg bg-white/[0.06] hover:bg-white/[0.10] border border-white/10 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                              >
+                                {verifyingLicence ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileCheck2 className="h-3.5 w-3.5 text-amber-400" />}
+                                <span>Verify Licence Only</span>
+                              </button>
+
+                              <button
+                                onClick={() => setActiveTab('licence')}
+                                className="px-3 py-2 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition-colors"
+                              >
+                                View Deed →
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ) : f.status === 'published' ? (
                     /* If Published: Live Status */
