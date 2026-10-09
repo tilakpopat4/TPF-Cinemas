@@ -43,55 +43,49 @@ export const LegalAgreementDoc: React.FC<LegalAgreementDocProps> = ({
       className="max-h-[380px] sm:max-h-[460px] overflow-y-auto rounded-xl border border-zinc-300 bg-white text-black p-6 sm:p-10 shadow-inner font-['Times_New_Roman',_Times,_serif] text-[12pt] leading-[1.6] select-text"
     >
       {/* Top Header / Metadata */}
-      <div className="border-b-2 border-black pb-3 mb-6 flex items-center justify-between text-[9pt] font-sans text-zinc-600">
+      <div className="border-b-2 border-black pb-3 mb-6 flex items-center justify-between text-[10pt] font-['Times_New_Roman',_Times,_serif] text-zinc-700">
         <span className="font-bold tracking-wider uppercase text-black">
           TPF CINEMAS • OFFICIAL CURATORIAL OTT PLATFORM
         </span>
-        <span className="font-mono text-zinc-700">
+        <span>
           REF: {referenceCode}
         </span>
       </div>
 
       {/* # NON-COMMERCIAL STREAMING RIGHTS CONSENT FORM */}
-      <h1 className="text-[16pt] font-bold uppercase tracking-wide text-black text-center mb-6 leading-tight">
+      <h1 className="text-[16pt] font-bold uppercase tracking-wide text-black text-center mb-6 leading-tight font-['Times_New_Roman',_Times,_serif]">
         NON-COMMERCIAL STREAMING RIGHTS CONSENT FORM
       </h1>
 
       {/* Date */}
-      <div className="mb-6 text-[12pt]">
+      <div className="mb-6 text-[12pt] font-['Times_New_Roman',_Times,_serif]">
         <strong>Date: </strong>
-        <span className="underline underline-offset-4 decoration-1 font-semibold">{todayStr}</span>
+        <span>{todayStr}</span>
       </div>
 
       {/* 1. Film Details */}
-      <div className="space-y-3 mb-6">
+      <div className="space-y-3 mb-6 font-['Times_New_Roman',_Times,_serif]">
         <h2 className="text-[14pt] font-bold text-black tracking-tight">
           1. Film Details
         </h2>
         <div className="space-y-2 pl-2">
           <div>
             <strong>Title of Film / Web Series: </strong>
-            <span className="underline underline-offset-4 decoration-1">
-              All titles submitted &amp; curated via TPF Filmmaker Studio
-            </span>
+            <span>All titles submitted &amp; curated via TPF Filmmaker Studio</span>
           </div>
           <div>
             <strong>Director / Filmmaker: </strong>
-            <span className="underline underline-offset-4 decoration-1 font-semibold">
-              {legalName || filmmakerName}
-            </span>
+            <span>{legalName || filmmakerName}</span>
           </div>
           <div>
             <strong>Production House (if applicable): </strong>
-            <span className="underline underline-offset-4 decoration-1">
-              Independent Production
-            </span>
+            <span>Independent Production</span>
           </div>
         </div>
       </div>
 
       {/* 2. Consent and Permission */}
-      <div className="space-y-3 mb-6">
+      <div className="space-y-3 mb-6 font-['Times_New_Roman',_Times,_serif]">
         <h2 className="text-[14pt] font-bold text-black tracking-tight">
           2. Consent and Permission
         </h2>
@@ -109,7 +103,7 @@ export const LegalAgreementDoc: React.FC<LegalAgreementDocProps> = ({
       </div>
 
       {/* 3. Terms of Permission */}
-      <div className="space-y-3 mb-6">
+      <div className="space-y-3 mb-6 font-['Times_New_Roman',_Times,_serif]">
         <h2 className="text-[14pt] font-bold text-black tracking-tight">
           3. Terms of Permission
         </h2>
@@ -124,19 +118,19 @@ export const LegalAgreementDoc: React.FC<LegalAgreementDocProps> = ({
       </div>
 
       {/* 4. Permission Duration */}
-      <div className="space-y-3 mb-6">
+      <div className="space-y-3 mb-6 font-['Times_New_Roman',_Times,_serif]">
         <h2 className="text-[14pt] font-bold text-black tracking-tight">
           4. Permission Duration
         </h2>
         <p className="pl-2">
           This consent shall remain valid from{' '}
-          <strong className="underline underline-offset-4 decoration-1">{todayStr}</strong>{' '}
+          <strong>{todayStr}</strong>{' '}
           for a period of <strong>24 Months</strong> (auto-renewable, takedown available upon 14 days digital notice).
         </p>
       </div>
 
       {/* 5. Declaration */}
-      <div className="space-y-3 mb-6">
+      <div className="space-y-3 mb-6 font-['Times_New_Roman',_Times,_serif]">
         <h2 className="text-[14pt] font-bold text-black tracking-tight">
           5. Declaration
         </h2>
@@ -144,11 +138,11 @@ export const LegalAgreementDoc: React.FC<LegalAgreementDocProps> = ({
           I confirm that I have the authority to grant this permission and voluntarily consent to the non-commercial streaming of the above-mentioned work under the terms stated in this document.
         </p>
 
-        <div className="p-3 bg-zinc-50 border border-zinc-300 text-[11pt] space-y-1">
+        <div className="p-4 bg-zinc-50 border border-zinc-300 text-[11pt] space-y-1 font-['Times_New_Roman',_Times,_serif]">
           <p>
             <strong>Signer: </strong>{legalName || filmmakerName}
           </p>
-          <p className="text-zinc-600 text-[10pt] font-sans">
+          <p className="text-zinc-600 text-[10.5pt]">
             Draw your signature below and submit to execute this Non-Commercial Streaming Rights Consent Form.
           </p>
         </div>

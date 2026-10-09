@@ -177,6 +177,10 @@ export const RightsUndertakingModal: React.FC<RightsUndertakingModalProps> = ({
             color: #000000 !important;
             font-family: "Times New Roman", Times, serif !important;
           }
+          #rights-undertaking-doc * {
+            font-family: "Times New Roman", Times, serif !important;
+            text-decoration: none !important;
+          }
           .declaration-box {
             page-break-inside: avoid !important;
           }
@@ -196,7 +200,7 @@ export const RightsUndertakingModal: React.FC<RightsUndertakingModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-mono text-[10px] uppercase tracking-widest text-signature font-bold">
-                  Official Legal Format (Times New Roman 12/14)
+                  Times New Roman Format
                 </span>
                 <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
                   {isVerified ? 'Curator Verified' : 'Executed by Creator'}
@@ -229,64 +233,58 @@ export const RightsUndertakingModal: React.FC<RightsUndertakingModalProps> = ({
 
         {/* Scrollable Printable Document Body */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-[#090a0f] print:bg-white print:p-0 print:overflow-visible">
-          {/* Legal Document Sheet: Strictly Times New Roman 12/14pt */}
+          {/* Strictly Times New Roman, No Underline */}
           <div
             ref={printRef}
             id="rights-undertaking-doc"
             className="max-w-3xl mx-auto rounded-xl bg-white text-black p-8 sm:p-14 shadow-2xl border border-zinc-200 print:shadow-none print:border-none print:p-0 print:max-w-none font-['Times_New_Roman',_Times,_serif] text-[12pt] leading-[1.6]"
           >
             {/* Header / Ref Metadata */}
-            <div className="border-b-2 border-black pb-3 mb-6 flex items-center justify-between text-[9pt] font-sans text-zinc-600">
+            <div className="border-b-2 border-black pb-3 mb-6 flex items-center justify-between text-[10pt] font-['Times_New_Roman',_Times,_serif] text-zinc-700">
               <span className="font-bold tracking-wider uppercase text-black">
                 TPF CINEMAS • OFFICIAL CURATORIAL OTT PLATFORM
               </span>
-              <span className="font-mono text-zinc-700">
+              <span>
                 REF: {legalRefCode}
               </span>
             </div>
 
             {/* Document Title (# NON-COMMERCIAL STREAMING RIGHTS CONSENT FORM) */}
-            <h1 className="text-[16pt] font-bold uppercase tracking-wide text-black text-center mb-6 leading-tight">
+            <h1 className="text-[16pt] font-bold uppercase tracking-wide text-black text-center mb-6 leading-tight font-['Times_New_Roman',_Times,_serif]">
               NON-COMMERCIAL STREAMING RIGHTS CONSENT FORM
             </h1>
 
             {/* Date line */}
-            <div className="mb-6 text-[12pt]">
+            <div className="mb-6 text-[12pt] font-['Times_New_Roman',_Times,_serif]">
               <strong>Date: </strong>
-              <span className="underline underline-offset-4 decoration-1 font-semibold">
+              <span>
                 {formatDate(executionTimestamp)}
               </span>
             </div>
 
             {/* 1. Film Details */}
-            <div className="space-y-3 mb-6">
+            <div className="space-y-3 mb-6 font-['Times_New_Roman',_Times,_serif]">
               <h2 className="text-[14pt] font-bold text-black tracking-tight">
                 1. Film Details
               </h2>
               <div className="space-y-2 pl-2">
                 <div>
                   <strong>Title of Film / Web Series: </strong>
-                  <span className="underline underline-offset-4 decoration-1 font-semibold">
-                    {film.title}
-                  </span>
+                  <span>{film.title}</span>
                 </div>
                 <div>
                   <strong>Director / Filmmaker: </strong>
-                  <span className="underline underline-offset-4 decoration-1 font-semibold">
-                    {signerLegalName || filmmakerName || 'Registered Filmmaker'}
-                  </span>
+                  <span>{signerLegalName || filmmakerName || 'Registered Filmmaker'}</span>
                 </div>
                 <div>
                   <strong>Production House (if applicable): </strong>
-                  <span className="underline underline-offset-4 decoration-1 font-semibold">
-                    {filmmakerName ? `${filmmakerName} Productions / Independent` : 'Independent Production'}
-                  </span>
+                  <span>{filmmakerName ? `${filmmakerName} Productions / Independent` : 'Independent Production'}</span>
                 </div>
               </div>
             </div>
 
             {/* 2. Consent and Permission */}
-            <div className="space-y-3 mb-6">
+            <div className="space-y-3 mb-6 font-['Times_New_Roman',_Times,_serif]">
               <h2 className="text-[14pt] font-bold text-black tracking-tight">
                 2. Consent and Permission
               </h2>
@@ -304,7 +302,7 @@ export const RightsUndertakingModal: React.FC<RightsUndertakingModalProps> = ({
             </div>
 
             {/* 3. Terms of Permission */}
-            <div className="space-y-3 mb-6">
+            <div className="space-y-3 mb-6 font-['Times_New_Roman',_Times,_serif]">
               <h2 className="text-[14pt] font-bold text-black tracking-tight">
                 3. Terms of Permission
               </h2>
@@ -319,21 +317,20 @@ export const RightsUndertakingModal: React.FC<RightsUndertakingModalProps> = ({
             </div>
 
             {/* 4. Permission Duration */}
-            <div className="space-y-3 mb-6">
+            <div className="space-y-3 mb-6 font-['Times_New_Roman',_Times,_serif]">
               <h2 className="text-[14pt] font-bold text-black tracking-tight">
                 4. Permission Duration
               </h2>
               <p className="pl-2">
                 This consent shall remain valid from{' '}
-                <strong className="underline underline-offset-4 decoration-1">{formatDate(executionTimestamp)}</strong>{' '}
+                <strong>{formatDate(executionTimestamp)}</strong>{' '}
                 to{' '}
-                <strong className="underline underline-offset-4 decoration-1">{expiryDateFormatted}</strong>{' '}
-                ({termMonths} Months, renewable upon mutual confirmation).
+                <strong>{expiryDateFormatted}</strong>.
               </p>
             </div>
 
             {/* 5. Declaration */}
-            <div className="space-y-3 mb-6 declaration-box">
+            <div className="space-y-3 mb-6 declaration-box font-['Times_New_Roman',_Times,_serif]">
               <h2 className="text-[14pt] font-bold text-black tracking-tight">
                 5. Declaration
               </h2>
@@ -342,7 +339,7 @@ export const RightsUndertakingModal: React.FC<RightsUndertakingModalProps> = ({
               </p>
 
               {/* Side-by-side signature & execution blocks */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2 font-['Times_New_Roman',_Times,_serif]">
                 {/* Filmmaker / Rights Holder */}
                 <div className="border border-black p-4 bg-white flex flex-col justify-between min-h-[220px]">
                   <div>
@@ -353,16 +350,14 @@ export const RightsUndertakingModal: React.FC<RightsUndertakingModalProps> = ({
                     <div className="space-y-2 text-[11pt]">
                       <div>
                         <strong>Full Name: </strong>
-                        <span className="underline underline-offset-2">
-                          {signerLegalName || filmmakerName || 'Registered Filmmaker'}
-                        </span>
+                        <span>{signerLegalName || filmmakerName || 'Registered Filmmaker'}</span>
                       </div>
 
                       <div>
                         <strong>Signature:</strong>
                         <div className="my-1.5 min-h-[56px] flex items-center justify-center bg-zinc-50 border border-zinc-200 p-1">
                           {loadingSignature ? (
-                            <div className="flex items-center gap-1.5 text-zinc-500 text-[10pt] font-sans">
+                            <div className="flex items-center gap-1.5 text-zinc-500 text-[10pt]">
                               <Loader2 className="h-4 w-4 animate-spin" />
                               <span>Loading verified signature...</span>
                             </div>
@@ -373,7 +368,7 @@ export const RightsUndertakingModal: React.FC<RightsUndertakingModalProps> = ({
                               className="max-h-14 max-w-full object-contain"
                             />
                           ) : (
-                            <span className="text-zinc-500 text-[10pt] font-sans italic">
+                            <span className="text-zinc-500 text-[10pt] italic">
                               Digitally Executed via Account
                             </span>
                           )}
@@ -382,16 +377,12 @@ export const RightsUndertakingModal: React.FC<RightsUndertakingModalProps> = ({
 
                       <div>
                         <strong>Contact Information: </strong>
-                        <span className="underline underline-offset-2">
-                          {signerEmail || 'Verified Creator Account'}
-                        </span>
+                        <span>{signerEmail || 'Verified Creator Account'}</span>
                       </div>
 
                       <div>
                         <strong>Date: </strong>
-                        <span className="underline underline-offset-2">
-                          {formatDate(executionTimestamp)}
-                        </span>
+                        <span>{formatDate(executionTimestamp)}</span>
                       </div>
                     </div>
                   </div>
@@ -407,18 +398,16 @@ export const RightsUndertakingModal: React.FC<RightsUndertakingModalProps> = ({
                     <div className="space-y-2 text-[11pt]">
                       <div>
                         <strong>Full Name: </strong>
-                        <span className="underline underline-offset-2">
-                          Tilak Popat / TPF Cinemas
-                        </span>
+                        <span>Tilak Popat / TPF Cinemas</span>
                       </div>
 
                       <div>
                         <strong>Signature:</strong>
                         <div className="my-1.5 min-h-[56px] flex flex-col items-center justify-center bg-zinc-50 border border-zinc-200 p-1">
-                          <span className="font-bold text-[10pt] tracking-wider uppercase font-['Times_New_Roman',_Times,_serif]">
+                          <span className="font-bold text-[10.5pt] tracking-wider uppercase">
                             TILAK POPAT FILMS
                           </span>
-                          <span className="text-[8.5pt] font-sans text-emerald-800 font-semibold flex items-center gap-1">
+                          <span className="text-[9pt] text-emerald-800 font-semibold flex items-center gap-1">
                             <FileCheck2 className="h-3 w-3" />
                             {isVerified ? 'VERIFIED & RECORDED' : 'CRYPTOGRAPHICALLY RECORDED'}
                           </span>
@@ -427,16 +416,12 @@ export const RightsUndertakingModal: React.FC<RightsUndertakingModalProps> = ({
 
                       <div>
                         <strong>Contact Information: </strong>
-                        <span className="underline underline-offset-2">
-                          curators@tilakpopatfilms.com
-                        </span>
+                        <span>curators@tilakpopatfilms.com</span>
                       </div>
 
                       <div>
                         <strong>Date: </strong>
-                        <span className="underline underline-offset-2">
-                          {formatDate(executionTimestamp)}
-                        </span>
+                        <span>{formatDate(executionTimestamp)}</span>
                       </div>
                     </div>
                   </div>
@@ -445,7 +430,7 @@ export const RightsUndertakingModal: React.FC<RightsUndertakingModalProps> = ({
             </div>
 
             {/* Footer statutory archival notice */}
-            <div className="pt-4 mt-4 text-center text-[9pt] font-sans text-zinc-600 border-t border-zinc-300">
+            <div className="pt-4 mt-4 text-center text-[9.5pt] text-zinc-600 border-t border-zinc-300 font-['Times_New_Roman',_Times,_serif]">
               <p>
                 Executed electronically pursuant to the Information Technology Act, 2000.
                 Permanent cryptographic record stored in TPF Cinemas Registry.
