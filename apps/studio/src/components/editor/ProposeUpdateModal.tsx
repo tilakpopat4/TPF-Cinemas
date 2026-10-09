@@ -125,7 +125,12 @@ export const ProposeUpdateModal: React.FC<ProposeUpdateModalProps> = ({
         p_film_id: film.id,
         p_changes: proposed,
       });
-      if (rpcErr) throw rpcErr;
+      if (rpcErr) {
+        if (rpcErr.message?.includes('schema cache') || rpcErr.message?.includes('propose_film_update') || (rpcErr as { code?: string }).code === 'PGRST202') {
+          throw new Error('Database migration required: Please run migration 20261005000002_film_updates.sql in your Supabase SQL Editor.');
+        }
+        throw rpcErr;
+      }
       setSuccess(true);
       setTimeout(() => {
         onSuccess();

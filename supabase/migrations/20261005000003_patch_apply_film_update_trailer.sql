@@ -69,3 +69,6 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.apply_film_update(uuid, text) TO authenticated;
+
+-- Refresh PostgREST schema cache
+NOTIFY pgrst, 'reload schema';
