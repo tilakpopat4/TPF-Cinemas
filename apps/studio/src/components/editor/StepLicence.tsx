@@ -42,9 +42,14 @@ export const StepLicence: React.FC<StepLicenceProps> = ({
             <FileText className="h-4 w-4" />
           </div>
           <div>
-            <h5 className="text-xs font-bold text-white">Official OTT Rights Undertaking & Deed</h5>
+            <div className="flex items-center gap-2">
+              <h5 className="text-xs font-bold text-white">Official OTT Rights Undertaking &amp; Deed</h5>
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                Times New Roman 12/14pt
+              </span>
+            </div>
             <p className="text-[11px] text-zinc-400">
-              Formally structured legal document ready for printing or PDF filing.
+              Formally structured legal document with your verified digital signature automatically fetched and affixed.
             </p>
           </div>
         </div>
@@ -52,10 +57,10 @@ export const StepLicence: React.FC<StepLicenceProps> = ({
           <button
             type="button"
             onClick={onPreviewDeed}
-            className="px-3.5 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0"
+            className="px-3.5 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0 shadow-sm"
           >
             <Printer className="h-3.5 w-3.5" />
-            <span>Preview & Print Deed</span>
+            <span>Preview &amp; Print Deed</span>
           </button>
         )}
       </div>

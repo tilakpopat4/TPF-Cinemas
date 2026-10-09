@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { ShieldCheck, FileText, CheckCircle2, Award, Globe, Scale } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 
 interface LegalAgreementDocProps {
   filmType?: 'short' | 'feature' | 'all';
@@ -30,7 +30,6 @@ export const LegalAgreementDoc: React.FC<LegalAgreementDocProps> = ({
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    // Check if document fits without scroll
     if (el.scrollHeight <= el.clientHeight && onScrolledToBottom) {
       onScrolledToBottom();
     }
@@ -40,40 +39,40 @@ export const LegalAgreementDoc: React.FC<LegalAgreementDocProps> = ({
     <div
       ref={scrollRef}
       onScroll={handleScroll}
-      className="max-h-[380px] sm:max-h-[460px] overflow-y-auto rounded-xl border border-zinc-200 bg-white text-zinc-900 p-6 sm:p-8 shadow-inner font-serif text-[13px] leading-relaxed select-text"
+      className="max-h-[380px] sm:max-h-[460px] overflow-y-auto rounded-xl border border-zinc-300 bg-white text-black p-6 sm:p-10 shadow-inner font-['Times_New_Roman',_Times,_serif] text-[12pt] leading-[1.6] select-text"
     >
-      {/* Official Letterhead */}
-      <div className="border-b-2 border-zinc-900 pb-5 mb-6 text-center">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
+      {/* Official Legal Letterhead */}
+      <div className="border-b-2 border-black pb-4 mb-5 text-center">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-left">
           <div>
-            <h2 className="text-xl sm:text-2xl font-black tracking-tight text-zinc-950 font-serif uppercase">
+            <h2 className="text-[18pt] font-bold tracking-tight text-black font-['Times_New_Roman',_Times,_serif] uppercase leading-none">
               TPF CINEMAS
             </h2>
-            <p className="text-[10px] font-sans uppercase tracking-widest text-zinc-600 font-semibold mt-0.5">
+            <p className="text-[9pt] font-sans uppercase tracking-widest text-zinc-600 font-semibold mt-1">
               Tilak Popat Films • Official Independent OTT Curatorial Platform
             </p>
           </div>
-          <div className="text-right font-mono text-[10px] text-zinc-600 space-y-0.5 shrink-0">
-            <p className="font-bold text-zinc-900">FORM: TPF-OTT/DEED-2026/V1</p>
+          <div className="text-right font-mono text-[9pt] text-zinc-600 space-y-0.5 shrink-0">
+            <p className="font-bold text-black">FORM: TPF-OTT/DEED-2026/V1</p>
             <p>REF: {referenceCode}</p>
             <p className="text-emerald-700 font-semibold">VERIFIABLE DIGITAL DEED</p>
           </div>
         </div>
       </div>
 
-      {/* Deed Title */}
-      <div className="text-center my-6 space-y-1">
-        <h3 className="text-base sm:text-lg font-bold uppercase tracking-wider text-zinc-950">
+      {/* Deed Title (15pt Bold) */}
+      <div className="text-center my-5 space-y-1">
+        <h3 className="text-[15pt] font-bold uppercase tracking-wide text-black leading-snug">
           Deed of Digital Streaming Rights Grant &amp; Intellectual Property Self-Declaration
         </h3>
-        <p className="text-xs font-sans text-zinc-600 italic">
+        <p className="text-[10pt] font-sans text-zinc-600 italic">
           Executed pursuant to the Indian Copyright Act, 1957 and Information Technology Act, 2000
         </p>
       </div>
 
       {/* Dynamic Category Callout */}
-      <div className="my-4 p-3 rounded-lg bg-amber-50 border border-amber-200 font-sans text-xs flex items-center gap-2.5 text-amber-950">
-        <ShieldCheck className="h-4 w-4 text-amber-700 shrink-0" />
+      <div className="my-4 p-3 rounded-lg bg-zinc-50 border border-zinc-300 font-sans text-xs flex items-center gap-2.5 text-zinc-800">
+        <ShieldCheck className="h-4 w-4 text-emerald-700 shrink-0" />
         <div>
           <span className="font-bold">Applicable Scope: </span>
           {filmType === 'short' && (
@@ -89,11 +88,11 @@ export const LegalAgreementDoc: React.FC<LegalAgreementDocProps> = ({
       </div>
 
       {/* Preamble */}
-      <div className="space-y-4 text-zinc-800">
+      <div className="space-y-4 text-black text-justify">
         <p>
           This Deed of Digital Streaming Rights and Undertaking (the <strong>&ldquo;Agreement&rdquo;</strong>) is entered into as of the digital execution timestamp, by and between:
         </p>
-        <p className="pl-4 border-l-2 border-zinc-300 italic">
+        <p className="pl-4 border-l-2 border-black italic">
           <strong>The Creator:</strong> {legalName || filmmakerName} (hereinafter referred to as the <strong>&ldquo;Filmmaker&rdquo;</strong> or <strong>&ldquo;Licensor&rdquo;</strong>, which expression shall unless repugnant to the context include heirs, legal representatives, and permitted assigns),
           <br /><br />
           <strong>AND</strong>
@@ -103,7 +102,7 @@ export const LegalAgreementDoc: React.FC<LegalAgreementDocProps> = ({
 
         {/* Section 1 */}
         <div className="pt-2">
-          <h4 className="font-sans font-bold text-xs uppercase tracking-wider text-zinc-900 border-b border-zinc-200 pb-1 mb-2">
+          <h4 className="font-bold text-[14pt] uppercase tracking-tight text-black border-b border-black pb-1 mb-2">
             1. Non-Exclusive Digital Streaming Grant
           </h4>
           <p>
@@ -119,7 +118,7 @@ export const LegalAgreementDoc: React.FC<LegalAgreementDocProps> = ({
 
         {/* Section 2 */}
         <div className="pt-2">
-          <h4 className="font-sans font-bold text-xs uppercase tracking-wider text-zinc-900 border-b border-zinc-200 pb-1 mb-2">
+          <h4 className="font-bold text-[14pt] uppercase tracking-tight text-black border-b border-black pb-1 mb-2">
             2. Intellectual Property &amp; Chain-of-Title Self-Declaration
           </h4>
           <p>
@@ -135,7 +134,7 @@ export const LegalAgreementDoc: React.FC<LegalAgreementDocProps> = ({
 
         {/* Section 3 */}
         <div className="pt-2">
-          <h4 className="font-sans font-bold text-xs uppercase tracking-wider text-zinc-900 border-b border-zinc-200 pb-1 mb-2">
+          <h4 className="font-bold text-[14pt] uppercase tracking-tight text-black border-b border-black pb-1 mb-2">
             3. Platform Indemnification &amp; Good Faith Protection
           </h4>
           <p>
@@ -148,7 +147,7 @@ export const LegalAgreementDoc: React.FC<LegalAgreementDocProps> = ({
 
         {/* Section 4 */}
         <div className="pt-2">
-          <h4 className="font-sans font-bold text-xs uppercase tracking-wider text-zinc-900 border-b border-zinc-200 pb-1 mb-2">
+          <h4 className="font-bold text-[14pt] uppercase tracking-tight text-black border-b border-black pb-1 mb-2">
             4. Term, Archival &amp; Takedown Procedure
           </h4>
           <p>
@@ -164,7 +163,7 @@ export const LegalAgreementDoc: React.FC<LegalAgreementDocProps> = ({
 
         {/* Section 5 */}
         <div className="pt-2">
-          <h4 className="font-sans font-bold text-xs uppercase tracking-wider text-zinc-900 border-b border-zinc-200 pb-1 mb-2">
+          <h4 className="font-bold text-[14pt] uppercase tracking-tight text-black border-b border-black pb-1 mb-2">
             5. Electronic Signature Validity
           </h4>
           <p>

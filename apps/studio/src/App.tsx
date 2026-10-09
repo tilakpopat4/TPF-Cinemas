@@ -83,7 +83,7 @@ export const App: React.FC = () => {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Onboarding Banner for Viewers */}
         {!isFilmmakerOrAdmin && (
-          <OnboardingBanner onBecomeFilmmaker={becomeFilmmaker} />
+          <OnboardingBanner onRequestBecomeFilmmaker={() => setLegalModalOpen(true)} />
         )}
 
         {isFilmmakerOrAdmin && (
@@ -209,13 +209,19 @@ export const App: React.FC = () => {
           userEmail={user.email || ''}
           defaultName={profile?.display_name || ''}
           onClose={() => setLegalModalOpen(false)}
-          onSuccess={() => {
+          onSuccess={async () => {
+            if (!isFilmmakerOrAdmin) {
+              await becomeFilmmaker();
+              await refreshProfile();
+            }
             setLegalModalOpen(false);
             refreshAgreement();
-            setEditingFilm(null);
-            setEditorOpen(true);
+            if (isFilmmakerOrAdmin) {
+              setEditingFilm(null);
+              setEditorOpen(true);
+            }
           }}
-          required={!hasSignedAgreement}
+          required={!hasSignedAgreement || !isFilmmakerOrAdmin}
         />
       )}
 

@@ -84,6 +84,25 @@ export function useCreatorAgreement(userId?: string) {
     }
   }, [agreement]);
 
+  const getSignatureUrl = useCallback(async (): Promise<string | null> => {
+    if (!agreement?.signature_image_url) return null;
+
+    try {
+      if (agreement.signature_image_url.startsWith('data:') || agreement.signature_image_url.startsWith('http')) {
+        return agreement.signature_image_url;
+      }
+      const { data, error: urlErr } = await supabase.storage
+        .from('licences')
+        .createSignedUrl(agreement.signature_image_url, 3600);
+
+      if (urlErr) throw urlErr;
+      return data?.signedUrl || null;
+    } catch (err) {
+      console.error('Error getting signature image URL:', err);
+      return null;
+    }
+  }, [agreement]);
+
   const hasSignedAgreement = Boolean(agreement && agreement.signed_at);
 
   return {
@@ -93,5 +112,6 @@ export function useCreatorAgreement(userId?: string) {
     error,
     refreshAgreement: fetchAgreement,
     getSignedPdfUrl,
+    getSignatureUrl,
   };
 }

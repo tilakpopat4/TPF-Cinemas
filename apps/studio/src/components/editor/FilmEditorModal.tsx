@@ -283,25 +283,36 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
 
       // Sync licence agreement (respecting PostgreSQL column-level grants)
       if (licence.music_cleared !== undefined) {
+        // Fetch creator's master signed deed to carry over digital signature & legal name
+        const { data: masterDeed } = await supabase
+          .from('licence_agreements')
+          .select('signature_image_url, legal_name')
+          .eq('filmmaker_id', userId)
+          .not('signature_image_url', 'is', null)
+          .order('signed_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
         // Check if licence agreement already exists for this film
         const { data: existingLic, error: selectLicErr } = await supabase
           .from('licence_agreements')
-          .select('id')
+          .select('id, signature_image_url')
           .eq('film_id', savedFilmId)
           .maybeSingle();
 
         if (selectLicErr) throw selectLicErr;
 
         if (existingLic) {
-          // UPDATE: Only send columns granted to authenticated: (term_months, music_cleared, terms_version, agreement_path)
-          // Do not send film_id, filmmaker_id, or territory which triggers permission denied on UPDATE
+          // UPDATE: Only send columns granted to authenticated: (term_months, music_cleared, terms_version, agreement_path, signature_image_url, legal_name)
           const { error: updateLicErr } = await supabase
             .from('licence_agreements')
             .update({
               term_months: licence.term_months || 24,
               music_cleared: !!licence.music_cleared,
-              terms_version: licence.terms_version || 'v1.0',
+              terms_version: licence.terms_version || '1.0.0',
               agreement_path: licence.agreement_path || null,
+              signature_image_url: existingLic.signature_image_url || masterDeed?.signature_image_url || null,
+              legal_name: masterDeed?.legal_name || null,
             })
             .eq('id', existingLic.id);
 
@@ -316,8 +327,11 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
               territory: licence.territory || 'worldwide',
               term_months: licence.term_months || 24,
               music_cleared: !!licence.music_cleared,
-              terms_version: licence.terms_version || 'v1.0',
+              terms_version: licence.terms_version || '1.0.0',
               agreement_path: licence.agreement_path || null,
+              signature_image_url: masterDeed?.signature_image_url || null,
+              legal_name: masterDeed?.legal_name || null,
+              signed_at: new Date().toISOString(),
             });
 
           if (insertLicErr) throw insertLicErr;
@@ -655,6 +669,7 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
           film={{
             ...(film || (filmData as Film)),
             id: film?.id || 'draft-preview',
+            filmmaker_id: userId,
             title: filmData.title || 'Untitled Film',
             language: filmData.language || 'Original',
             runtime_minutes: filmData.runtime_minutes || 0,
@@ -668,7 +683,7 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
               territory: 'Worldwide (Non-exclusive)',
               term_months: licence.term_months || 24,
               music_cleared: licence.music_cleared ?? false,
-              terms_version: 'v1.0',
+              terms_version: '1.0.0',
               agreement_path: null,
               signed_at: new Date().toISOString(),
             },
