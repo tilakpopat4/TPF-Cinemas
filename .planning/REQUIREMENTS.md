@@ -57,11 +57,16 @@ Requirements for initial release of the Viewer Home Page.
 - [ ] **STAFF-04**: One-click publishing pipeline via `publish_film()` RPC with status badge synchronization and edge cache invalidation.
 - [ ] **STAFF-05**: Pending-update review queue — staff can inspect diff of proposed changes against the live published record, then approve via `apply_film_update()` RPC (merges changes to live) or reject with mandatory feedback notes (notifies creator).
 
-### Admin Governance, Roles & Audit Logging
-
 - [ ] **ADMIN-01**: Role management dashboard executing `set_user_role()` RPC to promote/demote users between `viewer`, `filmmaker`, `curator`, and `admin` with self-demote safety checks.
 - [ ] **ADMIN-02**: Real-time searchable and filterable platform audit log viewer querying `audit_logs`.
 - [ ] **ADMIN-03**: Emergency takedown controls via `takedown_film()` RPC with mandatory reason capture and featured film toggles via `feature_film()` RPC.
+
+### Creator Legal Agreement & Content Rights Framework
+
+- [x] **LEGAL-01**: Creator legal onboarding gate — blocks first-time filmmakers from submitting titles or launching the wizard until they execute the non-exclusive streaming rights grant and IP self-declaration.
+- [x] **LEGAL-02**: Dynamic legal deed presentation with interactive vector canvas signature widget, typed legal name attestation, and stroke density validation.
+- [x] **LEGAL-03**: Client-side official A4 PDF compilation (`jspdf`) with embedded signature PNG, upload to private `licences` bucket, and permanent dashboard download access.
+- [x] **LEGAL-04**: Staff Console Legal Verification tab featuring KPI counters, creator agreement search/filtering, high-res signature inspection, signed PDF download link, and `verify_creator_agreement()` RPC with audit logging.
 
 ## v2 Requirements
 
@@ -119,12 +124,17 @@ Which phases cover which requirements.
 | ADMIN-01 | Phase 8 | Pending |
 | ADMIN-02 | Phase 8 | Pending |
 | ADMIN-03 | Phase 8 | Pending |
+| LEGAL-01 | Phase 9 | Complete |
+| LEGAL-02 | Phase 9 | Complete |
+| LEGAL-03 | Phase 9 | Complete |
+| LEGAL-04 | Phase 9 | Complete |
 
 **Coverage:**
-- v1 requirements: 32 total
-- Mapped to phases: 32
-- Unmapped: 0
+- v1 requirements: 36 total
+- Mapped to phases: 36
+- Completed: 18
+- Pending: 18
 
 ---
 *Requirements defined: 2026-10-01*
-*Updated: 2026-10-05 (Added STUDIO-05 + STAFF-05: post-publish edit workflow with staff approval gate)*
+*Updated: 2026-10-09 (Completed Phase 9: LEGAL-01 to LEGAL-04)*

@@ -1,19 +1,19 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 6
-current_phase_name: Filmmaker Studio & Submission Pipeline
-status: executing
-stopped_at: Phase 9 context gathered
-last_updated: "2026-10-02T09:27:55.770Z"
-last_activity: 2026-10-05
-last_activity_desc: Captured new requirement — post-publish edit workflow (STUDIO-05 + STAFF-05). Creators can propose edits to published films; live record unchanged until staff approve via apply_film_update() RPC. Assigned to Phase 7.
+current_phase: 9
+current_phase_name: Creator Legal Agreement & Content Rights Framework
+status: completed
+stopped_at: Phase 9 completed (09-01 and 09-02 executed & verified)
+last_updated: "2026-10-09T09:28:00.000Z"
+last_activity: 2026-10-09
+last_activity_desc: Executed and verified Phase 9 — Creator Legal Agreement & Content Rights Framework (09-01 creator onboarding & PDF generation, 09-02 staff legal verification).
 state_head: ee6756812abaa3fdc5c8c351224f537ddd508847
 progress:
   total_phases: 9
-  completed_phases: 5
-  total_plans: 10
-  completed_plans: 10
-  percent: 56
+  completed_phases: 6
+  total_plans: 14
+  completed_plans: 12
+  percent: 86
 ---
 
 # Project State
@@ -23,23 +23,23 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-10-02)
 
 **Core value:** Deliver an immersive, lightning-fast streaming and discovery experience for independent films, where viewers can seamlessly explore, preview, and watch films with zero friction.
-**Current focus:** Phase 6 Complete (Filmmaker Studio & Submission Pipeline)
+**Current focus:** Phase 9 Complete (Creator Legal Agreement & Content Rights Framework)
 
 ## Current Position
 
-Phase: 6 of 8 (Filmmaker Studio & Submission Pipeline) — Completed
-Plan: 2 of 2 in Phase 6 (06-01 and 06-02 completed)
-Status: Phase 6 Complete; Ready for Phase 7 (Staff Curation Console) or Phase 5 (Viewer Polish)
-Last activity: 2026-10-02 — Executed 06-01 and 06-02 for Phase 6 (Submission wizard validation, poster upload & YouTube stream screening preview, digital licence agreement signing, creator dashboard status tabs, and review history revision flow).
+Phase: 9 of 9 (Creator Legal Agreement & Content Rights Framework) — Completed
+Plan: 2 of 2 in Phase 9 (09-01 and 09-02 completed)
+Status: Phase 9 Complete; Ready for Phase 7 (Staff Curation Console) or Phase 5 (Discovery Filter Chips & Polish)
+Last activity: 2026-10-09 — Executed 09-01 and 09-02 (Creator onboarding gate, dynamic deed document, vector canvas signature pad, jsPDF compilation, private storage upload, and Staff Console Legal Verification tab with audit logging).
 
-Progress: [██████░░░░] 56%
+Progress: [████████░░] 86%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
+- Total plans completed: 12
 - Average duration: ~15 min
-- Total execution time: ~2.5 hours
+- Total execution time: ~3.0 hours
 
 **By Phase:**
 
@@ -53,6 +53,7 @@ Progress: [██████░░░░] 56%
 | Phase 6: Filmmaker Studio & Submission Pipeline | 2/2 | 30m | 15m |
 | Phase 7: Staff Curation Console & Moderation Queue | 0/2 | - | - |
 | Phase 8: Admin Governance, Roles & Audit Logging | 0/2 | - | - |
+| Phase 9: Creator Legal Agreement & Content Rights | 2/2 | 20m | 10m |
 
 ## Accumulated Context
 
@@ -69,7 +70,7 @@ Progress: [██████░░░░] 56%
 - [Phase 6]: Pre-submission client validation verifies poster, video, and music clearance declaration before calling submit_film RPC.
 - [Phase 6]: FeedbackModal sorts reviews chronologically (latest first) and provides expandable history of prior curation review rounds.
 - [Phase 7 — PRE-PLAN]: Post-publish edit workflow — creators propose metadata/media edits to a published film via `propose_film_update()` RPC. Live record is frozen (`update_pending`) until staff approve via `apply_film_update()` RPC or reject with mandatory feedback. Creator dashboard shows a "Pending Update" badge; staff see a field-by-field diff in a dedicated Pending Updates tab.
-
+- [Phase 9]: Creator digital rights framework — creators sign a non-exclusive streaming rights grant and IP ownership self-declaration before their first submission. Interactive canvas widget captures smooth vector signatures; client-side jsPDF generates authoritative A4 legal deeds uploaded to private 'licences' storage; Staff Console gets dedicated Legal Verification tab with audit trail.
 
 ### Pending Todos
 
@@ -81,6 +82,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-10-03T01:42:00+05:30
-Stopped at: Session resumed, Phase 9 context gathered and ready for planning
-Resume file: .planning/phases/TPF-09-creator-legal-agreement-content-rights/09-CONTEXT.md
+Last session: 2026-10-09T09:12:00+05:30
+Stopped at: Phase 9 research and plans created (09-01 and 09-02 ready for execution)
+Resume file: .planning/phases/TPF-09-creator-legal-agreement-content-rights/09-01-PLAN.md

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { LogOut, Globe, ChevronDown, Check, CheckSquare, Users, History, Menu, X, Sliders } from 'lucide-react';
+import { LogOut, Globe, ChevronDown, Check, CheckSquare, Users, History, Menu, X, Sliders, ShieldCheck } from 'lucide-react';
 import { Profile, AppRole } from '../../types';
 import { useLanguage, SUPPORTED_LANGUAGES } from '../../context/LanguageContext';
 
@@ -8,8 +8,8 @@ interface StaffHeaderProps {
   profile: Profile | null;
   email?: string;
   role: AppRole;
-  activeTab: 'queue' | 'roles' | 'audit' | 'uimanager';
-  onTabChange: (tab: 'queue' | 'roles' | 'audit' | 'uimanager') => void;
+  activeTab: 'queue' | 'roles' | 'audit' | 'uimanager' | 'legal';
+  onTabChange: (tab: 'queue' | 'roles' | 'audit' | 'uimanager' | 'legal') => void;
   onSignOut: () => void;
   queueCount: number;
 }
@@ -107,6 +107,18 @@ export const StaffHeader: React.FC<StaffHeaderProps> = ({
                   {queueCount}
                 </span>
               )}
+            </button>
+
+            <button
+              onClick={() => onTabChange('legal')}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs uppercase tracking-wider transition-all duration-150 ${
+                activeTab === 'legal'
+                  ? 'text-ivory font-semibold bg-white/[0.08] shadow-sm'
+                  : 'text-muted hover:text-ivory hover:bg-white/[0.04] font-medium'
+              }`}
+            >
+              <ShieldCheck className="h-3.5 w-3.5 text-signature" />
+              <span>Legal Verification</span>
             </button>
 
             {isAdmin && (
@@ -292,6 +304,21 @@ export const StaffHeader: React.FC<StaffHeaderProps> = ({
                     {queueCount}
                   </span>
                 )}
+              </button>
+
+              <button
+                onClick={() => {
+                  onTabChange('legal');
+                  setShowMobileNav(false);
+                }}
+                className={`w-full flex items-center gap-2 p-2.5 rounded-xl text-xs uppercase font-medium tracking-wider transition-all ${
+                  activeTab === 'legal'
+                    ? 'text-ivory font-semibold bg-white/[0.14] shadow-sm'
+                    : 'text-muted hover:text-ivory hover:bg-white/[0.04]'
+                }`}
+              >
+                <ShieldCheck className="h-3.5 w-3.5 text-signature" />
+                <span>Legal Verification</span>
               </button>
 
               {isAdmin && (

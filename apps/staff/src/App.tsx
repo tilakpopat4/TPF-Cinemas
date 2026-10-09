@@ -11,6 +11,7 @@ import { ReviewModal } from './components/queue/ReviewModal';
 import { RoleManager } from './components/admin/RoleManager';
 import { AuditLogView } from './components/admin/AuditLogView';
 import { UIManagerView } from './components/admin/UIManagerView';
+import { LegalVerificationTab } from './components/legal/LegalVerificationTab';
 import { StaffAuthModal } from './components/auth/StaffAuthModal';
 import { LanguageProvider } from './context/LanguageContext';
 
@@ -19,7 +20,7 @@ export const App: React.FC = () => {
   const { films, loading: queueLoading, refreshQueue } = useReviewQueue(isStaff);
   const { logs, loading: auditLoading, refreshLogs } = useAuditLog(isAdmin);
 
-  const [activeTab, setActiveTab] = useState<'queue' | 'roles' | 'audit' | 'uimanager'>('queue');
+  const [activeTab, setActiveTab] = useState<'queue' | 'roles' | 'audit' | 'uimanager' | 'legal'>('queue');
   const [selectedFilm, setSelectedFilm] = useState<Film | null>(null);
 
   if (authLoading) {
@@ -82,6 +83,10 @@ export const App: React.FC = () => {
 
           {activeTab === 'uimanager' && isAdmin && (
             <UIManagerView />
+          )}
+
+          {activeTab === 'legal' && (
+            <LegalVerificationTab />
           )}
         </main>
 

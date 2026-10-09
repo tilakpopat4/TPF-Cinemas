@@ -147,7 +147,7 @@ Plans:
 - [ ] 08-01: Implement and verify `RoleManager` dashboard with search, role transitions, and self-demotion guards.
 - [ ] 08-02: Implement and verify `AuditLogView` stream, emergency takedown modal, and featured status controls.
 
-- [ ] **Phase 9: Creator Legal Agreement & Content Rights Framework** - Digital signature onboarding flow (canvas draw + typed name), dynamic non-exclusive streaming rights + IP ownership agreement (Short Film vs Feature Film variants), signed PDF generation & download, legal verification tab in Staff Console, and immutable agreement record in Supabase.
+- [x] **Phase 9: Creator Legal Agreement & Content Rights Framework** - Digital signature onboarding flow (canvas draw + typed name), dynamic non-exclusive streaming rights + IP ownership agreement (Short Film vs Feature Film variants), signed PDF generation & download, legal verification tab in Staff Console, and immutable agreement record in Supabase.
 
 ## Phase Details
 
@@ -165,8 +165,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 09-01: Build creator legal onboarding flow — dynamic agreement document, canvas signature widget, PDF generation, and Supabase Storage upload.
-- [ ] 09-02: Extend Staff Console with Legal Verification tab — agreement status badge, signature preview, PDF download, and verify action with audit logging.
+- [x] 09-01: Build creator legal onboarding flow — dynamic agreement document, canvas signature widget, PDF generation, and Supabase Storage upload.
+- [x] 09-02: Extend Staff Console with Legal Verification tab — agreement status badge, signature preview, PDF download, and verify action with audit logging.
 
 ---
 *Roadmap defined: 2026-10-01*

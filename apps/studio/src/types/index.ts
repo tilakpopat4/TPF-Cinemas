@@ -53,7 +53,7 @@ export interface FilmReview {
 
 export interface LicenceAgreement {
   id?: string;
-  film_id: string;
+  film_id?: string | null;
   filmmaker_id: string;
   licence_type: string;
   territory: string;
@@ -61,6 +61,13 @@ export interface LicenceAgreement {
   music_cleared: boolean;
   terms_version: string;
   agreement_path: string | null;
+  signature_image_url?: string | null;
+  agreement_pdf_url?: string | null;
+  signed_ip?: string | null;
+  signed_user_agent?: string | null;
+  agreement_version?: string;
+  film_type_at_signing?: 'short' | 'feature' | 'all';
+  legal_name?: string | null;
   signed_at?: string;
   verified_by?: string | null;
   verified_at?: string | null;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, LogOut, Globe, ChevronDown, Check, Menu, X } from 'lucide-react';
+import { Plus, LogOut, Globe, ChevronDown, Check, Menu, X, ShieldCheck, ShieldAlert, FileText } from 'lucide-react';
 import { Profile } from '../../types';
 import { useLanguage, SUPPORTED_LANGUAGES } from '../../context/LanguageContext';
 
@@ -12,6 +12,8 @@ interface StudioHeaderProps {
   isFilmmaker: boolean;
   activeFilter?: 'all' | 'drafts' | 'review' | 'published';
   onFilterChange?: (filter: 'all' | 'drafts' | 'review' | 'published') => void;
+  hasSignedAgreement?: boolean;
+  onOpenAgreement?: () => void;
 }
 
 export const StudioHeader: React.FC<StudioHeaderProps> = ({
@@ -22,6 +24,8 @@ export const StudioHeader: React.FC<StudioHeaderProps> = ({
   isFilmmaker,
   activeFilter,
   onFilterChange,
+  hasSignedAgreement,
+  onOpenAgreement,
 }) => {
   const { currentLanguage, setLanguage, isTranslating } = useLanguage();
   const [showMenu, setShowMenu] = useState(false);
@@ -229,7 +233,32 @@ export const StudioHeader: React.FC<StudioHeaderProps> = ({
                     </span>
                   </div>
 
-                  <div className="pt-1 mt-1 border-t border-white/[0.04]">
+                  <div className="pt-1 mt-1 border-t border-white/[0.04] space-y-0.5">
+                    {onOpenAgreement && (
+                      <button
+                        onClick={() => {
+                          setShowMenu(false);
+                          onOpenAgreement();
+                        }}
+                        className={`w-full text-left flex items-center gap-2 px-3 py-2 text-xs rounded-xl transition-colors ${
+                          hasSignedAgreement
+                            ? 'text-emerald-400 hover:bg-emerald-500/10'
+                            : 'text-amber-400 hover:bg-amber-500/10'
+                        }`}
+                      >
+                        {hasSignedAgreement ? (
+                          <>
+                            <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
+                            <span>Rights Deed Executed</span>
+                          </>
+                        ) : (
+                          <>
+                            <ShieldAlert className="h-3.5 w-3.5 shrink-0" />
+                            <span>Sign Rights Deed</span>
+                          </>
+                        )}
+                      </button>
+                    )}
                     <button
                       onClick={() => {
                         setShowMenu(false);

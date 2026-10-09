@@ -11,6 +11,8 @@ import { OnboardingBanner } from './components/dashboard/OnboardingBanner';
 import { FilmsList } from './components/dashboard/FilmsList';
 import { FeedbackModal } from './components/dashboard/FeedbackModal';
 import { FilmEditorModal } from './components/editor/FilmEditorModal';
+import { LegalOnboardingModal } from './components/legal/LegalOnboardingModal';
+import { useCreatorAgreement } from './hooks/useCreatorAgreement';
 import { AuthModal } from './components/auth/AuthModal';
 import { LanguageProvider } from './context/LanguageContext';
 
@@ -18,11 +20,13 @@ export const App: React.FC = () => {
   const { user, profile, isFilmmakerOrAdmin, loading: authLoading, becomeFilmmaker, signOut, refreshProfile } = useAuth();
   const { films, loading: filmsLoading, refreshFilms } = useFilms(user?.id);
   const { genres } = useGenres();
+  const { hasSignedAgreement, refreshAgreement } = useCreatorAgreement(user?.id);
 
   // Modals state
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingFilm, setEditingFilm] = useState<Film | null>(null);
   const [feedbackFilm, setFeedbackFilm] = useState<Film | null>(null);
+  const [legalModalOpen, setLegalModalOpen] = useState(false);
 
   // Filter tab state
   const [filterTab, setFilterTab] = useState<'all' | 'drafts' | 'review' | 'published'>('all');
@@ -50,6 +54,15 @@ export const App: React.FC = () => {
     return true;
   });
 
+  const handleOpenNewFilm = () => {
+    if (!hasSignedAgreement) {
+      setLegalModalOpen(true);
+      return;
+    }
+    setEditingFilm(null);
+    setEditorOpen(true);
+  };
+
   return (
     <LanguageProvider>
       <div className="min-h-screen bg-canvas text-ivory flex flex-col font-sans selection:bg-signature selection:text-black">
@@ -60,10 +73,9 @@ export const App: React.FC = () => {
           isFilmmaker={isFilmmakerOrAdmin}
           activeFilter={filterTab}
           onFilterChange={setFilterTab}
-          onNewFilm={() => {
-            setEditingFilm(null);
-            setEditorOpen(true);
-          }}
+          onNewFilm={handleOpenNewFilm}
+          hasSignedAgreement={hasSignedAgreement}
+          onOpenAgreement={() => setLegalModalOpen(true)}
           onSignOut={signOut}
         />
 
@@ -177,28 +189,40 @@ export const App: React.FC = () => {
         />
       )}
 
-        {/* Curator Feedback Modal */}
-        {feedbackFilm && (
-          <FeedbackModal
-            film={feedbackFilm}
-            onClose={() => setFeedbackFilm(null)}
-            onEdit={(film) => {
-              setFeedbackFilm(null);
-              setEditingFilm(film);
-              setEditorOpen(true);
-            }}
-          />
-        )}
-
-        {/* Unified Footer */}
-        <StudioFooter
-          onOpenSubmission={() => {
-            setEditingFilm(null);
+      {/* Curator Feedback Modal */}
+      {feedbackFilm && (
+        <FeedbackModal
+          film={feedbackFilm}
+          onClose={() => setFeedbackFilm(null)}
+          onEdit={(film) => {
+            setFeedbackFilm(null);
+            setEditingFilm(film);
             setEditorOpen(true);
           }}
         />
-      </div>
-    </LanguageProvider>
-  );
+      )}
+
+      {/* Creator Legal Onboarding Modal */}
+      {legalModalOpen && (
+        <LegalOnboardingModal
+          userId={user.id}
+          userEmail={user.email || ''}
+          defaultName={profile?.display_name || ''}
+          onClose={() => setLegalModalOpen(false)}
+          onSuccess={() => {
+            setLegalModalOpen(false);
+            refreshAgreement();
+            setEditingFilm(null);
+            setEditorOpen(true);
+          }}
+          required={!hasSignedAgreement}
+        />
+      )}
+
+      {/* Unified Footer */}
+      <StudioFooter onOpenSubmission={handleOpenNewFilm} />
+    </div>
+  </LanguageProvider>
+);
 };
 export default App;
