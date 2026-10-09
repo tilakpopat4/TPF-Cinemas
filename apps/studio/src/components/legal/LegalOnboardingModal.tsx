@@ -135,6 +135,9 @@ export const LegalOnboardingModal: React.FC<LegalOnboardingModalProps> = ({
       });
 
       if (dbErr) {
+        if (dbErr.message?.includes('schema cache') || dbErr.message?.includes('column') || dbErr.code === 'PGRST204') {
+          throw new Error('Database schema update required: Please run migration 20261009000001_creator_legal_agreements.sql in your Supabase SQL Editor.');
+        }
         throw dbErr;
       }
 

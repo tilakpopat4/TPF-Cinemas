@@ -121,3 +121,9 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.verify_creator_agreement(uuid) TO authenticated;
+
+-- 8. Explicitly grant permissions on all licence_agreements columns to authenticated
+GRANT ALL ON public.licence_agreements TO authenticated;
+
+-- 9. Refresh PostgREST schema cache
+NOTIFY pgrst, 'reload schema';

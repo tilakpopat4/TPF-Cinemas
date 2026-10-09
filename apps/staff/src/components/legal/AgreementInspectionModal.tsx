@@ -49,8 +49,9 @@ export const AgreementInspectionModal: React.FC<AgreementInspectionModalProps> =
           const sig = await createSignedUrl(agreement.signature_image_url);
           if (active) setSignatureUrl(sig);
         }
-        if (agreement.agreement_pdf_url) {
-          const pdf = await createSignedUrl(agreement.agreement_pdf_url);
+        const pdfTarget = agreement.agreement_pdf_url || agreement.agreement_path;
+        if (pdfTarget) {
+          const pdf = await createSignedUrl(pdfTarget);
           if (active) setPdfUrl(pdf);
         }
       } catch (err) {
