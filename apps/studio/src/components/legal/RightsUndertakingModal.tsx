@@ -10,6 +10,8 @@ interface RightsUndertakingModalProps {
   filmmakerName?: string;
   filmmakerEmail?: string;
   filmmakerLegalName?: string;
+  productionName?: string;
+  contactNo?: string;
   creatorSignatureUrl?: string;
   onClose: () => void;
 }
@@ -19,6 +21,8 @@ export const RightsUndertakingModal: React.FC<RightsUndertakingModalProps> = ({
   filmmakerName,
   filmmakerEmail,
   filmmakerLegalName,
+  productionName,
+  contactNo,
   creatorSignatureUrl,
   onClose,
 }) => {
@@ -28,6 +32,8 @@ export const RightsUndertakingModal: React.FC<RightsUndertakingModalProps> = ({
   // Signature and Signer State
   const [signatureUrl, setSignatureUrl] = useState<string | null>(creatorSignatureUrl || null);
   const [signerLegalName, setSignerLegalName] = useState<string>(filmmakerLegalName || filmmakerName || '');
+  const [signerProductionName, setSignerProductionName] = useState<string>(productionName || '');
+  const [signerContactNo, setSignerContactNo] = useState<string>(contactNo || '');
   const [signerEmail, setSignerEmail] = useState<string>(filmmakerEmail || '');
   const [loadingSignature, setLoadingSignature] = useState(!creatorSignatureUrl);
 
@@ -48,7 +54,7 @@ export const RightsUndertakingModal: React.FC<RightsUndertakingModalProps> = ({
     let active = true;
 
     async function fetchCreatorSignature() {
-      if (creatorSignatureUrl) {
+      if (creatorSignatureUrl && signerLegalName && signerProductionName && signerContactNo && signerEmail) {
         setSignatureUrl(creatorSignatureUrl);
         setLoadingSignature(false);
         return;
@@ -69,27 +75,36 @@ export const RightsUndertakingModal: React.FC<RightsUndertakingModalProps> = ({
           return;
         }
 
-        // 1. Fetch profile details (for legal name/email fallback)
+        // 1. Fetch profile details (for display name, production name, contact no, email)
         const { data: profileData } = await supabase
           .from('profiles')
-          .select('display_name, email')
+          .select('display_name, email, production_name, contact_no')
           .eq('id', targetFilmmakerId)
           .maybeSingle();
 
         if (active && profileData) {
-          if (!signerEmail) setSignerEmail(profileData.email || '');
+          if (!signerEmail) setSignerEmail((profileData as any).email || '');
           if (!signerLegalName) setSignerLegalName(profileData.display_name || '');
+          if (!signerProductionName && (profileData as any).production_name) {
+            setSignerProductionName((profileData as any).production_name);
+          }
+          if (!signerContactNo && (profileData as any).contact_no) {
+            setSignerContactNo((profileData as any).contact_no);
+          }
         }
 
-        // 2. Check if film's own licence agreement has a signature_image_url
+        // 2. Check if film's own licence agreement has metadata
         let sigPath: string | null = (licence as any)?.signature_image_url || null;
         let legalNameFound: string | null = (licence as any)?.legal_name || null;
+        let prodFound: string | null = (licence as any)?.production_name || null;
+        let contactFound: string | null = (licence as any)?.contact_no || null;
+        let mailFound: string | null = (licence as any)?.contact_email || null;
 
         // 3. If not present on film licence, query creator's master licence agreement
-        if (!sigPath) {
+        if (!sigPath || !prodFound || !contactFound) {
           const { data: masterAgreement, error: masterErr } = await supabase
             .from('licence_agreements')
-            .select('signature_image_url, legal_name, signed_at')
+            .select('signature_image_url, legal_name, production_name, contact_no, contact_email, signed_at')
             .eq('filmmaker_id', targetFilmmakerId)
             .not('signature_image_url', 'is', null)
             .order('signed_at', { ascending: false })
@@ -97,15 +112,19 @@ export const RightsUndertakingModal: React.FC<RightsUndertakingModalProps> = ({
             .maybeSingle();
 
           if (!masterErr && masterAgreement) {
-            sigPath = masterAgreement.signature_image_url;
-            if (masterAgreement.legal_name && !signerLegalName) {
-              legalNameFound = masterAgreement.legal_name;
-            }
+            if (!sigPath) sigPath = masterAgreement.signature_image_url;
+            if (masterAgreement.legal_name && !signerLegalName) legalNameFound = masterAgreement.legal_name;
+            if ((masterAgreement as any).production_name && !signerProductionName) prodFound = (masterAgreement as any).production_name;
+            if ((masterAgreement as any).contact_no && !signerContactNo) contactFound = (masterAgreement as any).contact_no;
+            if ((masterAgreement as any).contact_email && !signerEmail) mailFound = (masterAgreement as any).contact_email;
           }
         }
 
-        if (legalNameFound && active) {
-          setSignerLegalName(legalNameFound);
+        if (active) {
+          if (legalNameFound) setSignerLegalName(legalNameFound);
+          if (prodFound) setSignerProductionName(prodFound);
+          if (contactFound) setSignerContactNo(contactFound);
+          if (mailFound) setSignerEmail(mailFound);
         }
 
         // 4. Resolve signature image path to a signed URL or direct URL
@@ -134,7 +153,7 @@ export const RightsUndertakingModal: React.FC<RightsUndertakingModalProps> = ({
     return () => {
       active = false;
     };
-  }, [film.id, film.filmmaker_id, licence, creatorSignatureUrl, signerEmail, signerLegalName]);
+  }, [film.id, film.filmmaker_id, licence, creatorSignatureUrl, signerEmail, signerLegalName, signerProductionName, signerContactNo]);
 
   const handlePrint = () => {
     window.print();
@@ -278,7 +297,7 @@ export const RightsUndertakingModal: React.FC<RightsUndertakingModalProps> = ({
                 </div>
                 <div>
                   <strong>Production House (if applicable): </strong>
-                  <span>{filmmakerName ? `${filmmakerName} Productions / Independent` : 'Independent Production'}</span>
+                  <span>{signerProductionName || 'Independent Production'}</span>
                 </div>
               </div>
             </div>
@@ -341,7 +360,7 @@ export const RightsUndertakingModal: React.FC<RightsUndertakingModalProps> = ({
               {/* Side-by-side signature & execution blocks */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2 font-['Times_New_Roman',_Times,_serif]">
                 {/* Filmmaker / Rights Holder */}
-                <div className="border border-black p-4 bg-white flex flex-col justify-between min-h-[220px]">
+                <div className="border border-black p-4 bg-white flex flex-col justify-between min-h-[260px]">
                   <div>
                     <p className="font-bold text-[13pt] border-b border-black pb-1 mb-3">
                       Filmmaker / Rights Holder
@@ -351,6 +370,11 @@ export const RightsUndertakingModal: React.FC<RightsUndertakingModalProps> = ({
                       <div>
                         <strong>Full Name: </strong>
                         <span>{signerLegalName || filmmakerName || 'Registered Filmmaker'}</span>
+                      </div>
+
+                      <div>
+                        <strong>Production Name: </strong>
+                        <span>{signerProductionName || 'Independent Production'}</span>
                       </div>
 
                       <div>
@@ -376,7 +400,12 @@ export const RightsUndertakingModal: React.FC<RightsUndertakingModalProps> = ({
                       </div>
 
                       <div>
-                        <strong>Contact Information: </strong>
+                        <strong>Contact No: </strong>
+                        <span>{signerContactNo || 'On Record'}</span>
+                      </div>
+
+                      <div>
+                        <strong>Mail ID: </strong>
                         <span>{signerEmail || 'Verified Creator Account'}</span>
                       </div>
 
@@ -389,7 +418,7 @@ export const RightsUndertakingModal: React.FC<RightsUndertakingModalProps> = ({
                 </div>
 
                 {/* Person / Platform Receiving Permission */}
-                <div className="border border-black p-4 bg-white flex flex-col justify-between min-h-[220px]">
+                <div className="border border-black p-4 bg-white flex flex-col justify-between min-h-[260px]">
                   <div>
                     <p className="font-bold text-[13pt] border-b border-black pb-1 mb-3">
                       Person / Platform Receiving Permission
@@ -399,6 +428,11 @@ export const RightsUndertakingModal: React.FC<RightsUndertakingModalProps> = ({
                       <div>
                         <strong>Full Name: </strong>
                         <span>Tilak Popat / TPF Cinemas</span>
+                      </div>
+
+                      <div>
+                        <strong>Platform: </strong>
+                        <span>Tilak Popat Films (TPF Cinemas)</span>
                       </div>
 
                       <div>

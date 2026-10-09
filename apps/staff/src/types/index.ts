@@ -71,6 +71,9 @@ export interface LicenceAgreement {
   agreement_version?: string;
   film_type_at_signing?: 'short' | 'feature' | 'all';
   legal_name?: string | null;
+  production_name?: string | null;
+  contact_no?: string | null;
+  contact_email?: string | null;
   signed_at: string;
   verified_by: string | null;
   verified_at: string | null;

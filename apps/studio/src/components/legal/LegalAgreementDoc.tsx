@@ -5,6 +5,9 @@ interface LegalAgreementDocProps {
   filmType?: 'short' | 'feature' | 'all';
   filmmakerName?: string;
   legalName?: string;
+  productionName?: string;
+  contactNo?: string;
+  contactEmail?: string;
   onScrolledToBottom?: () => void;
   referenceCode?: string;
 }
@@ -12,6 +15,9 @@ interface LegalAgreementDocProps {
 export const LegalAgreementDoc: React.FC<LegalAgreementDocProps> = ({
   filmmakerName = 'Filmmaker / Content Creator',
   legalName,
+  productionName,
+  contactNo,
+  contactEmail,
   onScrolledToBottom,
   referenceCode = `TPF-CONSENT-${new Date().getFullYear()}`,
 }) => {
@@ -79,7 +85,7 @@ export const LegalAgreementDoc: React.FC<LegalAgreementDocProps> = ({
           </div>
           <div>
             <strong>Production House (if applicable): </strong>
-            <span>Independent Production</span>
+            <span>{productionName || 'Independent Production'}</span>
           </div>
         </div>
       </div>
@@ -134,17 +140,34 @@ export const LegalAgreementDoc: React.FC<LegalAgreementDocProps> = ({
         <h2 className="text-[14pt] font-bold text-black tracking-tight">
           5. Declaration
         </h2>
-        <p className="pl-2 mb-6 text-justify">
+        <p className="pl-2 mb-4 text-justify">
           I confirm that I have the authority to grant this permission and voluntarily consent to the non-commercial streaming of the above-mentioned work under the terms stated in this document.
         </p>
 
-        <div className="p-4 bg-zinc-50 border border-zinc-300 text-[11pt] space-y-1 font-['Times_New_Roman',_Times,_serif]">
-          <p>
-            <strong>Signer: </strong>{legalName || filmmakerName}
+        <div className="border border-black p-4 bg-white text-[11pt] space-y-2 font-['Times_New_Roman',_Times,_serif]">
+          <p className="font-bold text-[12pt] border-b border-black pb-1 mb-2">
+            Filmmaker / Rights Holder Details
           </p>
-          <p className="text-zinc-600 text-[10.5pt]">
-            Draw your signature below and submit to execute this Non-Commercial Streaming Rights Consent Form.
-          </p>
+          <div>
+            <strong>Full Legal Name: </strong>
+            <span>{legalName || filmmakerName}</span>
+          </div>
+          <div>
+            <strong>Production Name: </strong>
+            <span>{productionName || 'Independent Production'}</span>
+          </div>
+          <div>
+            <strong>Contact No: </strong>
+            <span>{contactNo || 'Provided upon execution'}</span>
+          </div>
+          <div>
+            <strong>Mail Id: </strong>
+            <span>{contactEmail || 'Provided upon execution'}</span>
+          </div>
+          <div>
+            <strong>Date: </strong>
+            <span>{todayStr}</span>
+          </div>
         </div>
       </div>
     </div>

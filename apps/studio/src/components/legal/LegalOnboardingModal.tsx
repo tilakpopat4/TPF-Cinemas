@@ -10,7 +10,27 @@ import {
   ArrowRight,
   AlertTriangle,
   Lock,
+  Phone,
+  Mail,
+  Building,
+  User,
+  FileText,
 } from 'lucide-react';
+
+const InstagramIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+  </svg>
+);
+
+const YoutubeIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" />
+    <polygon points="10 15 15 12 10 9 10 15" fill="currentColor" />
+  </svg>
+);
 import { supabase } from '../../lib/supabase';
 import { LegalAgreementDoc } from './LegalAgreementDoc';
 import { SignaturePad, SignaturePadRef } from './SignaturePad';
@@ -22,7 +42,7 @@ interface LegalOnboardingModalProps {
   defaultName?: string;
   onClose?: () => void;
   onSuccess: () => void;
-  required?: boolean; // if true, cannot simply close without signing
+  required?: boolean;
 }
 
 export const LegalOnboardingModal: React.FC<LegalOnboardingModalProps> = ({
@@ -33,8 +53,15 @@ export const LegalOnboardingModal: React.FC<LegalOnboardingModalProps> = ({
   onSuccess,
   required = true,
 }) => {
+  // Creator account fields
   const [legalName, setLegalName] = useState(defaultName);
-  const [filmType, setFilmType] = useState<'short' | 'feature' | 'all'>('all');
+  const [productionName, setProductionName] = useState('');
+  const [contactNo, setContactNo] = useState('');
+  const [contactEmail, setContactEmail] = useState(userEmail);
+  const [instagramHandle, setInstagramHandle] = useState('');
+  const [youtubeHandle, setYoutubeHandle] = useState('');
+  const [bio, setBio] = useState('');
+
   const [hasScrolledDoc, setHasScrolledDoc] = useState(false);
   const [ipDeclarationChecked, setIpDeclarationChecked] = useState(false);
   const [signatureDataUrl, setSignatureDataUrl] = useState<string | null>(null);
@@ -59,13 +86,37 @@ export const LegalOnboardingModal: React.FC<LegalOnboardingModalProps> = ({
       return;
     }
 
+    const trimmedProduction = productionName.trim();
+    if (trimmedProduction.length < 2) {
+      setErrorMessage('Production Name (Name Under Films Are Made) is required.');
+      return;
+    }
+
+    const trimmedContact = contactNo.trim();
+    if (trimmedContact.length < 7) {
+      setErrorMessage('Valid Contact Number is required.');
+      return;
+    }
+
+    const trimmedMail = contactEmail.trim();
+    if (!trimmedMail || !trimmedMail.includes('@')) {
+      setErrorMessage('Valid Mail Id is required.');
+      return;
+    }
+
+    const trimmedBio = bio.trim();
+    if (trimmedBio.length < 10) {
+      setErrorMessage('Please provide a short description / bio (minimum 10 characters).');
+      return;
+    }
+
     if (!signatureDataUrl) {
       setErrorMessage('Please provide your drawn digital signature on the canvas.');
       return;
     }
 
     if (!ipDeclarationChecked) {
-      setErrorMessage('You must confirm the legal IP & music clearance declaration to proceed.');
+      setErrorMessage('You must confirm the legal consent & rights declaration to proceed.');
       return;
     }
 
@@ -73,11 +124,12 @@ export const LegalOnboardingModal: React.FC<LegalOnboardingModalProps> = ({
       setSubmitting(true);
       const executionTimestamp = new Date();
 
-      // 1. Generate client-side official PDF
+      // 1. Generate client-side official PDF matching Non-Commercial Streaming Rights Consent Form
       const pdfResult = await generateAgreementPdf({
         legalName: trimmedName,
-        email: userEmail,
-        filmType,
+        email: trimmedMail,
+        productionName: trimmedProduction,
+        contactNo: trimmedContact,
         signatureDataUrl,
         timestamp: executionTimestamp,
       });
@@ -88,7 +140,7 @@ export const LegalOnboardingModal: React.FC<LegalOnboardingModalProps> = ({
 
       const timeKey = Date.now();
       const signaturePath = `${userId}/signature_${timeKey}.png`;
-      const pdfPath = `${userId}/deed_${timeKey}.pdf`;
+      const pdfPath = `${userId}/consent_${timeKey}.pdf`;
 
       // 3. Upload signature image to private licences bucket
       const { error: sigUploadErr } = await supabase.storage
@@ -100,7 +152,6 @@ export const LegalOnboardingModal: React.FC<LegalOnboardingModalProps> = ({
 
       if (sigUploadErr) {
         console.warn('Signature upload error:', sigUploadErr);
-        // Continue even if storage has permission issue, but report if fatal
       }
 
       // 4. Upload PDF document to private licences bucket
@@ -115,7 +166,24 @@ export const LegalOnboardingModal: React.FC<LegalOnboardingModalProps> = ({
         console.warn('PDF upload error:', pdfUploadErr);
       }
 
-      // 5. Check if master creator agreement already exists for this filmmaker
+      // 5. Update user profile with comprehensive creator details
+      try {
+        await supabase
+          .from('profiles')
+          .update({
+            display_name: trimmedName,
+            production_name: trimmedProduction,
+            contact_no: trimmedContact,
+            bio: trimmedBio,
+            instagram_handle: instagramHandle.trim() || null,
+            youtube_handle: youtubeHandle.trim() || null,
+          })
+          .eq('id', userId);
+      } catch (profErr) {
+        console.warn('Profile update notice:', profErr);
+      }
+
+      // 6. Check if master creator agreement already exists for this filmmaker
       const { data: existingMaster } = await supabase
         .from('licence_agreements')
         .select('id')
@@ -135,8 +203,10 @@ export const LegalOnboardingModal: React.FC<LegalOnboardingModalProps> = ({
         agreement_path: pdfPath,
         agreement_pdf_url: pdfPath,
         signature_image_url: signaturePath,
-        film_type_at_signing: filmType,
         legal_name: trimmedName,
+        production_name: trimmedProduction,
+        contact_no: trimmedContact,
+        contact_email: trimmedMail,
         signed_user_agent: navigator.userAgent || 'Web Browser',
         signed_at: executionTimestamp.toISOString(),
       };
@@ -157,7 +227,7 @@ export const LegalOnboardingModal: React.FC<LegalOnboardingModalProps> = ({
 
       if (dbErr) {
         if (dbErr.message?.includes('schema cache') || dbErr.message?.includes('column') || dbErr.code === 'PGRST204') {
-          throw new Error('Database schema update required: Please run migration 20261009000001_creator_legal_agreements.sql in your Supabase SQL Editor.');
+          throw new Error('Database schema update required: Please run migration 20261009000002_creator_onboarding_profile_fields.sql in your Supabase SQL Editor.');
         }
         throw dbErr;
       }
@@ -176,7 +246,7 @@ export const LegalOnboardingModal: React.FC<LegalOnboardingModalProps> = ({
     const url = URL.createObjectURL(signedResult.blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `TPF_Cinemas_Deed_${signedResult.referenceCode}.pdf`;
+    link.download = `TPF_Cinemas_Consent_${signedResult.referenceCode}.pdf`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -195,15 +265,15 @@ export const LegalOnboardingModal: React.FC<LegalOnboardingModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-mono text-[10px] uppercase tracking-widest text-signature font-bold">
-                  Creator Legal Onboarding
+                  Creator Onboarding
                 </span>
                 <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1">
                   <Lock className="h-2.5 w-2.5" />
-                  Mandatory Undertaking
+                  Mandatory Consent &amp; Attestation
                 </span>
               </div>
               <h2 className="text-base font-bold text-white tracking-tight">
-                Deed of Digital Streaming Rights &amp; IP Declaration
+                Creator Profile &amp; Non-Commercial Streaming Rights Consent Form
               </h2>
             </div>
           </div>
@@ -228,32 +298,36 @@ export const LegalOnboardingModal: React.FC<LegalOnboardingModalProps> = ({
             </div>
             <div className="space-y-2">
               <h3 className="text-2xl font-bold text-white tracking-tight">
-                Deed Successfully Executed!
+                Consent Form Successfully Executed!
               </h3>
               <p className="text-sm text-zinc-400 leading-relaxed">
-                Your non-exclusive digital streaming rights grant and IP self-declaration have been permanently recorded and verified for <strong className="text-zinc-200">{legalName}</strong>.
+                Your non-commercial streaming rights consent form has been permanently recorded and verified for <strong className="text-zinc-200">{legalName}</strong> ({productionName}).
               </p>
               <p className="font-mono text-xs text-signature">
                 Official Reference: {signedResult.referenceCode}
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 text-xs text-zinc-400 text-left space-y-1.5">
+            <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 text-xs text-zinc-400 text-left space-y-1.5 font-sans">
               <div className="flex justify-between">
-                <span>Signer:</span>
+                <span>Legal Full Name:</span>
                 <span className="text-white font-medium">{legalName}</span>
               </div>
               <div className="flex justify-between">
-                <span>Account Email:</span>
-                <span className="text-white font-medium">{userEmail}</span>
+                <span>Production Name:</span>
+                <span className="text-white font-medium">{productionName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Contact Number:</span>
+                <span className="text-white font-medium">{contactNo}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Account Mail ID:</span>
+                <span className="text-white font-medium">{contactEmail}</span>
               </div>
               <div className="flex justify-between">
                 <span>Timestamp (UTC):</span>
                 <span className="text-white font-mono">{new Date().toISOString()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Storage Vault:</span>
-                <span className="text-emerald-400 font-mono">licences/ (Private Encrypted)</span>
               </div>
             </div>
 
@@ -277,118 +351,206 @@ export const LegalOnboardingModal: React.FC<LegalOnboardingModalProps> = ({
             </div>
           </div>
         ) : (
-          /* Execution Form Screen */
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#090a0f]">
-            <form onSubmit={handleExecuteDeed} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* Left Column: Scrollable Legal Deed Document */}
-              <div className="lg:col-span-7 space-y-3">
-                <div className="flex items-center justify-between text-xs text-zinc-400 px-1">
-                  <span className="font-semibold text-zinc-300 flex items-center gap-1.5">
-                    <FileCheck2 className="h-4 w-4 text-signature" />
-                    Official Legal Document
+          /* Two-Column Onboarding Flow */
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+            <form onSubmit={handleExecuteDeed} className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+              {/* Left Column: Official Consent Document Preview (5 Cols) */}
+              <div className="lg:col-span-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-zinc-400 font-mono">
+                    Consent Form Preview (Times New Roman)
                   </span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] text-zinc-500">Category:</span>
-                    <select
-                      value={filmType}
-                      onChange={(e) => setFilmType(e.target.value as any)}
-                      className="bg-black/40 border border-white/10 rounded px-2 py-0.5 text-xs text-zinc-300 focus:outline-none focus:border-signature"
-                    >
-                      <option value="all">Universal (Shorts &amp; Features)</option>
-                      <option value="short">Short Film Specific</option>
-                      <option value="feature">Feature Film Specific</option>
-                    </select>
-                  </div>
+                  <span className="text-[11px] text-zinc-500 font-mono">
+                    Scroll to review
+                  </span>
                 </div>
 
                 <LegalAgreementDoc
-                  filmType={filmType}
-                  filmmakerName={defaultName}
+                  filmmakerName={legalName || defaultName}
                   legalName={legalName}
+                  productionName={productionName}
+                  contactNo={contactNo}
+                  contactEmail={contactEmail}
                   onScrolledToBottom={() => setHasScrolledDoc(true)}
+                  referenceCode={`TPF-CONSENT-${new Date().getFullYear()}`}
                 />
-
-                <p className="text-[11px] text-zinc-500 text-center font-sans">
-                  {hasScrolledDoc
-                    ? '✓ Document reviewed. Proceed with execution details below.'
-                    : 'Scroll to bottom of document to review full legal clauses.'}
-                </p>
               </div>
 
-              {/* Right Column: Execution Form & Signature */}
-              <div className="lg:col-span-5 flex flex-col justify-between space-y-5 bg-[#0f111a] p-5 sm:p-6 rounded-2xl border border-white/[0.08]">
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider font-display">
-                      Execution &amp; Attestation
-                    </h3>
-                    <p className="text-xs text-zinc-400 mt-0.5">
-                      Enter your legal credentials and affix your electronic signature.
-                    </p>
+              {/* Right Column: Comprehensive Creator Profile & Digital Signature Form (7 Cols) */}
+              <div className="lg:col-span-7 space-y-4">
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider font-display">
+                    Creator Account Details &amp; Digital Signature
+                  </h3>
+                  <p className="text-xs text-zinc-400 mt-0.5">
+                    Enter your legal credentials, production house details, and affix your digital signature.
+                  </p>
+                </div>
+
+                {errorMessage && (
+                  <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2 animate-fade-in">
+                    <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                    <span>{errorMessage}</span>
                   </div>
+                )}
 
-                  {errorMessage && (
-                    <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2 animate-fade-in">
-                      <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-                      <span>{errorMessage}</span>
-                    </div>
-                  )}
-
-                  {/* Legal Name */}
-                  <div className="space-y-1.5">
+                {/* Form Fields Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  {/* Full Legal Name* */}
+                  <div className="space-y-1">
                     <label className="block text-xs font-semibold text-zinc-300">
                       Full Legal Name <span className="text-signature font-mono">*</span>
                     </label>
-                    <input
-                      type="text"
-                      required
-                      value={legalName}
-                      onChange={(e) => setLegalName(e.target.value)}
-                      placeholder="e.g. Tilak Popat"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/50 border border-white/15 text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-signature focus:ring-1 focus:ring-signature transition-all"
-                    />
-                    <p className="text-[10px] text-zinc-500">
-                      Must match government-issued identity or verified director credits.
-                    </p>
+                    <div className="relative">
+                      <User className="absolute left-3 top-2.5 h-3.5 w-3.5 text-zinc-500" />
+                      <input
+                        type="text"
+                        required
+                        value={legalName}
+                        onChange={(e) => setLegalName(e.target.value)}
+                        placeholder="e.g. Tilak Popat"
+                        className="w-full pl-9 pr-3 py-2 rounded-xl bg-black/50 border border-white/15 text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-signature focus:ring-1 focus:ring-signature transition-all"
+                      />
+                    </div>
                   </div>
 
-                  {/* Verified Account Email */}
-                  <div className="space-y-1.5">
+                  {/* Production (Name Under Films Are Made)* */}
+                  <div className="space-y-1">
                     <label className="block text-xs font-semibold text-zinc-300">
-                      Signing Account Email
+                      Production Name <span className="text-signature font-mono">*</span>
                     </label>
-                    <input
-                      type="email"
-                      disabled
-                      value={userEmail}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/25 border border-white/10 text-zinc-400 text-xs cursor-not-allowed select-none"
-                    />
+                    <div className="relative">
+                      <Building className="absolute left-3 top-2.5 h-3.5 w-3.5 text-zinc-500" />
+                      <input
+                        type="text"
+                        required
+                        value={productionName}
+                        onChange={(e) => setProductionName(e.target.value)}
+                        placeholder="e.g. Tilak Popat Films / Independent"
+                        className="w-full pl-9 pr-3 py-2 rounded-xl bg-black/50 border border-white/15 text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-signature focus:ring-1 focus:ring-signature transition-all"
+                      />
+                    </div>
                   </div>
 
-                  {/* Canvas Signature Pad */}
+                  {/* Contact No* */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-semibold text-zinc-300">
+                      Contact No <span className="text-signature font-mono">*</span>
+                    </label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-2.5 h-3.5 w-3.5 text-zinc-500" />
+                      <input
+                        type="tel"
+                        required
+                        value={contactNo}
+                        onChange={(e) => setContactNo(e.target.value)}
+                        placeholder="e.g. +91 98765 43210"
+                        className="w-full pl-9 pr-3 py-2 rounded-xl bg-black/50 border border-white/15 text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-signature focus:ring-1 focus:ring-signature transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Mail Id* */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-semibold text-zinc-300">
+                      Mail Id <span className="text-signature font-mono">*</span>
+                    </label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-2.5 h-3.5 w-3.5 text-zinc-500" />
+                      <input
+                        type="email"
+                        required
+                        value={contactEmail}
+                        onChange={(e) => setContactEmail(e.target.value)}
+                        placeholder="e.g. director@films.com"
+                        className="w-full pl-9 pr-3 py-2 rounded-xl bg-black/50 border border-white/15 text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-signature focus:ring-1 focus:ring-signature transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Instagram Handle */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-semibold text-zinc-300">
+                      Instagram Handle <span className="text-zinc-500 text-[10px]">(optional)</span>
+                    </label>
+                    <div className="relative">
+                      <InstagramIcon className="absolute left-3 top-2.5 h-3.5 w-3.5 text-zinc-500" />
+                      <input
+                        type="text"
+                        value={instagramHandle}
+                        onChange={(e) => setInstagramHandle(e.target.value)}
+                        placeholder="@username"
+                        className="w-full pl-9 pr-3 py-2 rounded-xl bg-black/50 border border-white/15 text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-signature focus:ring-1 focus:ring-signature transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* YouTube Handle */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-semibold text-zinc-300">
+                      YouTube Handle / Channel <span className="text-zinc-500 text-[10px]">(optional)</span>
+                    </label>
+                    <div className="relative">
+                      <YoutubeIcon className="absolute left-3 top-2.5 h-3.5 w-3.5 text-zinc-500" />
+                      <input
+                        type="text"
+                        value={youtubeHandle}
+                        onChange={(e) => setYoutubeHandle(e.target.value)}
+                        placeholder="@channel"
+                        className="w-full pl-9 pr-3 py-2 rounded-xl bg-black/50 border border-white/15 text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-signature focus:ring-1 focus:ring-signature transition-all"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Short Description / Bio* */}
+                <div className="space-y-1">
+                  <label className="block text-xs font-semibold text-zinc-300">
+                    Short Description / Bio <span className="text-signature font-mono">*</span>
+                  </label>
+                  <textarea
+                    rows={2}
+                    required
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder="Briefly describe yourself as a filmmaker, director, or production house..."
+                    className="w-full px-3.5 py-2 rounded-xl bg-black/50 border border-white/15 text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-signature focus:ring-1 focus:ring-signature transition-all resize-none"
+                  />
+                </div>
+
+                {/* Canvas Signature Pad */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-semibold text-zinc-300">
+                      Digital Signature <span className="text-signature font-mono">*</span>
+                    </label>
+                    <span className="text-[10px] text-zinc-500 font-mono">
+                      Draw with pointer, mouse, or touch
+                    </span>
+                  </div>
                   <SignaturePad
                     ref={signatureRef}
                     onSignatureChange={handleSignatureChange}
-                    height={150}
+                    height={130}
                   />
-
-                  {/* Mandatory Self-Declaration Checkbox */}
-                  <label className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 cursor-pointer select-none group">
-                    <input
-                      type="checkbox"
-                      required
-                      checked={ipDeclarationChecked}
-                      onChange={(e) => setIpDeclarationChecked(e.target.checked)}
-                      className="mt-0.5 rounded border-amber-500/40 text-signature focus:ring-signature focus:ring-offset-0 bg-black/40 h-4 w-4 cursor-pointer"
-                    />
-                    <span className="text-[11px] text-amber-200/90 leading-tight">
-                      I solemnly affirm and declare that I hold 100% intellectual property rights, chain-of-title, and music clearance for all submitted titles. I agree to indemnify TPF Cinemas under the Indian Copyright Act, 1957.
-                    </span>
-                  </label>
                 </div>
 
+                {/* Mandatory Self-Declaration Checkbox */}
+                <label className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 cursor-pointer select-none group">
+                  <input
+                    type="checkbox"
+                    required
+                    checked={ipDeclarationChecked}
+                    onChange={(e) => setIpDeclarationChecked(e.target.checked)}
+                    className="mt-0.5 rounded border-amber-500/40 text-signature focus:ring-signature focus:ring-offset-0 bg-black/40 h-4 w-4 cursor-pointer"
+                  />
+                  <span className="text-[11px] text-amber-200/90 leading-tight">
+                    I confirm that I have the authority to grant this permission and voluntarily consent to the non-commercial streaming of my submitted audiovisual works on TPF Cinemas under the terms of this consent form.
+                  </span>
+                </label>
+
                 {/* Submit Action */}
-                <div className="pt-2">
+                <div className="pt-1">
                   <button
                     type="submit"
                     disabled={submitting}
@@ -397,17 +559,17 @@ export const LegalOnboardingModal: React.FC<LegalOnboardingModalProps> = ({
                     {submitting ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>Compiling &amp; Executing Digital Deed...</span>
+                        <span>Compiling &amp; Executing Consent Form...</span>
                       </>
                     ) : (
                       <>
                         <ShieldCheck className="h-4 w-4" />
-                        <span>Digitally Sign &amp; Execute Deed</span>
+                        <span>Sign &amp; Activate Filmmaker Account</span>
                       </>
                     )}
                   </button>
                   <p className="text-[10px] text-center text-zinc-500 mt-2 font-mono">
-                    Electronic signature recorded with IP timestamp hash
+                    Legal Full Name, Production Name, Contact No, and Mail ID will be affixed to your digital signature
                   </p>
                 </div>
               </div>

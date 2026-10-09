@@ -3,6 +3,8 @@ import { jsPDF } from 'jspdf';
 export interface AgreementPdfOptions {
   legalName: string;
   email: string;
+  productionName?: string;
+  contactNo?: string;
   filmType?: 'short' | 'feature' | 'all';
   signatureDataUrl: string;
   timestamp?: Date;
@@ -22,6 +24,8 @@ export async function generateAgreementPdf(options: AgreementPdfOptions): Promis
   const {
     legalName,
     email,
+    productionName = 'Independent Production',
+    contactNo = 'On Record',
     signatureDataUrl,
     timestamp = new Date(),
     referenceCode = `TPF-CONSENT-${Date.now().toString(36).toUpperCase()}-${timestamp.getFullYear()}`,
@@ -119,7 +123,7 @@ export async function generateAgreementPdf(options: AgreementPdfOptions): Promis
   y += 5.5;
   doc.text(`Director / Filmmaker: ${legalName}`, margin + 3, y);
   y += 5.5;
-  doc.text(`Production House (if applicable): Independent Production`, margin + 3, y);
+  doc.text(`Production House (if applicable): ${productionName}`, margin + 3, y);
   y += 8.5;
 
   // --- 2. Consent and Permission ---
@@ -184,7 +188,7 @@ export async function generateAgreementPdf(options: AgreementPdfOptions): Promis
   y += 8.5;
 
   // --- 5. Declaration ---
-  ensureSpace(68);
+  ensureSpace(75);
   doc.setFont('times', 'bold');
   doc.setFontSize(13);
   doc.text('5. Declaration', margin, y);
@@ -201,7 +205,7 @@ export async function generateAgreementPdf(options: AgreementPdfOptions): Promis
   const colWidth = (contentWidth - 8) / 2;
   const col1X = margin;
   const col2X = margin + colWidth + 8;
-  const boxHeight = 52;
+  const boxHeight = 58;
 
   // Column 1: Filmmaker / Rights Holder
   doc.setDrawColor(30, 30, 30);
@@ -217,13 +221,14 @@ export async function generateAgreementPdf(options: AgreementPdfOptions): Promis
   doc.setFont('times', 'normal');
   doc.setFontSize(9.5);
   doc.text(`Full Name: ${legalName}`, col1X + 4, y + 13);
-  doc.text('Signature:', col1X + 4, y + 18);
+  doc.text(`Production Name: ${productionName}`, col1X + 4, y + 17.5);
+  doc.text('Signature:', col1X + 4, y + 22);
 
   // Signature image box
   const sigImgWidth = 45;
-  const sigImgHeight = 16;
+  const sigImgHeight = 14;
   const sigX = col1X + 4;
-  const sigY = y + 20;
+  const sigY = y + 24;
 
   try {
     doc.addImage(signatureDataUrl, 'PNG', sigX, sigY, sigImgWidth, sigImgHeight);
@@ -232,8 +237,9 @@ export async function generateAgreementPdf(options: AgreementPdfOptions): Promis
     doc.text('(Digitally Executed)', sigX + 2, sigY + 8);
   }
 
-  doc.text(`Contact Information: ${email}`, col1X + 4, y + 41);
-  doc.text(`Date: ${formattedDate}`, col1X + 4, y + 47);
+  doc.text(`Contact No: ${contactNo}`, col1X + 4, y + 43);
+  doc.text(`Mail ID: ${email}`, col1X + 4, y + 48.5);
+  doc.text(`Date: ${formattedDate}`, col1X + 4, y + 54);
 
   // Column 2: Person / Platform Receiving Permission
   doc.setLineWidth(0.3);
@@ -248,22 +254,23 @@ export async function generateAgreementPdf(options: AgreementPdfOptions): Promis
   doc.setFont('times', 'normal');
   doc.setFontSize(9.5);
   doc.text('Full Name: Tilak Popat / TPF Cinemas', col2X + 4, y + 13);
-  doc.text('Signature:', col2X + 4, y + 18);
+  doc.text('Platform: Tilak Popat Films (TPF Cinemas)', col2X + 4, y + 17.5);
+  doc.text('Signature:', col2X + 4, y + 22);
 
   // Stamp box
   doc.setFont('times', 'bold');
   doc.setFontSize(10);
-  doc.text('TILAK POPAT FILMS', col2X + 6, y + 27);
+  doc.text('TILAK POPAT FILMS', col2X + 6, y + 30);
   doc.setFont('times', 'italic');
   doc.setFontSize(8);
   doc.setTextColor(40, 120, 60);
-  doc.text('Curator Verified & Digitally Attested', col2X + 6, y + 32);
+  doc.text('Curator Verified & Digitally Attested', col2X + 6, y + 35);
   doc.setTextColor(20, 20, 20);
 
   doc.setFont('times', 'normal');
   doc.setFontSize(9.5);
-  doc.text('Contact Information: curators@tilakpopatfilms.com', col2X + 4, y + 41);
-  doc.text(`Date: ${formattedDate}`, col2X + 4, y + 47);
+  doc.text('Contact Information: curators@tilakpopatfilms.com', col2X + 4, y + 43);
+  doc.text(`Date: ${formattedDate}`, col2X + 4, y + 54);
 
   // Bottom footer on all pages
   const totalPages = doc.getNumberOfPages();

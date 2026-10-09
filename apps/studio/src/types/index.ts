@@ -24,6 +24,9 @@ export interface Profile {
   city: string | null;
   website_url: string | null;
   instagram_handle: string | null;
+  youtube_handle?: string | null;
+  production_name?: string | null;
+  contact_no?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -68,6 +71,9 @@ export interface LicenceAgreement {
   agreement_version?: string;
   film_type_at_signing?: 'short' | 'feature' | 'all';
   legal_name?: string | null;
+  production_name?: string | null;
+  contact_no?: string | null;
+  contact_email?: string | null;
   signed_at?: string;
   verified_by?: string | null;
   verified_at?: string | null;

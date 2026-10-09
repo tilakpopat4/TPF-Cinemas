@@ -283,10 +283,10 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
 
       // Sync licence agreement (respecting PostgreSQL column-level grants)
       if (licence.music_cleared !== undefined) {
-        // Fetch creator's master signed deed to carry over digital signature & legal name
+        // Fetch creator's master signed deed to carry over digital signature & legal / contact metadata
         const { data: masterDeed } = await supabase
           .from('licence_agreements')
-          .select('signature_image_url, legal_name')
+          .select('signature_image_url, legal_name, production_name, contact_no, contact_email')
           .eq('filmmaker_id', userId)
           .not('signature_image_url', 'is', null)
           .order('signed_at', { ascending: false })
@@ -303,7 +303,7 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
         if (selectLicErr) throw selectLicErr;
 
         if (existingLic) {
-          // UPDATE: Only send columns granted to authenticated: (term_months, music_cleared, terms_version, agreement_path, signature_image_url, legal_name)
+          // UPDATE: Send updated term and creator metadata
           const { error: updateLicErr } = await supabase
             .from('licence_agreements')
             .update({
@@ -313,6 +313,9 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
               agreement_path: licence.agreement_path || null,
               signature_image_url: existingLic.signature_image_url || masterDeed?.signature_image_url || null,
               legal_name: masterDeed?.legal_name || null,
+              production_name: (masterDeed as any)?.production_name || null,
+              contact_no: (masterDeed as any)?.contact_no || null,
+              contact_email: (masterDeed as any)?.contact_email || null,
             })
             .eq('id', existingLic.id);
 
@@ -331,6 +334,9 @@ export const FilmEditorModal: React.FC<FilmEditorModalProps> = ({
               agreement_path: licence.agreement_path || null,
               signature_image_url: masterDeed?.signature_image_url || null,
               legal_name: masterDeed?.legal_name || null,
+              production_name: (masterDeed as any)?.production_name || null,
+              contact_no: (masterDeed as any)?.contact_no || null,
+              contact_email: (masterDeed as any)?.contact_email || null,
               signed_at: new Date().toISOString(),
             });
 
