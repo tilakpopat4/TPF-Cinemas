@@ -2,18 +2,18 @@
 gsd_state_version: "1.0"
 current_phase: 10
 current_phase_name: Web Series & Episodic Publishing Pipeline
-status: planned
-stopped_at: Phase 10 planned (10-01, 10-02, 10-03, 10-04 ready for execution)
-last_updated: "2026-10-09T18:25:00.000Z"
+status: completed
+stopped_at: Phase 10 completed (10-01, 10-02, 10-03, 10-04 executed and verified)
+last_updated: "2026-10-09T21:55:00.000Z"
 last_activity: 2026-10-09
-last_activity_desc: Planned Phase 10 — Web Series & Episodic Publishing Pipeline (10-01 Database schema & RPCs, 10-02 Studio wizard & episode builder, 10-03 Staff review queue & inspection modal, 10-04 Viewer discovery rail & binge player).
-state_head: 33250a8
+last_activity_desc: Executed Phase 10 — Web Series & Episodic Publishing Pipeline (Database schema & RPCs, Studio wizard & episode builder, Staff review queue & inspection modal, Viewer discovery rail & binge player).
+state_head: 220a00a
 progress:
   total_phases: 10
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 19
-  completed_plans: 13
-  percent: 68
+  completed_plans: 17
+  percent: 89
 ---
 
 # Project State
@@ -23,28 +23,28 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-10-02)
 
 **Core value:** Deliver an immersive, lightning-fast streaming and discovery experience for independent films and serialized web series, where viewers can seamlessly explore, preview, and watch with zero friction.
-**Current focus:** Phase 10 Planned (Web Series & Episodic Publishing Pipeline)
+**Current focus:** Phase 10 Completed (Web Series & Episodic Publishing Pipeline)
 
 ## Current Position
 
-Phase: 10 of 10 (Web Series & Episodic Publishing Pipeline) — Planned
-Plan: 0 of 4 in Phase 10 (10-01 through 10-04 created)
-Status: Ready for execution (start with 10-01 Database Schema & RPCs)
-Last activity: 2026-10-09 — Created Phase 10 specs, context, research, and 4 execution plans for serialized web series pipeline.
+Phase: 10 of 10 (Web Series & Episodic Publishing Pipeline) — Completed
+Plan: 4 of 4 in Phase 10 (10-01 through 10-04 completed)
+Status: Completed & verified across `supabase`, `apps/studio`, `apps/staff`, and `apps/viewer`
+Last activity: 2026-10-09 — Complete execution of serialized web series publishing pipeline.
 
-Progress: [███████░░░] 68%
+Progress: [█████████░] 89%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
+- Total plans completed: 17
 - Average duration: ~15 min
-- Total execution time: ~3.0 hours
+- Total execution time: ~4.0 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
+|---|---|---|---|
 | Phase 1: Cinematic Hero Billboard | 2/2 | 30m | 15m |
 | Phase 2: Netflix-Style Hover Previews | 2/2 | 30m | 15m |
 | Phase 3: Custom Cinematic Video Player | 2/2 | 30m | 15m |
@@ -54,6 +54,7 @@ Progress: [███████░░░] 68%
 | Phase 7: Staff Curation Console & Moderation Queue | 0/2 | - | - |
 | Phase 8: Admin Governance, Roles & Audit Logging | 0/2 | - | - |
 | Phase 9: Creator Legal Agreement & Content Rights | 3/3 | 30m | 10m |
+| Phase 10: Web Series & Episodic Publishing Pipeline | 4/4 | 45m | 11m |
 
 ## Accumulated Context
 
@@ -71,6 +72,10 @@ Progress: [███████░░░] 68%
 - [Phase 6]: FeedbackModal sorts reviews chronologically (latest first) and provides expandable history of prior curation review rounds.
 - [Phase 7 — PRE-PLAN]: Post-publish edit workflow — creators propose metadata/media edits to a published film via `propose_film_update()` RPC. Live record is frozen (`update_pending`) until staff approve via `apply_film_update()` RPC or reject with mandatory feedback. Creator dashboard shows a "Pending Update" badge; staff see a field-by-field diff in a dedicated Pending Updates tab.
 - [Phase 9]: Creator digital rights framework — creators sign a non-exclusive streaming rights grant and IP ownership self-declaration before their first submission. Interactive canvas widget captures smooth vector signatures; client-side jsPDF generates authoritative A4 legal deeds uploaded to private 'licences' storage; Staff Console gets dedicated Legal Verification tab with audit trail.
+- [Phase 10]: Relational web series architecture — hierarchical schema (`series` -> `seasons` -> `episodes`) with atomic constraints (`UNIQUE(series_id, season_number)`, `UNIQUE(season_id, episode_number)`), separate `episode_watch_history` and `series_watchlist`, and automated review/publishing RPCs (`submit_series`, `review_series`, `publish_series`).
+- [Phase 10]: Studio 5-step wizard (`NewSeriesModal`) with dynamic `EpisodeBuilder` allowing multi-season management, video preview testing, reordering, and legal rights verification.
+- [Phase 10]: Staff curation console features split-pane screening inspector with embedded episode video player, season/episode navigation tree, and one-click publish.
+- [Phase 10]: Viewer platform includes dedicated homepage `SeriesRail`, `SeriesDetailModal` with season tabs and episode picker, and episodic `WatchModal` with HUD episode drawer and 5-second next-episode auto-advance countdown.
 
 ### Pending Todos
 
@@ -82,6 +87,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-10-09T09:12:00+05:30
-Stopped at: Phase 9 research and plans created (09-01 and 09-02 ready for execution)
-Resume file: .planning/phases/TPF-09-creator-legal-agreement-content-rights/09-01-PLAN.md
+Last session: 2026-10-09T21:55:00+05:30
+Stopped at: Phase 10 execution completed and pushed to remote origin.
+Resume file: .planning/ROADMAP.md

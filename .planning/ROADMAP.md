@@ -18,8 +18,7 @@ Deliver a complete cinematic streaming and management ecosystem:
 - [x] **Phase 6: Filmmaker Studio & Submission Pipeline** - Creator onboarding, multi-step submission wizard, media uploads & video preview validation, digital licence signing, and submission dashboard with revision tracking.
 - [x] **Phase 7: Staff Curation Console & Moderation Queue** - Realtime submission review queue, screening preview player, curator decision box (`review_film` RPC), licence verification (`verify_licence` RPC), one-click publishing (`publish_film` RPC), and post-publish edit approval workflow (`propose_film_update` / `apply_film_update` / `reject_film_update` RPCs) with field-by-field diff view for staff and "Edit Published Film" flow for creators.
 - [ ] **Phase 8: Admin Governance, Roles & Audit Logging** - Platform role management (`set_user_role` RPC with self-demote safety checks), searchable real-time audit log stream, and emergency film takedown (`takedown_film` RPC) & featured toggles (`feature_film` RPC).
-- [x] **Phase 9: Creator Legal Agreement & Content Rights Framework** - Digital signature onboarding flow, dynamic legal agreements, signed PDF generation, and Staff Console legal verification.
-- [ ] **Phase 10: Web Series & Episodic Publishing Pipeline** - Multi-season, multi-episode architecture across database schema & RPCs, Filmmaker Studio submission wizard & episode manager, Staff curation screening inspector & decision engine, and Viewer series discovery & binge player navigation.
+- [x] **Phase 10: Web Series & Episodic Publishing Pipeline** - Multi-season, multi-episode architecture across database schema & RPCs, Filmmaker Studio submission wizard & episode manager, Staff curation screening inspector & decision engine, and Viewer series discovery & binge player navigation.
 
 ## Phase Details
 
@@ -183,10 +182,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 10-01: Implement relational database schema, tables (`series`, `seasons`, `episodes`), RLS policies, indexing, and RPCs (`submit_series`, `review_series`, `publish_series`).
-- [ ] 10-02: Build Filmmaker Studio Series Submission Wizard (`NewSeriesModal`), `EpisodeBuilder`, series cards, and dashboard view toggle.
-- [ ] 10-03: Build Staff Curation Console Series Review Queue (`SeriesQueueTable`), screening inspection modal (`SeriesReviewModal`), and curator decision engine.
-- [ ] 10-04: Build Viewer series discovery rail (`SeriesRail`), `SeriesDetailModal` with season/episode picker, next-episode auto-advance, and episode drawer navigation.
+- [x] 10-01: Implement relational database schema, tables (`series`, `seasons`, `episodes`), RLS policies, indexing, and RPCs (`submit_series`, `review_series`, `publish_series`).
+- [x] 10-02: Build Filmmaker Studio Series Submission Wizard (`NewSeriesModal`), `EpisodeBuilder`, series cards, and dashboard view toggle.
+- [x] 10-03: Build Staff Curation Console Series Review Queue (`SeriesQueueTable`), screening inspection modal (`SeriesReviewModal`), and curator decision engine.
+- [x] 10-04: Build Viewer series discovery rail (`SeriesRail`), `SeriesDetailModal` with season/episode picker, next-episode auto-advance, and episode drawer navigation.
 
 ---
 *Roadmap defined: 2026-10-01*
