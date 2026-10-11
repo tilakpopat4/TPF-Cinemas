@@ -14,6 +14,9 @@ import {
   Plus,
   Trash2,
   Check,
+  Upload,
+  Image as ImageIcon,
+  Link as LinkIcon,
 } from 'lucide-react';
 import { Series, Genre, AgeRating, SeriesCredit } from '../../types';
 import { EpisodeBuilder, DraftSeason } from './EpisodeBuilder';
@@ -60,6 +63,17 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
   const [selectedGenres, setSelectedGenres] = useState<number[]>(
     series?.series_genres?.map((g) => g.genre_id) || []
   );
+
+  // Artwork file upload states
+  const [uploadingPoster, setUploadingPoster] = useState(false);
+  const [posterProgress, setPosterProgress] = useState(0);
+  const [posterUploadError, setPosterUploadError] = useState<string | null>(null);
+  const [showPosterUrlInput, setShowPosterUrlInput] = useState(false);
+
+  const [uploadingBackdrop, setUploadingBackdrop] = useState(false);
+  const [backdropProgress, setBackdropProgress] = useState(0);
+  const [backdropUploadError, setBackdropUploadError] = useState<string | null>(null);
+  const [showBackdropUrlInput, setShowBackdropUrlInput] = useState(false);
 
   // Step 2: Seasons & Episodes
   const [seasons, setSeasons] = useState<DraftSeason[]>(() => {
@@ -145,6 +159,106 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
     const updated = [...credits];
     updated[idx] = { ...updated[idx], ...patch };
     setCredits(updated);
+  }
+
+  async function handlePosterFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !userId) return;
+
+    setPosterUploadError(null);
+    setPosterProgress(0);
+
+    if (file.size > 5 * 1024 * 1024) {
+      setPosterUploadError('Poster must be smaller than 5 MB.');
+      return;
+    }
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setPosterUploadError('Please choose a JPG, PNG, or WebP image.');
+      return;
+    }
+
+    try {
+      setUploadingPoster(true);
+      setPosterProgress(30);
+
+      const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const filePath = `${userId}/series_poster_${Date.now()}_${sanitizedName}`;
+
+      setPosterProgress(60);
+      const { error: uploadErr } = await supabase.storage
+        .from('posters')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadErr) throw uploadErr;
+
+      setPosterProgress(90);
+      const { data: publicUrlData } = supabase.storage
+        .from('posters')
+        .getPublicUrl(filePath);
+
+      setPosterProgress(100);
+      setPosterUrl(publicUrlData.publicUrl);
+    } catch (err: any) {
+      console.error('Poster upload failed:', err);
+      setPosterUploadError(err?.message || 'Failed to upload series poster.');
+    } finally {
+      setUploadingPoster(false);
+    }
+  }
+
+  async function handleBackdropFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !userId) return;
+
+    setBackdropUploadError(null);
+    setBackdropProgress(0);
+
+    if (file.size > 5 * 1024 * 1024) {
+      setBackdropUploadError('Backdrop banner must be smaller than 5 MB.');
+      return;
+    }
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setBackdropUploadError('Please choose a JPG, PNG, or WebP image.');
+      return;
+    }
+
+    try {
+      setUploadingBackdrop(true);
+      setBackdropProgress(30);
+
+      const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const filePath = `${userId}/series_backdrop_${Date.now()}_${sanitizedName}`;
+
+      setBackdropProgress(60);
+      const { error: uploadErr } = await supabase.storage
+        .from('posters')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadErr) throw uploadErr;
+
+      setBackdropProgress(90);
+      const { data: publicUrlData } = supabase.storage
+        .from('posters')
+        .getPublicUrl(filePath);
+
+      setBackdropProgress(100);
+      setBackdropUrl(publicUrlData.publicUrl);
+    } catch (err: any) {
+      console.error('Backdrop upload failed:', err);
+      setBackdropUploadError(err?.message || 'Failed to upload backdrop banner.');
+    } finally {
+      setUploadingBackdrop(false);
+    }
   }
 
   function isStepComplete(stepIndex: number): boolean {
@@ -572,32 +686,205 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
                 </div>
               </div>
 
-              {/* Posters & Artworks */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Posters & Artworks with Direct File Upload */}
+              <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-medium text-white/70 mb-1.5">
-                    Poster URL (2:3)
+                  <label className="block text-xs font-semibold text-white">
+                    Series Artworks
                   </label>
-                  <input
-                    type="text"
-                    value={posterUrl}
-                    onChange={(e) => setPosterUrl(e.target.value)}
-                    placeholder="https://..."
-                    className="w-full px-3 py-2 rounded-md bg-white/[0.04] border border-white/10 text-white text-xs focus:border-signature outline-none"
-                  />
+                  <p className="text-[11px] text-white/50">
+                    Upload theatrical poster (2:3) and widescreen backdrop banner (16:9) directly from your device.
+                  </p>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-white/70 mb-1.5">
-                    Backdrop URL (16:9)
-                  </label>
-                  <input
-                    type="text"
-                    value={backdropUrl}
-                    onChange={(e) => setBackdropUrl(e.target.value)}
-                    placeholder="https://..."
-                    className="w-full px-3 py-2 rounded-md bg-white/[0.04] border border-white/10 text-white text-xs focus:border-signature outline-none"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* 1. Portrait Poster (2:3) */}
+                  <div className="p-4 rounded-xl bg-white/[0.03] space-y-3 border-0">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-white/80 flex items-center gap-1.5">
+                        <ImageIcon className="w-3.5 h-3.5 text-signature" />
+                        <span>Portrait Poster (2:3)</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowPosterUrlInput(!showPosterUrlInput)}
+                        className="text-[10px] text-signature hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <LinkIcon className="w-3 h-3" />
+                        <span>{showPosterUrlInput ? 'Hide Link' : 'Paste Link'}</span>
+                      </button>
+                    </div>
+
+                    {/* Upload / Preview Box */}
+                    <div className="relative aspect-[2/3] w-full max-w-[180px] mx-auto rounded-lg overflow-hidden bg-black/60 flex flex-col items-center justify-center border-0 shadow-lg">
+                      {posterUrl ? (
+                        <div className="relative w-full h-full group">
+                          <img
+                            src={posterUrl}
+                            alt="Poster Preview"
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
+                            <label
+                              htmlFor="series-poster-upload"
+                              className="px-3 py-1.5 rounded-lg bg-signature text-black font-semibold text-[11px] cursor-pointer flex items-center gap-1.5 hover:bg-signature-hover shadow-sm active:scale-95 transition-all"
+                            >
+                              <Upload className="w-3 h-3" />
+                              <span>Replace</span>
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => setPosterUrl('')}
+                              className="px-3 py-1.5 rounded-lg bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 text-[11px] flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              <span>Remove</span>
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <label
+                          htmlFor="series-poster-upload"
+                          className="w-full h-full flex flex-col items-center justify-center p-4 text-center cursor-pointer hover:bg-white/[0.04] transition-colors"
+                        >
+                          {uploadingPoster ? (
+                            <>
+                              <Loader2 className="w-6 h-6 text-signature animate-spin mb-2" />
+                              <span className="text-[11px] text-white font-medium">Uploading poster...</span>
+                              <span className="text-[9px] text-white/40 mt-1">{posterProgress}%</span>
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-10 h-10 rounded-xl bg-white/[0.05] flex items-center justify-center text-signature mb-2 shadow-sm">
+                                <Upload className="w-4 h-4" />
+                              </div>
+                              <span className="text-xs font-semibold text-white">Upload Poster</span>
+                              <span className="text-[10px] text-white/40 mt-0.5">2:3 Portrait Aspect</span>
+                              <span className="text-[9px] text-white/30 mt-0.5">JPG, PNG, WebP up to 5MB</span>
+                            </>
+                          )}
+                        </label>
+                      )}
+                      <input
+                        type="file"
+                        id="series-poster-upload"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handlePosterFileSelect}
+                        disabled={uploadingPoster}
+                        className="hidden"
+                      />
+                    </div>
+
+                    {posterUploadError && (
+                      <p className="text-[11px] text-rose-400 text-center font-sans">
+                        {posterUploadError}
+                      </p>
+                    )}
+
+                    {showPosterUrlInput && (
+                      <input
+                        type="text"
+                        value={posterUrl}
+                        onChange={(e) => setPosterUrl(e.target.value)}
+                        placeholder="https://... (or direct image URL)"
+                        className="w-full px-3 py-1.5 rounded-md bg-white/[0.04] text-white text-xs focus:ring-1 focus:ring-signature outline-none border-0"
+                      />
+                    )}
+                  </div>
+
+                  {/* 2. Landscape Backdrop (16:9) */}
+                  <div className="p-4 rounded-xl bg-white/[0.03] space-y-3 border-0">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-white/80 flex items-center gap-1.5">
+                        <ImageIcon className="w-3.5 h-3.5 text-signature" />
+                        <span>Backdrop Banner (16:9)</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowBackdropUrlInput(!showBackdropUrlInput)}
+                        className="text-[10px] text-signature hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <LinkIcon className="w-3 h-3" />
+                        <span>{showBackdropUrlInput ? 'Hide Link' : 'Paste Link'}</span>
+                      </button>
+                    </div>
+
+                    {/* Upload / Preview Box */}
+                    <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-black/60 flex flex-col items-center justify-center border-0 shadow-lg">
+                      {backdropUrl ? (
+                        <div className="relative w-full h-full group">
+                          <img
+                            src={backdropUrl}
+                            alt="Backdrop Preview"
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
+                            <label
+                              htmlFor="series-backdrop-upload"
+                              className="px-3 py-1.5 rounded-lg bg-signature text-black font-semibold text-[11px] cursor-pointer flex items-center gap-1.5 hover:bg-signature-hover shadow-sm active:scale-95 transition-all"
+                            >
+                              <Upload className="w-3 h-3" />
+                              <span>Replace</span>
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => setBackdropUrl('')}
+                              className="px-3 py-1.5 rounded-lg bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 text-[11px] flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              <span>Remove</span>
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <label
+                          htmlFor="series-backdrop-upload"
+                          className="w-full h-full flex flex-col items-center justify-center p-4 text-center cursor-pointer hover:bg-white/[0.04] transition-colors"
+                        >
+                          {uploadingBackdrop ? (
+                            <>
+                              <Loader2 className="w-6 h-6 text-signature animate-spin mb-2" />
+                              <span className="text-[11px] text-white font-medium">Uploading banner...</span>
+                              <span className="text-[9px] text-white/40 mt-1">{backdropProgress}%</span>
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-10 h-10 rounded-xl bg-white/[0.05] flex items-center justify-center text-signature mb-2 shadow-sm">
+                                <Upload className="w-4 h-4" />
+                              </div>
+                              <span className="text-xs font-semibold text-white">Upload Backdrop Banner</span>
+                              <span className="text-[10px] text-white/40 mt-0.5">16:9 Widescreen Aspect</span>
+                              <span className="text-[9px] text-white/30 mt-0.5">JPG, PNG, WebP up to 5MB</span>
+                            </>
+                          )}
+                        </label>
+                      )}
+                      <input
+                        type="file"
+                        id="series-backdrop-upload"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleBackdropFileSelect}
+                        disabled={uploadingBackdrop}
+                        className="hidden"
+                      />
+                    </div>
+
+                    {backdropUploadError && (
+                      <p className="text-[11px] text-rose-400 text-center font-sans">
+                        {backdropUploadError}
+                      </p>
+                    )}
+
+                    {showBackdropUrlInput && (
+                      <input
+                        type="text"
+                        value={backdropUrl}
+                        onChange={(e) => setBackdropUrl(e.target.value)}
+                        placeholder="https://... (or direct image URL)"
+                        className="w-full px-3 py-1.5 rounded-md bg-white/[0.04] text-white text-xs focus:ring-1 focus:ring-signature outline-none border-0"
+                      />
+                    )}
+                  </div>
                 </div>
               </div>
 
