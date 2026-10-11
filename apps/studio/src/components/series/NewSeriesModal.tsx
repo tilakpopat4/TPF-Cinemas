@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { useReducedMotion, fadeOnly, scaleModal } from '../../lib/motion';
 import {
   X,
@@ -9,14 +9,11 @@ import {
   Save,
   Send,
   Loader2,
-  Tv,
-  Film,
-  Users,
-  ShieldCheck,
   CheckCircle2,
-  Eye,
   AlertCircle,
   Plus,
+  Trash2,
+  Check,
 } from 'lucide-react';
 import { Series, Genre, AgeRating, SeriesCredit } from '../../types';
 import { EpisodeBuilder, DraftSeason } from './EpisodeBuilder';
@@ -31,11 +28,11 @@ interface NewSeriesModalProps {
   availableGenres: Genre[];
 }
 
-const WIZARD_STEPS = [
-  { id: 'info', title: 'Series Metadata', icon: Tv, desc: 'Title, synopsis, rating & trailer' },
-  { id: 'episodes', title: 'Seasons & Episodes', icon: Film, desc: 'Organize episodic stream architecture' },
-  { id: 'credits', title: 'Cast & Credits', icon: Users, desc: 'Showrunner & creative team' },
-  { id: 'rights', title: 'Rights Declaration', icon: ShieldCheck, desc: 'Streaming grant & clearance' },
+const STEPS = [
+  { id: 'info', title: 'Details' },
+  { id: 'episodes', title: 'Episodes' },
+  { id: 'credits', title: 'Cast & Crew' },
+  { id: 'rights', title: 'Rights' },
 ];
 
 export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
@@ -49,7 +46,6 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showPreview, setShowPreview] = useState(true);
 
   // Step 1: Core metadata
   const [title, setTitle] = useState(series?.title || '');
@@ -182,48 +178,45 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
     setError(null);
 
     if (!title.trim()) {
-      setError('Show title is required');
+      setError('Title is required');
       setCurrentStep(0);
       return;
     }
 
     if (!slug.trim()) {
-      setError('Unique show slug is required');
+      setError('URL slug is required');
       setCurrentStep(0);
       return;
     }
 
-    // Validate seasons & episodes
     if (seasons.length === 0) {
-      setError('Show must have at least one season');
+      setError('Series must have at least one season');
       setCurrentStep(1);
       return;
     }
 
-    let totalEpisodes = 0;
     for (const season of seasons) {
       if (season.episodes.length === 0) {
-        setError(`Season "${season.title}" has no episodes`);
+        setError(`"${season.title}" has no episodes`);
         setCurrentStep(1);
         return;
       }
       for (const ep of season.episodes) {
         if (!ep.title.trim()) {
-          setError('Every episode must have a title');
+          setError('Every episode requires a title');
           setCurrentStep(1);
           return;
         }
         if (submitForReview && (!ep.video_ref || ep.video_ref.trim().length < 6)) {
-          setError(`Episode "${ep.title}" must have a valid YouTube video link before submitting`);
+          setError(`Episode "${ep.title}" requires a valid YouTube video link before submitting`);
           setCurrentStep(1);
           return;
         }
-        totalEpisodes++;
       }
     }
 
     if (submitForReview && !series && (!rightsConfirmed || !musicCleared)) {
-      setError('You must confirm the non-exclusive streaming rights and music clearances before submitting');
+      setError('Please confirm rights clearances before submitting');
       setCurrentStep(3);
       return;
     }
@@ -291,7 +284,7 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
         if (cErr) throw cErr;
       }
 
-      // Smart sync seasons and episodes to preserve existing IDs and viewer watch histories
+      // Smart sync seasons and episodes to preserve IDs and watch history
       const currentSeasonIds = seasons.map((s) => s.id).filter(Boolean) as string[];
       if (currentSeasonIds.length > 0) {
         await supabase
@@ -369,7 +362,7 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
         }
       }
 
-      // If submitting a new/draft series, call submit_series RPC
+      // If submitting new series for review
       if (submitForReview && series?.status !== 'published') {
         const { error: rpcErr } = await supabase.rpc('submit_series', { p_series_id: seriesId });
         if (rpcErr) throw rpcErr;
@@ -395,491 +388,367 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
     }
   }
 
-  // Real-time extracted trailer ID
   const cleanTrailerId = trailerRef.trim()
     ? extractYouTubeId(trailerRef) || (trailerRef.trim().length === 11 ? trailerRef.trim() : '')
     : '';
 
-  const totalEpisodeCount = seasons.reduce((sum, s) => sum + s.episodes.length, 0);
-  const selectedGenreObjects = availableGenres.filter((g) => selectedGenres.includes(g.id));
-
   return createPortal(
     <motion.div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 bg-black/90 backdrop-blur-xl"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-md"
       {...fadeOnly(reduced)}
     >
       <motion.div
-        className="relative w-full max-w-6xl max-h-[94vh] rounded-sm border border-hairline bg-canvas shadow-2xl flex flex-col overflow-hidden text-ivory"
+        className="relative w-full max-w-3xl max-h-[90vh] rounded-xl border border-white/10 bg-[#0d1017] shadow-2xl flex flex-col overflow-hidden text-ivory"
         {...scaleModal(reduced)}
       >
-        {/* Modal Topbar */}
-        <div className="flex items-center justify-between border-b border-hairline bg-graphite/90 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-sm bg-signature/15 border border-hairline-signature text-signature">
-              <Tv className="h-4 w-4" />
-            </div>
-            <div>
-              <h2 className="font-display text-base font-bold text-ivory tracking-wide uppercase">
-                {series
-                  ? series.status === 'published'
-                    ? `Edit Published Series: ${series.title}`
-                    : `Edit: ${series.title}`
-                  : 'New Web Series Distribution Suite'}
-              </h2>
-              <p className="text-[11px] text-muted font-mono uppercase tracking-wider">
-                {series?.status === 'published'
-                  ? `Live On Platform · Step ${currentStep + 1} of 4: ${WIZARD_STEPS[currentStep].title}`
-                  : `Step ${currentStep + 1} of 4: ${WIZARD_STEPS[currentStep].title}`}
-              </p>
-            </div>
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+          <div>
+            <h2 className="text-base font-semibold text-white">
+              {series
+                ? series.status === 'published'
+                  ? `Edit Series: ${series.title}`
+                  : `Edit ${series.title}`
+                : 'Create Web Series'}
+            </h2>
+            <p className="text-xs text-white/50 mt-0.5">
+              {series?.status === 'published' ? 'Live on platform' : 'Serialized video streaming'}
+            </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setShowPreview(!showPreview)}
-              className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-sm bg-graphite hover:bg-white/10 text-xs font-mono uppercase tracking-wider text-muted hover:text-ivory transition-colors border border-hairline"
-            >
-              <Eye className="h-3.5 w-3.5 text-signature" />
-              <span>{showPreview ? 'Hide Preview' : 'Live Preview'}</span>
-            </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-md text-white/40 hover:text-white hover:bg-white/5 transition-colors"
+            title="Close (Esc)"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1.5 rounded-sm text-muted hover:text-ivory hover:bg-white/10 transition-colors"
-              title="Close (Esc)"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
+        {/* Step Indicator Tabs (Clean & Minimal) */}
+        <div className="flex border-b border-white/10 px-6 bg-white/[0.02]">
+          {STEPS.map((st, idx) => {
+            const isActive = currentStep === idx;
+            const isCompleted = isStepComplete(idx);
+            const isAccessible = canAccessStep(idx);
+
+            return (
+              <button
+                key={st.id}
+                type="button"
+                disabled={!isAccessible}
+                onClick={() => {
+                  if (isAccessible) setCurrentStep(idx);
+                }}
+                className={`py-3 px-3 text-xs font-medium border-b-2 transition-colors flex items-center gap-2 ${
+                  isActive
+                    ? 'border-signature text-signature'
+                    : isCompleted
+                    ? 'border-transparent text-white/80 hover:text-white'
+                    : 'border-transparent text-white/30 cursor-not-allowed'
+                }`}
+              >
+                <span
+                  className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${
+                    isActive
+                      ? 'bg-signature text-black font-bold'
+                      : isCompleted
+                      ? 'bg-white/20 text-white'
+                      : 'bg-white/5 text-white/40'
+                  }`}
+                >
+                  {isCompleted ? '✓' : idx + 1}
+                </span>
+                <span>{st.title}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Error Alert */}
         {error && (
-          <div className="mx-6 mt-4 p-3 bg-rose-950/40 border border-rose-500/30 rounded-sm text-xs text-rose-300 font-mono flex items-center gap-2">
+          <div className="mx-6 mt-4 p-3 bg-rose-500/10 border border-rose-500/20 rounded-md text-xs text-rose-300 flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
             <span>{error}</span>
           </div>
         )}
 
-        {/* Main Body: Left Stepper Rail + Center Form Pane + Right Live Preview */}
-        <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
-          {/* Left Vertical Stepper Rail */}
-          <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-hairline bg-canvas p-4 flex md:flex-col gap-2 shrink-0">
-            {WIZARD_STEPS.map((st, idx) => {
-              const Icon = st.icon;
-              const isActive = currentStep === idx;
-              const isCompleted = isStepComplete(idx);
-              const isAccessible = canAccessStep(idx);
+        {/* Active Step Content */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-5">
+          {/* STEP 1: Metadata */}
+          {currentStep === 0 && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-white/70 mb-1.5">
+                    Show Title *
+                  </label>
+                  <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="e.g. Scavengers of Bombay"
+                    className="w-full px-3 py-2 rounded-md bg-white/[0.04] border border-white/10 text-white text-xs focus:border-signature outline-none"
+                  />
+                </div>
 
-              return (
-                <button
-                  key={st.id}
-                  type="button"
-                  disabled={!isAccessible}
-                  onClick={() => {
-                    if (isAccessible) setCurrentStep(idx);
-                  }}
-                  className={`flex items-start gap-3 p-3 rounded-sm text-left transition-all w-full shrink-0 border ${
-                    isActive
-                      ? 'bg-graphite border-l-2 border-l-signature border-hairline shadow-sm'
-                      : isCompleted
-                      ? 'bg-canvas hover:bg-graphite/40 border-hairline text-ivory/80'
-                      : 'bg-canvas/50 border-hairline/40 text-muted/50 cursor-not-allowed opacity-60'
-                  }`}
-                >
-                  <div className="mt-0.5">
-                    {isCompleted ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    ) : (
-                      <span
-                        className={`flex items-center justify-center w-4 h-4 rounded-sm text-[10px] font-mono font-bold ${
-                          isActive ? 'bg-signature text-black' : 'bg-white/10 text-muted'
+                <div>
+                  <label className="block text-xs font-medium text-white/70 mb-1.5">
+                    URL Slug *
+                  </label>
+                  <input
+                    type="text"
+                    value={slug}
+                    onChange={(e) => setSlug(e.target.value)}
+                    placeholder="e.g. scavengers-of-bombay"
+                    className="w-full px-3 py-2 rounded-md bg-white/[0.04] border border-white/10 text-white text-xs font-mono focus:border-signature outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-white/70 mb-1.5">
+                    Language
+                  </label>
+                  <select
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                    className="w-full px-3 py-2 rounded-md bg-white/[0.04] border border-white/10 text-white text-xs focus:border-signature outline-none"
+                  >
+                    <option value="Hindi">Hindi</option>
+                    <option value="Telugu">Telugu</option>
+                    <option value="Tamil">Tamil</option>
+                    <option value="Malayalam">Malayalam</option>
+                    <option value="Kannada">Kannada</option>
+                    <option value="Bengali">Bengali</option>
+                    <option value="Marathi">Marathi</option>
+                    <option value="English">English</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-white/70 mb-1.5">
+                    Age Rating
+                  </label>
+                  <select
+                    value={ageRating}
+                    onChange={(e) => setAgeRating(e.target.value as AgeRating)}
+                    className="w-full px-3 py-2 rounded-md bg-white/[0.04] border border-white/10 text-white text-xs focus:border-signature outline-none"
+                  >
+                    <option value="U">U (Universal)</option>
+                    <option value="UA7+">UA7+</option>
+                    <option value="UA13+">UA13+</option>
+                    <option value="UA16+">UA16+</option>
+                    <option value="A">A (18+ Adults Only)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Genres */}
+              <div>
+                <label className="block text-xs font-medium text-white/70 mb-1.5">
+                  Genres (Choose up to 3)
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {availableGenres.map((g) => {
+                    const isSelected = selectedGenres.includes(g.id);
+                    return (
+                      <button
+                        key={g.id}
+                        type="button"
+                        onClick={() => handleToggleGenre(g.id)}
+                        className={`px-2.5 py-1 rounded-md text-xs transition-colors ${
+                          isSelected
+                            ? 'bg-signature text-black font-semibold'
+                            : 'bg-white/[0.04] hover:bg-white/[0.08] text-white/70 border border-white/5'
                         }`}
                       >
-                        {idx + 1}
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <div
-                      className={`text-xs font-display uppercase tracking-wider ${
-                        isActive ? 'text-ivory font-bold' : 'text-ivory/80'
-                      }`}
-                    >
-                      {st.title}
-                    </div>
-                    <div className="text-[10px] text-muted line-clamp-1 mt-0.5 font-sans">{st.desc}</div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Middle Active Step Pane */}
-          <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6 bg-graphite/30">
-            {/* STEP 1: Metadata */}
-            {currentStep === 0 && (
-              <div className="space-y-5">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-mono uppercase tracking-wider text-muted">Show Title *</label>
-                    <input
-                      type="text"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder="e.g. Scavengers of Bombay"
-                      className="w-full px-3 py-2 rounded-sm bg-canvas border border-hairline text-ivory text-sm font-semibold focus:border-signature outline-none"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-mono uppercase tracking-wider text-muted">Show Slug *</label>
-                    <input
-                      type="text"
-                      value={slug}
-                      onChange={(e) => setSlug(e.target.value)}
-                      placeholder="e.g. scavengers-of-bombay"
-                      className="w-full px-3 py-2 rounded-sm bg-canvas border border-hairline text-ivory text-xs font-mono focus:border-signature outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-mono uppercase tracking-wider text-muted">Primary Language</label>
-                    <select
-                      value={language}
-                      onChange={(e) => setLanguage(e.target.value)}
-                      className="w-full px-3 py-2 rounded-sm bg-canvas border border-hairline text-ivory text-xs focus:border-signature outline-none"
-                    >
-                      <option value="Hindi">Hindi</option>
-                      <option value="Telugu">Telugu</option>
-                      <option value="Tamil">Tamil</option>
-                      <option value="Malayalam">Malayalam</option>
-                      <option value="Kannada">Kannada</option>
-                      <option value="Bengali">Bengali</option>
-                      <option value="Marathi">Marathi</option>
-                      <option value="English">English</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-mono uppercase tracking-wider text-muted">Age Rating</label>
-                    <select
-                      value={ageRating}
-                      onChange={(e) => setAgeRating(e.target.value as AgeRating)}
-                      className="w-full px-3 py-2 rounded-sm bg-canvas border border-hairline text-ivory text-xs focus:border-signature outline-none"
-                    >
-                      <option value="U">U (Universal)</option>
-                      <option value="UA7+">UA7+</option>
-                      <option value="UA13+">UA13+</option>
-                      <option value="UA16+">UA16+</option>
-                      <option value="A">A (18+ Adults Only)</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Genres */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-mono uppercase tracking-wider text-muted">
-                    Curatorial Genres (Choose up to 3)
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {availableGenres.map((g) => {
-                      const isSelected = selectedGenres.includes(g.id);
-                      return (
-                        <button
-                          key={g.id}
-                          type="button"
-                          onClick={() => handleToggleGenre(g.id)}
-                          className={`px-3 py-1 rounded-sm text-xs font-mono uppercase tracking-wider transition-all border ${
-                            isSelected
-                              ? 'bg-signature text-black font-bold border-signature shadow-sm'
-                              : 'bg-canvas hover:bg-graphite text-ivory/70 border-hairline'
-                          }`}
-                        >
-                          {g.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Artworks */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-mono uppercase tracking-wider text-muted">Portrait Poster (2:3 URL)</label>
-                    <input
-                      type="text"
-                      value={posterUrl}
-                      onChange={(e) => setPosterUrl(e.target.value)}
-                      placeholder="https://..."
-                      className="w-full px-3 py-2 rounded-sm bg-canvas border border-hairline text-ivory text-xs focus:border-signature outline-none"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-mono uppercase tracking-wider text-muted">Backdrop Banner (16:9 URL)</label>
-                    <input
-                      type="text"
-                      value={backdropUrl}
-                      onChange={(e) => setBackdropUrl(e.target.value)}
-                      placeholder="https://..."
-                      className="w-full px-3 py-2 rounded-sm bg-canvas border border-hairline text-ivory text-xs focus:border-signature outline-none"
-                    />
-                  </div>
-                </div>
-
-                {/* Official Series Trailer Card */}
-                <div className="p-4 rounded-sm bg-graphite/60 border border-hairline space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Film className="w-4 h-4 text-signature" />
-                      <label className="text-xs font-display uppercase tracking-wider text-ivory">
-                        Official Series Trailer (Optional)
-                      </label>
-                    </div>
-                    {cleanTrailerId && (
-                      <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-sm border border-emerald-500/20">
-                        <CheckCircle2 className="w-3 h-3" />
-                        <span>Trailer Verified</span>
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <input
-                      type="text"
-                      value={trailerRef}
-                      onChange={(e) => setTrailerRef(e.target.value)}
-                      placeholder="Paste YouTube trailer link or ID (e.g. https://youtu.be/... or EmFDd_MvVKo)"
-                      className="w-full px-3 py-2 rounded-sm bg-canvas border border-hairline text-ivory text-xs font-mono focus:border-signature outline-none"
-                    />
-                    <p className="text-[11px] text-muted">
-                      When linked, viewers get an official <strong>Watch Trailer</strong> button on the billboard and series detail page.
-                    </p>
-                  </div>
-
-                  {cleanTrailerId && (
-                    <div className="relative aspect-video max-w-sm rounded-sm overflow-hidden border border-hairline bg-black shadow-lg mt-2">
-                      <iframe
-                        src={`https://www.youtube-nocookie.com/embed/${cleanTrailerId}?rel=0`}
-                        title="Trailer preview"
-                        className="w-full h-full border-0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Synopsis */}
-                <div className="space-y-1">
-                  <label className="text-[10px] font-mono uppercase tracking-wider text-muted">Show Synopsis *</label>
-                  <textarea
-                    rows={3}
-                    value={synopsis}
-                    onChange={(e) => setSynopsis(e.target.value)}
-                    placeholder="Compelling overview of the series premise..."
-                    className="w-full px-3 py-2 rounded-sm bg-canvas border border-hairline text-ivory text-xs font-editorial italic focus:border-signature outline-none resize-none leading-relaxed"
-                  />
-                </div>
-
-                {/* Creator Note */}
-                <div className="space-y-1">
-                  <label className="text-[10px] font-mono uppercase tracking-wider text-muted">Creator Note (Optional)</label>
-                  <textarea
-                    rows={2}
-                    value={creatorNote}
-                    onChange={(e) => setCreatorNote(e.target.value)}
-                    placeholder="Creative statement, inspiration, or notes for the curation jury..."
-                    className="w-full px-3 py-2 rounded-sm bg-canvas border border-hairline text-ivory text-xs font-editorial italic focus:border-signature outline-none resize-none"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* STEP 2: Seasons & Episodes */}
-            {currentStep === 1 && (
-              <EpisodeBuilder seasons={seasons} onChange={setSeasons} />
-            )}
-
-            {/* STEP 3: Cast & Credits */}
-            {currentStep === 2 && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-hairline pb-2">
-                  <div>
-                    <h3 className="font-display text-sm text-ivory uppercase tracking-wide">Creative Cast & Credits</h3>
-                    <p className="text-[11px] text-muted">Credit key team members and principal cast for the entire series.</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleAddCredit}
-                    className="px-3 py-1.5 rounded-sm border border-hairline bg-graphite hover:bg-white/5 text-xs font-mono uppercase tracking-wider text-ivory transition-colors flex items-center gap-1.5"
-                  >
-                    <Plus className="w-3.5 h-3.5 text-signature" />
-                    <span>Add Credit</span>
-                  </button>
-                </div>
-
-                <div className="space-y-2">
-                  {credits.map((c, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={c.person_name}
-                        onChange={(e) => handleUpdateCredit(idx, { person_name: e.target.value })}
-                        placeholder="Person Name (e.g. Anurag Kashyap)"
-                        className="flex-1 px-3 py-2 rounded-sm bg-canvas border border-hairline text-ivory text-xs focus:border-signature outline-none"
-                      />
-                      <input
-                        type="text"
-                        value={c.credit_role}
-                        onChange={(e) => handleUpdateCredit(idx, { credit_role: e.target.value })}
-                        placeholder="Role (e.g. Showrunner, Director)"
-                        className="w-48 px-3 py-2 rounded-sm bg-canvas border border-hairline text-ivory text-xs focus:border-signature outline-none"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveCredit(idx)}
-                        className="p-2 text-muted hover:text-rose-400 rounded-sm hover:bg-white/5 transition-colors"
-                        title="Remove Credit"
-                      >
-                        <X className="w-4 h-4" />
+                        {g.name}
                       </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
-            )}
 
-            {/* STEP 4: Rights & Legal */}
-            {currentStep === 3 && (
-              <div className="space-y-4 max-w-xl mx-auto py-4">
-                <div className="p-6 rounded-sm bg-graphite border border-hairline space-y-4">
-                  <div className="flex items-center gap-2 pb-2 border-b border-hairline">
-                    <ShieldCheck className="w-5 h-5 text-signature" />
-                    <h3 className="font-display text-base uppercase tracking-wider text-ivory">
-                      Episodic Content Rights Declaration
-                    </h3>
-                  </div>
+              {/* Posters & Artworks */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-white/70 mb-1.5">
+                    Poster URL (2:3)
+                  </label>
+                  <input
+                    type="text"
+                    value={posterUrl}
+                    onChange={(e) => setPosterUrl(e.target.value)}
+                    placeholder="https://..."
+                    className="w-full px-3 py-2 rounded-md bg-white/[0.04] border border-white/10 text-white text-xs focus:border-signature outline-none"
+                  />
+                </div>
 
-                  <p className="text-xs text-muted leading-relaxed font-sans">
-                    By submitting this series to TPF Cinemas, you declare and warrant that:
-                  </p>
-
-                  <div className="space-y-3 pt-2">
-                    <label className="flex items-start gap-3 cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        checked={rightsConfirmed}
-                        onChange={(e) => setRightsConfirmed(e.target.checked)}
-                        className="mt-0.5 rounded-sm border-hairline text-signature focus:ring-0 bg-canvas"
-                      />
-                      <span className="text-xs text-ivory/80 group-hover:text-ivory leading-snug">
-                        I hold all worldwide episodic streaming distribution rights, creative ownership, and permissions for all submitted seasons and episodes under TPF Cinemas' master licence.
-                      </span>
-                    </label>
-
-                    <label className="flex items-start gap-3 cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        checked={musicCleared}
-                        onChange={(e) => setMusicCleared(e.target.checked)}
-                        className="mt-0.5 rounded-sm border-hairline text-signature focus:ring-0 bg-canvas"
-                      />
-                      <span className="text-xs text-ivory/80 group-hover:text-ivory leading-snug">
-                        All music, sound score, archival footage, and synchronization elements across all episodes are 100% original, copyright-cleared, or properly licensed for streaming.
-                      </span>
-                    </label>
-                  </div>
+                <div>
+                  <label className="block text-xs font-medium text-white/70 mb-1.5">
+                    Backdrop URL (16:9)
+                  </label>
+                  <input
+                    type="text"
+                    value={backdropUrl}
+                    onChange={(e) => setBackdropUrl(e.target.value)}
+                    placeholder="https://..."
+                    className="w-full px-3 py-2 rounded-md bg-white/[0.04] border border-white/10 text-white text-xs focus:border-signature outline-none"
+                  />
                 </div>
               </div>
-            )}
-          </div>
 
-          {/* Right Live Preview Pane */}
-          {showPreview && (
-            <div className="hidden lg:flex w-72 p-6 border-l border-hairline bg-canvas flex-col gap-4 shrink-0 overflow-y-auto">
-              <div className="flex items-center justify-between pb-2 border-b border-hairline">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-muted">Live Platform Card</span>
-                <span className="px-1.5 py-0.5 rounded-sm bg-signature/15 text-signature text-[9px] font-mono font-bold">
-                  Preview
-                </span>
+              {/* Series Trailer Link */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-medium text-white/70">
+                    Series Trailer URL (Optional)
+                  </label>
+                  {cleanTrailerId && (
+                    <span className="text-[11px] text-emerald-400 flex items-center gap-1 font-mono">
+                      <Check className="w-3 h-3" /> Trailer linked
+                    </span>
+                  )}
+                </div>
+                <input
+                  type="text"
+                  value={trailerRef}
+                  onChange={(e) => setTrailerRef(e.target.value)}
+                  placeholder="Paste YouTube video link or ID"
+                  className="w-full px-3 py-2 rounded-md bg-white/[0.04] border border-white/10 text-white text-xs font-mono focus:border-signature outline-none"
+                />
               </div>
 
-              {/* Mock Series Card */}
-              <div className="rounded-sm bg-graphite border border-hairline overflow-hidden shadow-lg flex flex-col">
-                <div className="relative aspect-[16/9] bg-canvas overflow-hidden border-b border-hairline">
-                  {backdropUrl || posterUrl ? (
-                    <img
-                      src={backdropUrl || posterUrl}
-                      alt={title || 'Preview'}
-                      className="w-full h-full object-cover"
+              {/* Synopsis */}
+              <div>
+                <label className="block text-xs font-medium text-white/70 mb-1.5">
+                  Show Synopsis *
+                </label>
+                <textarea
+                  rows={3}
+                  value={synopsis}
+                  onChange={(e) => setSynopsis(e.target.value)}
+                  placeholder="Compelling overview of the story premise..."
+                  className="w-full px-3 py-2 rounded-md bg-white/[0.04] border border-white/10 text-white text-xs focus:border-signature outline-none resize-none leading-relaxed"
+                />
+              </div>
+
+              {/* Creator Note */}
+              <div>
+                <label className="block text-xs font-medium text-white/70 mb-1.5">
+                  Creator Note (Optional)
+                </label>
+                <textarea
+                  rows={2}
+                  value={creatorNote}
+                  onChange={(e) => setCreatorNote(e.target.value)}
+                  placeholder="Creative intent or jury statement..."
+                  className="w-full px-3 py-2 rounded-md bg-white/[0.04] border border-white/10 text-white text-xs focus:border-signature outline-none resize-none"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* STEP 2: Seasons & Episodes */}
+          {currentStep === 1 && (
+            <EpisodeBuilder seasons={seasons} onChange={setSeasons} />
+          )}
+
+          {/* STEP 3: Cast & Crew */}
+          {currentStep === 2 && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xs font-medium text-white">Cast & Creative Team</h3>
+                  <p className="text-[11px] text-white/50">Credit key creators and principal cast.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddCredit}
+                  className="text-xs font-medium text-signature hover:text-signature-hover flex items-center gap-1 transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Person</span>
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                {credits.map((c, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={c.person_name}
+                      onChange={(e) => handleUpdateCredit(idx, { person_name: e.target.value })}
+                      placeholder="Name"
+                      className="flex-1 px-3 py-2 rounded-md bg-white/[0.04] border border-white/10 text-white text-xs focus:border-signature outline-none"
                     />
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-muted/40">
-                      <Tv className="w-8 h-8 mb-1" />
-                      <span className="text-[10px] font-mono">No artwork linked</span>
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-graphite via-transparent to-black/40" />
-
-                  <div className="absolute top-2 left-2">
-                    <span className="px-2 py-0.5 rounded-sm bg-graphite/80 border border-hairline text-ivory/80 text-[8px] font-mono uppercase tracking-wider">
-                      {series?.status || 'Draft'}
-                    </span>
+                    <input
+                      type="text"
+                      value={c.credit_role}
+                      onChange={(e) => handleUpdateCredit(idx, { credit_role: e.target.value })}
+                      placeholder="Role (e.g. Director, Lead Cast)"
+                      className="w-44 px-3 py-2 rounded-md bg-white/[0.04] border border-white/10 text-white text-xs focus:border-signature outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveCredit(idx)}
+                      className="p-2 text-white/30 hover:text-rose-400 rounded transition-colors"
+                      title="Remove"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
+                ))}
+              </div>
+            </div>
+          )}
 
-                  <div className="absolute bottom-2 left-2 flex items-center gap-1">
-                    <span className="px-1.5 py-0.5 rounded-sm bg-black/75 text-ivory border border-hairline text-[8px] font-mono">
-                      {seasons.length} {seasons.length === 1 ? 'Season' : 'Seasons'}
-                    </span>
-                    <span className="px-1.5 py-0.5 rounded-sm bg-black/75 text-ivory border border-hairline text-[8px] font-mono">
-                      {totalEpisodeCount} Eps
-                    </span>
-                  </div>
-                </div>
+          {/* STEP 4: Rights & Legal */}
+          {currentStep === 3 && (
+            <div className="space-y-4 max-w-lg mx-auto py-6">
+              <div className="space-y-3">
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={rightsConfirmed}
+                    onChange={(e) => setRightsConfirmed(e.target.checked)}
+                    className="mt-0.5 rounded border-white/20 text-signature focus:ring-0 bg-transparent"
+                  />
+                  <span className="text-xs text-white/80 group-hover:text-white leading-relaxed">
+                    I own and grant non-exclusive streaming rights for this series on TPF Cinemas.
+                  </span>
+                </label>
 
-                <div className="p-3 space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-[9px] font-mono text-signature font-bold uppercase">
-                    <span>{language}</span>
-                    <span className="text-muted">· {ageRating}</span>
-                  </div>
-                  <h4 className="font-display text-sm text-ivory uppercase tracking-wide line-clamp-1">
-                    {title || 'Untitled Series'}
-                  </h4>
-                  <p className="font-editorial italic text-[11px] text-muted/80 line-clamp-2">
-                    {synopsis || 'Enter a show synopsis to preview the curatorial summary.'}
-                  </p>
-                  {selectedGenreObjects.length > 0 && (
-                    <div className="flex flex-wrap gap-1 pt-1">
-                      {selectedGenreObjects.map((g) => (
-                        <span key={g.id} className="text-[8px] font-mono text-muted bg-white/5 px-1.5 py-0.2 rounded-sm border border-hairline">
-                          {g.name}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={musicCleared}
+                    onChange={(e) => setMusicCleared(e.target.checked)}
+                    className="mt-0.5 rounded border-white/20 text-signature focus:ring-0 bg-transparent"
+                  />
+                  <span className="text-xs text-white/80 group-hover:text-white leading-relaxed">
+                    All music, sound effects, and archival elements are fully copyright-cleared or licensed.
+                  </span>
+                </label>
               </div>
             </div>
           )}
         </div>
 
-        {/* Modal Footer Navigation */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-hairline bg-canvas">
+        {/* Modal Footer (Clean 2-tier actions) */}
+        <div className="flex items-center justify-between px-6 py-4 border-t border-white/10 bg-white/[0.02]">
           <div>
             {currentStep > 0 && (
               <button
                 type="button"
                 onClick={() => setCurrentStep((prev) => prev - 1)}
-                className="px-4 py-2 rounded-sm border border-hairline bg-graphite hover:bg-white/5 text-xs font-mono uppercase tracking-wider text-ivory flex items-center gap-1.5 transition-colors"
+                className="px-3.5 py-2 rounded-md text-xs font-medium text-white/60 hover:text-white transition-colors flex items-center gap-1.5"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Previous</span>
+                <span>Back</span>
               </button>
             )}
           </div>
@@ -889,17 +758,17 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
               type="button"
               disabled={saving}
               onClick={() => handleSave(false)}
-              className="px-4 py-2 rounded-sm border border-hairline bg-graphite hover:bg-white/5 text-xs font-mono uppercase tracking-wider text-ivory flex items-center gap-1.5 transition-colors disabled:opacity-50"
+              className="px-4 py-2 rounded-md text-xs font-medium bg-white/[0.05] hover:bg-white/[0.08] text-white/80 hover:text-white transition-colors disabled:opacity-50 flex items-center gap-1.5"
             >
               {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
               <span>{series?.status === 'published' ? 'Save Changes' : 'Save Draft'}</span>
             </button>
 
-            {currentStep < WIZARD_STEPS.length - 1 ? (
+            {currentStep < STEPS.length - 1 ? (
               <button
                 type="button"
                 onClick={() => setCurrentStep((prev) => prev + 1)}
-                className="px-5 py-2.5 rounded-sm bg-signature hover:bg-signature-hover text-black text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm"
+                className="px-4 py-2 rounded-md bg-signature hover:bg-signature-hover text-black text-xs font-semibold flex items-center gap-1.5 transition-colors"
               >
                 <span>Continue</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -909,7 +778,7 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
                 type="button"
                 disabled={saving}
                 onClick={() => handleSave(series?.status === 'published' ? false : true)}
-                className="px-5 py-2.5 rounded-sm bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm disabled:opacity-50"
+                className="px-4 py-2 rounded-md bg-signature hover:bg-signature-hover text-black text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-50"
               >
                 {saving ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
