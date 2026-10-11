@@ -64,7 +64,7 @@ export const SeriesCard: React.FC<SeriesCardProps> = ({
                 e.stopPropagation();
                 onToggleWatchlist(series.id);
               }}
-              className={`p-1.5 rounded-lg transition-all ${
+              className={`p-1.5 rounded-lg transition-all active:scale-90 ${
                 isInWatchlist
                   ? 'bg-signature text-black shadow-sm'
                   : 'bg-black/70 text-ivory hover:bg-black'

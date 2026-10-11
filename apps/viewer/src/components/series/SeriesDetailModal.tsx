@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { motion } from 'motion/react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   X,
   Play,
@@ -10,6 +11,7 @@ import {
 } from 'lucide-react';
 import { Series, Season, Episode } from '../../types';
 import { formatRuntime } from '../../lib/utils';
+import { useReducedMotion } from '../../lib/motion';
 
 interface SeriesDetailModalProps {
   series: Series | null;
@@ -30,10 +32,29 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
   onToggleWatchlist = () => {},
   getEpisodeProgress,
 }) => {
+  const reduced = useReducedMotion();
   const seasons = (series?.seasons || []).sort((a, b) => a.season_number - b.season_number);
   const [selectedSeasonId, setSelectedSeasonId] = useState<string>(
     seasons[0]?.id || ''
   );
+
+  // Keyboard shortcut: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  // Lock body scroll when modal is mounted
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
 
   if (!series) return null;
 
@@ -41,23 +62,34 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
     seasons.find((s) => s.id === selectedSeasonId) || seasons[0] || null;
   const currentEpisodes = currentSeason?.episodes || [];
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-xl flex items-center justify-center p-2 sm:p-4 md:p-6 select-none animate-fade-in">
+  return createPortal(
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      onClick={onClose}
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-xl flex items-center justify-center p-2 sm:p-4 md:p-6 select-none"
+    >
       <motion.div
-        initial={{ opacity: 0, scale: 0.98, y: 12 }}
+        initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.96, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.98, y: 12 }}
-        transition={{ duration: 0.2 }}
-        className="relative w-full max-w-4xl bg-[#0c0d12] rounded-2xl overflow-hidden shadow-2xl text-ivory my-auto max-h-[92vh] flex flex-col"
+        exit={{ opacity: 0, scale: 0.96, y: 12 }}
+        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-4xl bg-[#0c0d12] rounded-2xl overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.95)] text-ivory my-auto max-h-[92vh] flex flex-col border-0"
       >
-        {/* Close Button */}
-        <button
+        {/* Close Button with Micro-Interaction */}
+        <motion.button
           onClick={onClose}
-          className="absolute top-4 right-4 z-40 p-2 rounded-full bg-black/70 hover:bg-black text-ivory/80 hover:text-white transition-colors backdrop-blur-md"
+          whileHover={reduced ? {} : { scale: 1.08, rotate: 90 }}
+          whileTap={reduced ? {} : { scale: 0.92 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+          className="absolute top-4 right-4 z-40 p-2 rounded-full bg-black/70 hover:bg-black text-ivory/80 hover:text-white transition-colors backdrop-blur-md cursor-pointer border-0"
           title="Close (Esc)"
         >
           <X className="w-4 h-4" />
-        </button>
+        </motion.button>
 
         {/* Hero Banner Section — 21:9 Widescreen Framing */}
         <div className="relative aspect-[16/8] sm:aspect-[21/9] w-full overflow-hidden shrink-0">
@@ -99,54 +131,74 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
               {series.title}
             </h1>
 
-            {/* Action Buttons: Choose Episode / Play / Watchlist */}
+            {/* Action Buttons: Choose Episode / Play / Watchlist with Micro-Interactions */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
               {currentEpisodes.length > 0 && currentSeason && (
                 <>
-                  <button
+                  <motion.button
+                    whileHover={reduced ? {} : { scale: 1.03 }}
+                    whileTap={reduced ? {} : { scale: 0.96 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                     onClick={() => {
                       const el = document.getElementById('episodes-list');
                       if (el) el.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-signature hover:bg-signature-hover text-black font-mono font-bold text-xs uppercase tracking-wider transition-all shadow-sm active:scale-95"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-signature hover:bg-signature-hover text-black font-mono font-bold text-xs uppercase tracking-wider transition-colors shadow-sm cursor-pointer border-0"
                   >
                     <Tv className="w-4 h-4 text-black" />
                     <span>Choose Episode ({currentEpisodes.length})</span>
-                  </button>
+                  </motion.button>
 
-                  <button
+                  <motion.button
+                    whileHover={reduced ? {} : { scale: 1.03, backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+                    whileTap={reduced ? {} : { scale: 0.96 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                     onClick={() => onPlayEpisode(series, currentSeason, currentEpisodes[0])}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-ivory font-medium text-xs font-mono uppercase tracking-wider transition-all active:scale-95"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white/10 text-ivory font-medium text-xs font-mono uppercase tracking-wider transition-colors cursor-pointer border-0"
                     title={`Start ${currentEpisodes[0].title}`}
                   >
                     <Play className="w-3.5 h-3.5 fill-current" />
                     <span>Play E1</span>
-                  </button>
+                  </motion.button>
                 </>
               )}
 
               {series.trailer_ref?.trim() && onPlayTrailer && (
-                <button
+                <motion.button
+                  whileHover={reduced ? {} : { scale: 1.03, backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+                  whileTap={reduced ? {} : { scale: 0.96 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                   onClick={() => onPlayTrailer(series)}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-ivory font-medium text-xs font-mono uppercase tracking-wider transition-all active:scale-95"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white/10 text-ivory font-medium text-xs font-mono uppercase tracking-wider transition-colors cursor-pointer border-0"
                   title="Watch Official Series Trailer"
                 >
                   <Film className="w-3.5 h-3.5 text-signature" />
                   <span>Watch Trailer</span>
-                </button>
+                </motion.button>
               )}
 
-              <button
+              <motion.button
+                whileHover={reduced ? {} : { scale: 1.03 }}
+                whileTap={reduced ? {} : { scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                 onClick={() => onToggleWatchlist(series.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-mono uppercase tracking-wider transition-all backdrop-blur-md ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-mono uppercase tracking-wider transition-all backdrop-blur-md cursor-pointer border-0 ${
                   isInWatchlist
                     ? 'bg-signature/20 text-signature shadow-sm'
                     : 'bg-white/10 hover:bg-white/20 text-ivory'
                 }`}
               >
-                {isInWatchlist ? <Check className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
+                <motion.span
+                  key={isInWatchlist ? 'queued' : 'unqueued'}
+                  initial={reduced ? {} : { scale: 0.7, rotate: -20 }}
+                  animate={reduced ? {} : { scale: 1, rotate: 0 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 22 }}
+                  className="inline-flex items-center"
+                >
+                  {isInWatchlist ? <Check className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
+                </motion.span>
                 <span>{isInWatchlist ? 'In Queue' : 'Add to Queue'}</span>
-              </button>
+              </motion.button>
             </div>
           </div>
         </div>
@@ -169,34 +221,54 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
                 </p>
               </div>
 
-              {/* Season Selection Tabs */}
+              {/* Season Selection Tabs with Micro-Interactions */}
               {seasons.length > 1 && (
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
                   {seasons.map((season) => (
-                    <button
+                    <motion.button
                       key={season.id}
+                      whileHover={reduced ? {} : { scale: 1.04 }}
+                      whileTap={reduced ? {} : { scale: 0.96 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                       onClick={() => setSelectedSeasonId(season.id)}
-                      className={`px-3.5 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider whitespace-nowrap transition-all ${
+                      className={`px-3.5 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider whitespace-nowrap transition-all cursor-pointer border-0 ${
                         season.id === currentSeason?.id
                           ? 'bg-signature text-black font-bold shadow-sm'
                           : 'bg-white/5 hover:bg-white/10 text-muted hover:text-ivory'
                       }`}
                     >
                       Season {season.season_number}
-                    </button>
+                    </motion.button>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Episodes List Grid */}
+            {/* Episodes List Grid with Staggered Cascading Reveal */}
             {currentEpisodes.length === 0 ? (
               <div className="py-12 text-center text-muted font-mono text-xs">
                 No episodes published for this season yet.
               </div>
             ) : (
-              <div className="space-y-3">
-                {currentEpisodes.map((episode) => {
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentSeason?.id}
+                  initial="hidden"
+                  animate="visible"
+                  exit={{ opacity: 0, transition: { duration: 0.1 } }}
+                  variants={{
+                    hidden: { opacity: 0 },
+                    visible: {
+                      opacity: 1,
+                      transition: {
+                        staggerChildren: reduced ? 0 : 0.04,
+                        delayChildren: reduced ? 0 : 0.02,
+                      },
+                    },
+                  }}
+                  className="space-y-3"
+                >
+                  {currentEpisodes.map((episode) => {
                   const progress = getEpisodeProgress ? getEpisodeProgress(episode.id) : 0;
                   const totalSecs = (episode.runtime_minutes || 1) * 60;
                   const progressPercent = Math.min(
@@ -205,12 +277,22 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
                   );
 
                   return (
-                    <div
+                    <motion.div
                       key={episode.id}
+                      variants={{
+                        hidden: { opacity: 0, y: reduced ? 0 : 12 },
+                        visible: {
+                          opacity: 1,
+                          y: 0,
+                          transition: { duration: 0.22, ease: [0.25, 1, 0.5, 1] },
+                        },
+                      }}
+                      whileHover={reduced ? {} : { scale: 1.008 }}
+                      whileTap={reduced ? {} : { scale: 0.99 }}
                       onClick={() =>
                         currentSeason && onPlayEpisode(series, currentSeason, episode)
                       }
-                      className="group flex flex-col sm:flex-row items-start sm:items-center gap-4 p-3.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] transition-colors cursor-pointer"
+                      className="group flex flex-col sm:flex-row items-start sm:items-center gap-4 p-3.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] transition-colors cursor-pointer border-0"
                     >
                       {/* Episode Thumbnail */}
                       <div className="relative aspect-video w-full sm:w-44 rounded-lg overflow-hidden bg-black/60 shrink-0">
@@ -225,7 +307,7 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
                           loading="lazy"
                         />
                         <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 flex items-center justify-center transition-colors">
-                          <div className="w-8 h-8 rounded-full bg-signature text-black flex items-center justify-center shadow-sm scale-95 group-hover:scale-105 transition-transform">
+                          <div className="w-8 h-8 rounded-full bg-signature text-black flex items-center justify-center shadow-md scale-95 group-hover:scale-110 group-hover:shadow-[0_0_16px_rgba(245,158,11,0.5)] transition-all duration-200">
                             <Play className="w-3.5 h-3.5 fill-black ml-0.5" />
                           </div>
                         </div>
@@ -264,18 +346,19 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
                         )}
                       </div>
 
-                      {/* Action Button */}
+                      {/* Action Button with Play Micro-Nudge */}
                       <div className="hidden sm:block shrink-0 pr-2">
-                        <span className="px-3.5 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider bg-white/10 group-hover:bg-signature group-hover:text-black transition-colors font-medium flex items-center gap-1.5">
-                          <Play className="w-3 h-3 fill-current" />
+                        <span className="px-3.5 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider bg-white/10 group-hover:bg-signature group-hover:text-black transition-all duration-200 font-medium flex items-center gap-1.5 shadow-sm">
+                          <Play className="w-3 h-3 fill-current group-hover:translate-x-0.5 transition-transform" />
                           <span>Stream</span>
                         </span>
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
-              </div>
-            )}
+              </motion.div>
+            </AnimatePresence>
+          )}
           </div>
 
           {/* 2. Synopsis & Creator Info */}
@@ -288,14 +371,14 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
                 {series.synopsis}
               </p>
               {series.creator_note && (
-                <div className="p-4 rounded-xl bg-white/[0.03] text-xs text-ivory/90 italic font-editorial leading-relaxed">
+                <div className="p-4 rounded-xl bg-white/[0.03] text-xs text-ivory/90 italic font-editorial leading-relaxed border-0">
                   "{series.creator_note}" — Showrunner Note
                 </div>
               )}
             </div>
 
             {/* Creator / Details Card (Borderless Seamless Surface) */}
-            <div className="p-5 rounded-xl bg-white/[0.04] space-y-4 font-mono text-xs">
+            <div className="p-5 rounded-xl bg-white/[0.04] space-y-4 font-mono text-xs border-0">
               <div>
                 <span className="text-[10px] text-muted uppercase tracking-wider block">
                   Created By
@@ -349,6 +432,7 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
           </div>
         </div>
       </motion.div>
-    </div>
+    </motion.div>,
+    document.body
   );
 };

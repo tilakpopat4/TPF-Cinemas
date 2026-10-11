@@ -92,7 +92,7 @@ export const HoverPreviewPortal: React.FC<HoverPreviewPortalProps> = ({
         onMouseLeave={portalLeave}
       >
         <motion.div
-          className="rounded-xl overflow-hidden border border-white/[0.12] shadow-[0_24px_56px_rgba(0,0,0,0.95)] text-ivory"
+          className="rounded-xl overflow-hidden border-0 shadow-[0_24px_56px_rgba(0,0,0,0.95)] text-ivory"
           style={{ backgroundColor: '#0A0A0B' }}
           initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1, transition: { duration: 0.16, ease: 'easeOut' } }}
@@ -130,7 +130,7 @@ export const HoverPreviewPortal: React.FC<HoverPreviewPortalProps> = ({
             {youtubeId && isVideoReady && (
               <button
                 onClick={toggleMute}
-                className="absolute top-2 right-2 z-20 p-1.5 rounded-sm bg-black/80 hover:bg-black text-ivory border border-hairline transition-colors"
+                className="absolute top-2 right-2 z-20 p-1.5 rounded-sm bg-black/80 hover:bg-black text-ivory border-0 transition-colors"
                 title={isMuted ? 'Unmute' : 'Mute'}
               >
                 {isMuted ? <VolumeX className="h-3.5 w-3.5 text-muted" /> : <Volume2 className="h-3.5 w-3.5 text-signature" />}
