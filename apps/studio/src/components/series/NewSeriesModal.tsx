@@ -116,9 +116,9 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
     ];
   });
 
-  // Step 4: Rights & Declarations
-  const [rightsConfirmed, setRightsConfirmed] = useState(false);
-  const [musicCleared, setMusicCleared] = useState(false);
+  // Step 4: Rights & Declarations (pre-cleared if editing an existing series)
+  const [rightsConfirmed, setRightsConfirmed] = useState(Boolean(series));
+  const [musicCleared, setMusicCleared] = useState(Boolean(series));
 
   // Auto-slugify title
   useEffect(() => {
@@ -165,7 +165,7 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
       return credits.some((c) => c.person_name.trim());
     }
     if (stepIndex === 3) {
-      return rightsConfirmed && musicCleared;
+      return Boolean(series) || (rightsConfirmed && musicCleared);
     }
     return false;
   }
@@ -222,7 +222,7 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
       }
     }
 
-    if (submitForReview && (!rightsConfirmed || !musicCleared)) {
+    if (submitForReview && !series && (!rightsConfirmed || !musicCleared)) {
       setError('You must confirm the non-exclusive streaming rights and music clearances before submitting');
       setCurrentStep(3);
       return;
@@ -247,6 +247,7 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
         trailer_ref: cleanTrailer,
         total_seasons: seasons.length,
         status: series?.status || 'draft',
+        ...(series?.published_at ? { published_at: series.published_at } : {}),
       };
 
       if (seriesId) {
@@ -290,28 +291,59 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
         if (cErr) throw cErr;
       }
 
-      // Replace seasons and episodes transactionally
-      await supabase.from('seasons').delete().eq('series_id', seriesId);
+      // Smart sync seasons and episodes to preserve existing IDs and viewer watch histories
+      const currentSeasonIds = seasons.map((s) => s.id).filter(Boolean) as string[];
+      if (currentSeasonIds.length > 0) {
+        await supabase
+          .from('seasons')
+          .delete()
+          .eq('series_id', seriesId)
+          .not('id', 'in', `(${currentSeasonIds.join(',')})`);
+      } else if (!series) {
+        await supabase.from('seasons').delete().eq('series_id', seriesId);
+      }
 
       for (const season of seasons) {
-        const { data: insertedSeason, error: sErr } = await supabase
-          .from('seasons')
-          .insert({
-            series_id: seriesId,
-            season_number: season.season_number,
-            title: season.title.trim() || `Season ${season.season_number}`,
-            synopsis: season.synopsis.trim() || null,
-            release_year: season.release_year,
-          })
-          .select('id')
-          .single();
+        let seasonId = season.id;
+        const seasonPayload = {
+          series_id: seriesId,
+          season_number: season.season_number,
+          title: season.title.trim() || `Season ${season.season_number}`,
+          synopsis: season.synopsis.trim() || null,
+          release_year: season.release_year,
+        };
 
-        if (sErr) throw sErr;
+        if (seasonId) {
+          const { error: sUpdateErr } = await supabase
+            .from('seasons')
+            .update(seasonPayload)
+            .eq('id', seasonId);
+          if (sUpdateErr) throw sUpdateErr;
+        } else {
+          const { data: insertedSeason, error: sErr } = await supabase
+            .from('seasons')
+            .insert(seasonPayload)
+            .select('id')
+            .single();
+          if (sErr) throw sErr;
+          seasonId = insertedSeason.id;
+        }
 
-        const epRows = season.episodes.map((ep) => {
+        // Delete removed episodes in this season
+        const currentEpIds = season.episodes.map((ep) => ep.id).filter(Boolean) as string[];
+        if (currentEpIds.length > 0) {
+          await supabase
+            .from('episodes')
+            .delete()
+            .eq('season_id', seasonId)
+            .not('id', 'in', `(${currentEpIds.join(',')})`);
+        }
+
+        // Update existing episodes or insert new ones
+        for (const ep of season.episodes) {
           const cleanEpVideo = extractYouTubeId(ep.video_ref) || ep.video_ref.trim();
-          return {
-            season_id: insertedSeason.id,
+          const epPayload = {
+            season_id: seasonId,
             series_id: seriesId,
             episode_number: ep.episode_number,
             title: ep.title.trim(),
@@ -321,14 +353,24 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
             video_ref: cleanEpVideo,
             thumbnail_url: ep.thumbnail_url || (cleanEpVideo ? `https://img.youtube.com/vi/${cleanEpVideo}/hqdefault.jpg` : null),
           };
-        });
 
-        const { error: epErr } = await supabase.from('episodes').insert(epRows);
-        if (epErr) throw epErr;
+          if (ep.id) {
+            const { error: epUpdateErr } = await supabase
+              .from('episodes')
+              .update(epPayload)
+              .eq('id', ep.id);
+            if (epUpdateErr) throw epUpdateErr;
+          } else {
+            const { error: epInsertErr } = await supabase
+              .from('episodes')
+              .insert(epPayload);
+            if (epInsertErr) throw epInsertErr;
+          }
+        }
       }
 
-      // If submitting, call submit_series RPC
-      if (submitForReview) {
+      // If submitting a new/draft series, call submit_series RPC
+      if (submitForReview && series?.status !== 'published') {
         const { error: rpcErr } = await supabase.rpc('submit_series', { p_series_id: seriesId });
         if (rpcErr) throw rpcErr;
       }
@@ -341,9 +383,10 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
         err?.message?.includes('schema cache') ||
         err?.message?.includes('series') ||
         err?.code === 'PGRST205' ||
-        err?.code === 'PGRST202'
+        err?.code === 'PGRST202' ||
+        err?.code === '42501'
       ) {
-        setError('Database migration required: Please run migration 20261010000001_series_publishing_pipeline.sql in your Supabase SQL Editor.');
+        setError('Database migration required: Please run migration 20261011000003_allow_published_series_updates.sql in your Supabase SQL Editor.');
       } else {
         setError(err?.message || 'Failed to save series. Please try again.');
       }
@@ -377,10 +420,16 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
             </div>
             <div>
               <h2 className="font-display text-base font-bold text-ivory tracking-wide uppercase">
-                {series ? `Edit: ${series.title}` : 'New Web Series Distribution Suite'}
+                {series
+                  ? series.status === 'published'
+                    ? `Edit Published Series: ${series.title}`
+                    : `Edit: ${series.title}`
+                  : 'New Web Series Distribution Suite'}
               </h2>
               <p className="text-[11px] text-muted font-mono uppercase tracking-wider">
-                Step {currentStep + 1} of 4: {WIZARD_STEPS[currentStep].title}
+                {series?.status === 'published'
+                  ? `Live On Platform · Step ${currentStep + 1} of 4: ${WIZARD_STEPS[currentStep].title}`
+                  : `Step ${currentStep + 1} of 4: ${WIZARD_STEPS[currentStep].title}`}
               </p>
             </div>
           </div>
@@ -843,7 +892,7 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
               className="px-4 py-2 rounded-sm border border-hairline bg-graphite hover:bg-white/5 text-xs font-mono uppercase tracking-wider text-ivory flex items-center gap-1.5 transition-colors disabled:opacity-50"
             >
               {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-              <span>Save Draft</span>
+              <span>{series?.status === 'published' ? 'Save Changes' : 'Save Draft'}</span>
             </button>
 
             {currentStep < WIZARD_STEPS.length - 1 ? (
@@ -859,11 +908,17 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
               <button
                 type="button"
                 disabled={saving}
-                onClick={() => handleSave(true)}
+                onClick={() => handleSave(series?.status === 'published' ? false : true)}
                 className="px-5 py-2.5 rounded-sm bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm disabled:opacity-50"
               >
-                {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-                <span>Submit Series</span>
+                {saving ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : series?.status === 'published' ? (
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                ) : (
+                  <Send className="w-3.5 h-3.5" />
+                )}
+                <span>{series?.status === 'published' ? 'Update Live Series' : 'Submit Series'}</span>
               </button>
             )}
           </div>

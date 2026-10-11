@@ -132,6 +132,30 @@ export const SeriesCard: React.FC<SeriesCardProps> = ({
                 <span>Edit Series</span>
               </button>
             )}
+
+            {isPublished && (
+              <button
+                type="button"
+                onClick={() => onEdit(series)}
+                className="px-3 py-1.5 rounded-sm bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-xs font-mono uppercase tracking-wider flex items-center gap-1.5 transition-colors border border-amber-500/25"
+                title="Edit published series, add episodes, or update trailer"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span>Edit Series</span>
+              </button>
+            )}
+
+            {isApproved && (
+              <button
+                type="button"
+                onClick={() => onEdit(series)}
+                className="px-3 py-1.5 rounded-sm bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 text-xs font-mono uppercase tracking-wider flex items-center gap-1.5 transition-colors border border-sky-500/25"
+                title="Edit approved series"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span>Edit Series</span>
+              </button>
+            )}
           </div>
 
           {isDraft && (
