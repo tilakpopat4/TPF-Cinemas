@@ -21,7 +21,7 @@ import { LanguageProvider } from './context/LanguageContext';
 export const App: React.FC = () => {
   const { user, profile, role, isStaff, isAdmin, loading: authLoading, signOut, refreshProfile } = useStaffAuth();
   const { films, loading: queueLoading, refreshQueue } = useReviewQueue(isStaff);
-  const { seriesList, loading: seriesLoading, refreshQueue: refreshSeriesQueue } = useSeriesQueue(isStaff);
+  const { seriesList, loading: seriesLoading, error: seriesError, refreshQueue: refreshSeriesQueue } = useSeriesQueue(isStaff);
   const { logs, loading: auditLoading, refreshLogs } = useAuditLog(isAdmin);
 
   const [activeTab, setActiveTab] = useState<'queue' | 'series' | 'roles' | 'audit' | 'uimanager' | 'legal'>('queue');
@@ -82,6 +82,7 @@ export const App: React.FC = () => {
               onSelectSeries={(ser) => setSelectedSeries(ser)}
               onRefresh={refreshSeriesQueue}
               loading={seriesLoading}
+              error={seriesError}
             />
           )}
 

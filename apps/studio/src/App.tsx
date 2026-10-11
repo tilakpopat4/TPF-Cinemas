@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Film as FilmIcon, Plus, Loader2, RefreshCw, Tv } from 'lucide-react';
+import { Film as FilmIcon, Plus, Loader2, RefreshCw, Tv, AlertTriangle } from 'lucide-react';
 import { useAuth } from './hooks/useAuth';
 import { useFilms } from './hooks/useFilms';
 import { useSeries } from './hooks/useSeries';
@@ -23,7 +23,7 @@ import { LanguageProvider } from './context/LanguageContext';
 export const App: React.FC = () => {
   const { user, profile, isFilmmakerOrAdmin, loading: authLoading, becomeFilmmaker, signOut, refreshProfile } = useAuth();
   const { films, loading: filmsLoading, refreshFilms } = useFilms(user?.id);
-  const { seriesList, loading: seriesLoading, refreshSeries, deleteSeries } = useSeries(user?.id);
+  const { seriesList, loading: seriesLoading, error: seriesError, refreshSeries, deleteSeries } = useSeries(user?.id);
   const { genres } = useGenres();
   const { hasSignedAgreement, refreshAgreement } = useCreatorAgreement(user?.id);
 
@@ -262,6 +262,22 @@ export const App: React.FC = () => {
                 <div className="py-20 text-center">
                   <Loader2 className="h-8 w-8 text-amber-500 animate-spin mx-auto mb-2" />
                   <p className="text-xs text-slate-400">Loading web series...</p>
+                </div>
+              ) : seriesError?.includes('schema cache') || seriesError?.includes('public.series') ? (
+                <div className="p-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-white">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="h-6 w-6 text-amber-400 shrink-0 mt-0.5" />
+                    <div>
+                      <h3 className="text-sm font-bold text-amber-300">Database Migration Required</h3>
+                      <p className="text-xs text-white/80 mt-1">
+                        The web series tables have not been created yet in Supabase. Please execute migration{' '}
+                        <code className="px-1.5 py-0.5 rounded bg-black/40 text-amber-200 font-mono text-[11px]">
+                          supabase/migrations/20261010000001_series_publishing_pipeline.sql
+                        </code>{' '}
+                        in your Supabase SQL Editor.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               ) : filteredSeries.length === 0 ? (
                 <div className="py-20 text-center border border-dashed border-white/10 rounded-2xl bg-white/[0.01]">

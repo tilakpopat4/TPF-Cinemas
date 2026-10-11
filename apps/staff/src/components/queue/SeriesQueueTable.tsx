@@ -8,6 +8,7 @@ interface SeriesQueueTableProps {
   onSelectSeries: (series: Series) => void;
   onRefresh: () => void;
   loading?: boolean;
+  error?: string | null;
 }
 
 export const SeriesQueueTable: React.FC<SeriesQueueTableProps> = ({
@@ -15,6 +16,7 @@ export const SeriesQueueTable: React.FC<SeriesQueueTableProps> = ({
   onSelectSeries,
   onRefresh,
   loading = false,
+  error = null,
 }) => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'submitted' | 'approved' | 'published' | 'changes_requested' | 'rejected' | 'all'>('submitted');
@@ -188,6 +190,23 @@ export const SeriesQueueTable: React.FC<SeriesQueueTableProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Migration Warning Banner */}
+      {(error?.includes('schema cache') || error?.includes('public.series')) && (
+        <div className="p-4 mb-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-white flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+          <div>
+            <h3 className="text-sm font-bold text-amber-300">Database Migration Required</h3>
+            <p className="text-xs text-white/80 mt-1">
+              The web series tables have not been created yet in Supabase. Please execute migration{' '}
+              <code className="px-1.5 py-0.5 rounded bg-black/40 text-amber-200 font-mono text-[11px]">
+                supabase/migrations/20261010000001_series_publishing_pipeline.sql
+              </code>{' '}
+              in your Supabase SQL Editor.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Series Table */}
       <div className="rounded-2xl border border-white/10 bg-[#0c0d12] overflow-hidden shadow-2xl">

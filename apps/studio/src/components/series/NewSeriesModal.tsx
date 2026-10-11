@@ -287,9 +287,13 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
 
       onSaved();
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving series:', err);
-      setError((err as Error).message);
+      if (err?.message?.includes('schema cache') || err?.message?.includes('series') || err?.code === 'PGRST205' || err?.code === 'PGRST202') {
+        setError('Database migration required: Please run migration 20261010000001_series_publishing_pipeline.sql in your Supabase SQL Editor.');
+      } else {
+        setError(err?.message || 'Failed to save series. Please try again.');
+      }
     } finally {
       setSaving(false);
     }

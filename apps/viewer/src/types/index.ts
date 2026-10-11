@@ -88,12 +88,12 @@ export interface Comment {
 export type SeriesStatus =
   | 'draft'
   | 'submitted'
-  | 'in_review'
   | 'changes_requested'
   | 'approved'
   | 'published'
   | 'rejected'
-  | 'archived';
+  | 'archived'
+  | 'update_pending';
 
 export interface SeriesCredit {
   id: string;

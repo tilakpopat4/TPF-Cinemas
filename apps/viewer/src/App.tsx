@@ -13,6 +13,7 @@ import { HeroBillboard } from './components/hero/HeroBillboard';
 import { ContentRail } from './components/catalog/ContentRail';
 import { SeriesRail } from './components/series/SeriesRail';
 import { SeriesDetailModal } from './components/series/SeriesDetailModal';
+import { SeriesCard } from './components/series/SeriesCard';
 import { NewFilmmakersSpotlight } from './components/catalog/NewFilmmakersSpotlight';
 import { ContinueWatchingRail } from './components/catalog/ContinueWatchingRail';
 import { Top10Rail } from './components/catalog/Top10Rail';
@@ -73,6 +74,19 @@ export default function App() {
 
   // Mandatory requirement: Authentication required to watch cinema content
   const handlePlay = (film: FilmType, mode: 'movie' | 'trailer' = 'movie') => {
+    // If the content is actually a web series, do not start video playback directly!
+    // Open the SeriesDetailModal instead so the user can choose a season and episode.
+    const matchingSeries = seriesList.find(
+      (s) =>
+        s.id === film.id ||
+        s.slug === film.slug ||
+        s.title.toLowerCase().trim() === film.title.toLowerCase().trim()
+    );
+    if (matchingSeries && mode !== 'trailer') {
+      setSelectedSeries(matchingSeries);
+      return;
+    }
+
     if (!user) {
       setPendingWatchFilm({ film, mode });
       setShowAuthModal(true);
@@ -131,7 +145,6 @@ export default function App() {
     return list.length > 0 ? list : films.slice(0, 5);
   })();
 
-  // Filtered lists for specific rails
   const watchlistFilms = films.filter((f) => watchlistIds.has(f.id));
   const watchlistSeries = seriesList.filter((s) => seriesWatchlistIds.has(s.id));
   const historyFilms = films.filter((f) => history.has(f.id));
@@ -139,6 +152,22 @@ export default function App() {
   const top10Films = [...films]
     .sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
     .slice(0, 10);
+
+  const filteredSeries = selectedGenre
+    ? seriesList.filter((s) => s.series_genres?.some((sg) => sg.genres?.slug === selectedGenre))
+    : seriesList;
+
+  const searchMatchingSeries = seriesList.filter((s) => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return false;
+    return (
+      s.title.toLowerCase().includes(q) ||
+      (s.synopsis && s.synopsis.toLowerCase().includes(q)) ||
+      s.language.toLowerCase().includes(q) ||
+      (s.profiles?.display_name && s.profiles.display_name.toLowerCase().includes(q)) ||
+      s.series_genres?.some((sg) => sg.genres?.name.toLowerCase().includes(q))
+    );
+  });
 
   return (
     <LanguageProvider>
@@ -177,11 +206,11 @@ export default function App() {
                   Search Results for &ldquo;{searchQuery}&rdquo;
                 </h2>
                 <span className="font-mono text-[10px] text-muted uppercase tracking-wider">
-                  [{filteredFilms.length} {filteredFilms.length === 1 ? 'film' : 'films'}]
+                  [{filteredFilms.length + searchMatchingSeries.length} titles]
                 </span>
               </div>
 
-              {filteredFilms.length === 0 ? (
+              {filteredFilms.length === 0 && searchMatchingSeries.length === 0 ? (
                 <div className="py-24 text-center text-muted space-y-3">
                   <Film className="h-8 w-8 mx-auto opacity-40 text-muted" />
                   <p className="font-editorial text-lg text-ivory">No matching cinema records found.</p>
@@ -190,23 +219,53 @@ export default function App() {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-                  {filteredFilms.map((film) => (
-                    <FilmCard
-                      key={film.id}
-                      film={film}
-                      onPlay={(f) => handlePlay(f)}
-                      isInWatchlist={isInWatchlist(film.id)}
-                      onToggleWatchlist={toggleWatchlist}
-                      progressSeconds={getProgress(film.id)}
-                    />
-                  ))}
+                <div className="space-y-10">
+                  {filteredFilms.length > 0 && (
+                    <div className="space-y-3">
+                      <h3 className="font-mono text-xs uppercase tracking-wider text-muted flex items-center gap-2">
+                        <Film className="w-3.5 h-3.5 text-signature" />
+                        <span>Films ({filteredFilms.length})</span>
+                      </h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+                        {filteredFilms.map((film) => (
+                          <FilmCard
+                            key={film.id}
+                            film={film}
+                            onPlay={(f) => handlePlay(f)}
+                            isInWatchlist={isInWatchlist(film.id)}
+                            onToggleWatchlist={toggleWatchlist}
+                            progressSeconds={getProgress(film.id)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {searchMatchingSeries.length > 0 && (
+                    <div className="space-y-3">
+                      <h3 className="font-mono text-xs uppercase tracking-wider text-muted flex items-center gap-2">
+                        <Tv className="w-3.5 h-3.5 text-amber-500" />
+                        <span>Original Web Series ({searchMatchingSeries.length})</span>
+                      </h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+                        {searchMatchingSeries.map((s) => (
+                          <SeriesCard
+                            key={s.id}
+                            series={s}
+                            onSelect={setSelectedSeries}
+                            isInWatchlist={isInSeriesWatchlist(s.id)}
+                            onToggleWatchlist={toggleSeriesWatchlist}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           ) : currentTab === 'home' ? (
             /* Home Tab: Hero Billboard & Dynamic Curated Content Rails from UI Manager */
-            films.length === 0 ? (
+            films.length === 0 && seriesList.length === 0 ? (
               <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-36 pb-24 text-center space-y-5">
                 <div className="inline-flex items-center justify-center p-4 rounded-2xl bg-white/[0.04] border border-white/[0.08] shadow-xl">
                   <Film className="h-10 w-10 text-signature opacity-80" />
@@ -231,10 +290,12 @@ export default function App() {
             ) : (
             <div className="space-y-6">
               {/* Hero Billboard */}
-              {heroConfig.enabled && (
+              {heroConfig.enabled && featuredFilm && (
                 <HeroBillboard
                   films={featuredCarouselFilms}
                   film={featuredFilm}
+                  seriesList={seriesList}
+                  onSelectSeries={setSelectedSeries}
                   onPlay={(f, mode) => handlePlay(f, mode)}
                   isInWatchlist={(id) => isInWatchlist(id)}
                   onToggleWatchlist={toggleWatchlist}
@@ -243,7 +304,19 @@ export default function App() {
                     setCurrentTab('browse');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  onMoreInfo={(f) => setMoreInfoFilm(f)}
+                  onMoreInfo={(f) => {
+                    const matchingSeries = seriesList.find(
+                      (s) =>
+                        s.id === f.id ||
+                        s.slug === f.slug ||
+                        s.title.toLowerCase().trim() === f.title.toLowerCase().trim()
+                    );
+                    if (matchingSeries) {
+                      setSelectedSeries(matchingSeries);
+                    } else {
+                      setMoreInfoFilm(f);
+                    }
+                  }}
                   customTagline={heroConfig.tagline}
                 />
               )}
@@ -399,29 +472,59 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Films Grid */}
-              {filteredFilms.length === 0 ? (
+              {/* Films & Series Grid */}
+              {filteredFilms.length === 0 && filteredSeries.length === 0 ? (
                 <div className="py-24 text-center text-muted space-y-3">
                   <Film className="h-8 w-8 mx-auto opacity-30 text-signature" />
-                  <h3 className="font-editorial text-xl font-normal text-ivory">No films found</h3>
+                  <h3 className="font-editorial text-xl font-normal text-ivory">No cinema found</h3>
                   <p className="font-sans text-xs text-muted max-w-sm mx-auto">
                     {selectedGenre
-                      ? 'No films currently published under this category.'
-                      : 'No films are currently published in the catalogue. Check back soon for new festival releases!'}
+                      ? 'No films or series currently published under this category.'
+                      : 'No titles are currently published in the catalogue. Check back soon for new festival releases!'}
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 pt-2">
-                  {filteredFilms.map((film) => (
-                    <FilmCard
-                      key={film.id}
-                      film={film}
-                      onPlay={(f) => handlePlay(f)}
-                      isInWatchlist={isInWatchlist(film.id)}
-                      onToggleWatchlist={toggleWatchlist}
-                      progressSeconds={getProgress(film.id)}
-                    />
-                  ))}
+                <div className="space-y-12 pt-2">
+                  {filteredFilms.length > 0 && (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Film className="w-4 h-4 text-signature" />
+                        <h2 className="text-sm font-mono uppercase tracking-wider text-muted">Feature Films & Shorts ({filteredFilms.length})</h2>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+                        {filteredFilms.map((film) => (
+                          <FilmCard
+                            key={film.id}
+                            film={film}
+                            onPlay={(f) => handlePlay(f)}
+                            isInWatchlist={isInWatchlist(film.id)}
+                            onToggleWatchlist={toggleWatchlist}
+                            progressSeconds={getProgress(film.id)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {filteredSeries.length > 0 && (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Tv className="w-4 h-4 text-amber-500" />
+                        <h2 className="text-sm font-mono uppercase tracking-wider text-muted">Original Web Series ({filteredSeries.length})</h2>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+                        {filteredSeries.map((s) => (
+                          <SeriesCard
+                            key={s.id}
+                            series={s}
+                            onSelect={setSelectedSeries}
+                            isInWatchlist={isInSeriesWatchlist(s.id)}
+                            onToggleWatchlist={toggleSeriesWatchlist}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

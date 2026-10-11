@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
-import { Series, Season, Episode } from '../types';
+import { Series } from '../types';
 
 export function useSeriesCatalogue(userId?: string) {
   const [seriesList, setSeriesList] = useState<Series[]>([]);
@@ -22,7 +22,7 @@ export function useSeriesCatalogue(userId?: string) {
         .from('series')
         .select(`
           *,
-          profiles:profiles!series_creator_id_fkey (
+          profiles:profiles!series_filmmaker_id_fkey (
             id, display_name, bio, avatar_url, city, website_url, instagram_handle
           ),
           series_genres (
@@ -33,10 +33,10 @@ export function useSeriesCatalogue(userId?: string) {
             id, person_name, credit_role, sort_order
           ),
           seasons (
-            id, series_id, season_number, title, synopsis, trailer_ref, poster_url, release_year, created_at,
+            id, series_id, season_number, title, synopsis, release_year, poster_url, created_at, updated_at,
             episodes (
-              id, season_id, episode_number, title, slug, synopsis, runtime_minutes,
-              video_provider, video_ref, thumbnail_url, is_free_preview, view_count, created_at
+              id, season_id, series_id, episode_number, title, synopsis, runtime_minutes,
+              video_provider, video_ref, thumbnail_url, created_at, updated_at
             )
           )
         `)
@@ -48,15 +48,22 @@ export function useSeriesCatalogue(userId?: string) {
       // Sort seasons and episodes numerically
       const parsed: Series[] = (data || []).map((s: any) => {
         const sortedSeasons = (s.seasons || [])
-          .sort((a: Season, b: Season) => a.season_number - b.season_number)
-          .map((season: Season) => ({
+          .sort((a: any, b: any) => a.season_number - b.season_number)
+          .map((season: any) => ({
             ...season,
-            episodes: (season.episodes || []).sort(
-              (a: Episode, b: Episode) => a.episode_number - b.episode_number
-            ),
+            episodes: (season.episodes || [])
+              .sort((a: any, b: any) => a.episode_number - b.episode_number)
+              .map((ep: any) => ({
+                ...ep,
+                slug: ep.slug || `${s.slug}-s${season.season_number}-e${ep.episode_number}`,
+                is_free_preview: true,
+                view_count: ep.view_count || 0,
+              })),
           }));
         return {
           ...s,
+          creator_id: s.filmmaker_id || s.creator_id,
+          release_year: sortedSeasons[0]?.release_year || (s.created_at ? new Date(s.created_at).getFullYear() : 2026),
           seasons: sortedSeasons,
         };
       });

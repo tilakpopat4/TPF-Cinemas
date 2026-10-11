@@ -10,8 +10,9 @@ import {
   ChevronRight,
   Film as FilmIcon,
   X,
+  Tv,
 } from 'lucide-react';
-import { Film } from '../../types';
+import { Film, Series } from '../../types';
 import { formatRuntime } from '../../lib/utils';
 
 export interface HeroBillboardProps {
@@ -23,6 +24,8 @@ export interface HeroBillboardProps {
   onSelectGenre?: (genreSlug: string) => void;
   onMoreInfo?: (film: Film) => void;
   customTagline?: string;
+  seriesList?: Series[];
+  onSelectSeries?: (series: Series) => void;
 }
 
 /**
@@ -46,6 +49,8 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
   onSelectGenre,
   onMoreInfo,
   customTagline,
+  seriesList = [],
+  onSelectSeries,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -213,15 +218,34 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
 
             {/* Action Buttons: Seamless Cinema UI with Soft Frosted Finishes */}
             <div className="flex flex-wrap items-center gap-3 pt-1">
-              {/* Option 1: Watch Movie (Primary) */}
-              <button
-                onClick={() => onPlay(currentFilm, 'movie')}
-                className="px-6 py-3 rounded-xl bg-signature hover:bg-signature-hover text-black font-bold text-xs uppercase tracking-wider transition-all duration-200 flex items-center gap-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.6)] hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
-                title="Watch Full Feature Movie"
-              >
-                <Play className="h-4 w-4 fill-current ml-0.5 shrink-0" />
-                <span>Watch Movie</span>
-              </button>
+              {/* Option 1: Watch Movie or Select Episode for Web Series */}
+              {(() => {
+                const matchingSeries = seriesList.find(
+                  (s) => s.slug === currentFilm.slug || s.title.toLowerCase() === currentFilm.title.toLowerCase()
+                );
+                if (matchingSeries) {
+                  return (
+                    <button
+                      onClick={() => onSelectSeries ? onSelectSeries(matchingSeries) : onPlay(currentFilm, 'movie')}
+                      className="px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs uppercase tracking-wider transition-all duration-200 flex items-center gap-2.5 shadow-[0_4px_20px_rgba(245,158,11,0.35)] hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
+                      title="Select Episode"
+                    >
+                      <Tv className="h-4 w-4 text-black shrink-0" />
+                      <span>Select Episode</span>
+                    </button>
+                  );
+                }
+                return (
+                  <button
+                    onClick={() => onPlay(currentFilm, 'movie')}
+                    className="px-6 py-3 rounded-xl bg-signature hover:bg-signature-hover text-black font-bold text-xs uppercase tracking-wider transition-all duration-200 flex items-center gap-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.6)] hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
+                    title="Watch Full Feature Movie"
+                  >
+                    <Play className="h-4 w-4 fill-current ml-0.5 shrink-0" />
+                    <span>Watch Movie</span>
+                  </button>
+                );
+              })()}
 
               {/* Option 2: Watch Trailer (Secondary) — only when the creator supplied a trailer link */}
               {currentFilm.trailer_ref?.trim() && (

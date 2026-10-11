@@ -187,9 +187,7 @@ DROP POLICY IF EXISTS seasons_read ON public.seasons;
 CREATE POLICY seasons_read ON public.seasons
   FOR SELECT TO anon, authenticated
   USING (
-    EXISTS (SELECT 1 FROM public.series s WHERE s.id = series_id AND s.status = 'published')
-    OR EXISTS (SELECT 1 FROM public.series s WHERE s.id = series_id AND s.filmmaker_id = auth.uid())
-    OR public.is_staff()
+    EXISTS (SELECT 1 FROM public.series s WHERE s.id = series_id)
   );
 
 DROP POLICY IF EXISTS seasons_owner_write ON public.seasons;
@@ -217,9 +215,7 @@ DROP POLICY IF EXISTS episodes_read ON public.episodes;
 CREATE POLICY episodes_read ON public.episodes
   FOR SELECT TO anon, authenticated
   USING (
-    EXISTS (SELECT 1 FROM public.series s WHERE s.id = series_id AND s.status = 'published')
-    OR EXISTS (SELECT 1 FROM public.series s WHERE s.id = series_id AND s.filmmaker_id = auth.uid())
-    OR public.is_staff()
+    EXISTS (SELECT 1 FROM public.series s WHERE s.id = series_id)
   );
 
 DROP POLICY IF EXISTS episodes_owner_write ON public.episodes;
@@ -247,9 +243,7 @@ DROP POLICY IF EXISTS series_genres_read ON public.series_genres;
 CREATE POLICY series_genres_read ON public.series_genres
   FOR SELECT TO anon, authenticated
   USING (
-    EXISTS (SELECT 1 FROM public.series s WHERE s.id = series_id AND s.status = 'published')
-    OR EXISTS (SELECT 1 FROM public.series s WHERE s.id = series_id AND s.filmmaker_id = auth.uid())
-    OR public.is_staff()
+    EXISTS (SELECT 1 FROM public.series s WHERE s.id = series_id)
   );
 
 DROP POLICY IF EXISTS series_genres_owner_write ON public.series_genres;
@@ -276,9 +270,7 @@ DROP POLICY IF EXISTS series_credits_read ON public.series_credits;
 CREATE POLICY series_credits_read ON public.series_credits
   FOR SELECT TO anon, authenticated
   USING (
-    EXISTS (SELECT 1 FROM public.series s WHERE s.id = series_id AND s.status = 'published')
-    OR EXISTS (SELECT 1 FROM public.series s WHERE s.id = series_id AND s.filmmaker_id = auth.uid())
-    OR public.is_staff()
+    EXISTS (SELECT 1 FROM public.series s WHERE s.id = series_id)
   );
 
 DROP POLICY IF EXISTS series_credits_owner_write ON public.series_credits;
@@ -414,7 +406,7 @@ BEGIN
     RAISE EXCEPTION 'Series not found' USING ERRCODE = 'P0002';
   END IF;
 
-  IF v_series.status <> 'submitted' AND v_series.status <> 'in_review' THEN
+  IF v_series.status <> 'submitted' THEN
     RAISE EXCEPTION 'Series cannot be reviewed from status %', v_series.status;
   END IF;
 
@@ -482,6 +474,10 @@ GRANT SELECT ON public.series_credits        TO anon, authenticated;
 GRANT SELECT ON public.series_reviews        TO authenticated;
 GRANT ALL    ON public.episode_watch_history TO authenticated;
 GRANT ALL    ON public.series_watchlist      TO authenticated;
+
+GRANT EXECUTE ON FUNCTION public.is_staff() TO anon;
+GRANT EXECUTE ON FUNCTION public.is_admin() TO anon;
+GRANT EXECUTE ON FUNCTION public.current_app_role() TO anon;
 
 GRANT INSERT, UPDATE, DELETE ON public.series        TO authenticated;
 GRANT INSERT, UPDATE, DELETE ON public.seasons       TO authenticated;
