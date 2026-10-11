@@ -13,6 +13,7 @@ import {
   Send,
   Loader2,
   ExternalLink,
+  RefreshCw,
 } from 'lucide-react';
 import { Series, Episode } from '../../types';
 import { supabase } from '../../lib/supabase';
@@ -121,9 +122,15 @@ export const SeriesReviewModal: React.FC<SeriesReviewModalProps> = ({
                 <h2 className="text-base sm:text-lg font-bold text-white uppercase tracking-wider">
                   {series.title}
                 </h2>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-white/10 text-white/80">
-                  {series.status}
-                </span>
+                {series.status === 'submitted' && series.published_at ? (
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                    Post-Publish Revision
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-white/10 text-white/80">
+                    {series.status}
+                  </span>
+                )}
               </div>
               <p className="text-xs text-white/50 font-mono mt-0.5">
                 Creator: {series.profiles?.display_name || 'Independent Creator'} · {series.language} · {series.age_rating || 'UA13+'}
@@ -143,6 +150,18 @@ export const SeriesReviewModal: React.FC<SeriesReviewModalProps> = ({
         <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left Column: Metadata & Interactive Episode Tree (5 cols) */}
           <div className="lg:col-span-5 space-y-5 border-r border-white/5 pr-0 lg:pr-6">
+            {series.published_at && series.status === 'submitted' && (
+              <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 space-y-1">
+                <div className="flex items-center gap-1.5 font-bold">
+                  <RefreshCw className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Post-Publish Creator Revision</span>
+                </div>
+                <p className="text-[11px] text-amber-200/80 leading-relaxed">
+                  This series was live on the platform. The filmmaker has updated assets or metadata and submitted them for curator review before re-publishing live.
+                </p>
+              </div>
+            )}
+
             {/* Show Info */}
             <div className="space-y-3">
               <h3 className="text-xs font-mono uppercase tracking-wider text-amber-500 font-bold">

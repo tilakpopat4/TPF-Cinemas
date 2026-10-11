@@ -8,6 +8,10 @@ import {
   Check,
   Info,
   Play,
+  Upload,
+  Image as ImageIcon,
+  Link as LinkIcon,
+  RotateCcw,
 } from 'lucide-react';
 import { Film, AgeRating } from '../../types';
 import { supabase } from '../../lib/supabase';
@@ -29,6 +33,7 @@ type EditableFields = {
   release_year: string;  // string for input
   age_rating: AgeRating | '';
   poster_url: string;
+  backdrop_url: string;
   video_ref: string;
   trailer_ref: string;
 };
@@ -43,7 +48,8 @@ const FIELD_LABELS: Record<keyof EditableFields, string> = {
   language: 'Primary Language',
   release_year: 'Release Year',
   age_rating: 'Age Rating (OTT)',
-  poster_url: 'Portrait Poster URL',
+  poster_url: 'Portrait Poster (2:3)',
+  backdrop_url: 'Landscape Backdrop Banner (16:9)',
   video_ref: 'Video Reference',
   trailer_ref: 'Trailer Link',
 };
@@ -63,6 +69,7 @@ export const ProposeUpdateModal: React.FC<ProposeUpdateModalProps> = ({
     release_year: film.release_year != null ? String(film.release_year) : '',
     age_rating: film.age_rating ?? '',
     poster_url: film.poster_url ?? '',
+    backdrop_url: film.backdrop_url ?? '',
     video_ref: film.video_ref ?? '',
     trailer_ref: film.trailer_ref ?? '',
   };
@@ -71,6 +78,85 @@ export const ProposeUpdateModal: React.FC<ProposeUpdateModalProps> = ({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  // Artwork upload state
+  const [uploadingPoster, setUploadingPoster] = useState(false);
+  const [posterUploadError, setPosterUploadError] = useState<string | null>(null);
+  const [showPosterUrlInput, setShowPosterUrlInput] = useState(false);
+
+  const [uploadingBackdrop, setUploadingBackdrop] = useState(false);
+  const [backdropUploadError, setBackdropUploadError] = useState<string | null>(null);
+  const [showBackdropUrlInput, setShowBackdropUrlInput] = useState(false);
+
+  async function handlePosterFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !film.filmmaker_id) return;
+    setPosterUploadError(null);
+
+    if (file.size > 5 * 1024 * 1024) {
+      setPosterUploadError('Poster file must be smaller than 5 MB.');
+      return;
+    }
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setPosterUploadError('Please select a JPG, PNG, or WebP image.');
+      return;
+    }
+
+    try {
+      setUploadingPoster(true);
+      const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const filePath = `${film.filmmaker_id}/film_poster_${Date.now()}_${sanitizedName}`;
+
+      const { error: uploadErr } = await supabase.storage
+        .from('posters')
+        .upload(filePath, file, { cacheControl: '3600', upsert: false });
+      if (uploadErr) throw uploadErr;
+
+      const { data: publicUrlData } = supabase.storage.from('posters').getPublicUrl(filePath);
+      updateField('poster_url', publicUrlData.publicUrl);
+    } catch (err: any) {
+      console.error('Poster upload failed:', err);
+      setPosterUploadError(err?.message || 'Failed to upload poster.');
+    } finally {
+      setUploadingPoster(false);
+    }
+  }
+
+  async function handleBackdropFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !film.filmmaker_id) return;
+    setBackdropUploadError(null);
+
+    if (file.size > 5 * 1024 * 1024) {
+      setBackdropUploadError('Backdrop file must be smaller than 5 MB.');
+      return;
+    }
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setBackdropUploadError('Please select a JPG, PNG, or WebP image.');
+      return;
+    }
+
+    try {
+      setUploadingBackdrop(true);
+      const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const filePath = `${film.filmmaker_id}/film_backdrop_${Date.now()}_${sanitizedName}`;
+
+      const { error: uploadErr } = await supabase.storage
+        .from('posters')
+        .upload(filePath, file, { cacheControl: '3600', upsert: false });
+      if (uploadErr) throw uploadErr;
+
+      const { data: publicUrlData } = supabase.storage.from('posters').getPublicUrl(filePath);
+      updateField('backdrop_url', publicUrlData.publicUrl);
+    } catch (err: any) {
+      console.error('Backdrop upload failed:', err);
+      setBackdropUploadError(err?.message || 'Failed to upload backdrop.');
+    } finally {
+      setUploadingBackdrop(false);
+    }
+  }
 
   // Track which fields were actually changed
   const dirtyFields = (Object.keys(fields) as (keyof EditableFields)[]).filter(
@@ -310,42 +396,226 @@ export const ProposeUpdateModal: React.FC<ProposeUpdateModalProps> = ({
                 </div>
               </div>
 
-              {/* Poster URL */}
-              <div className="form-group">
-                <label className="form-label text-[11px] flex items-center justify-between">
-                  <span>{FIELD_LABELS.poster_url} (2:3 portrait)</span>
-                  {isChanged('poster_url') && <span className="text-amber-400 text-[10px] font-bold">Modified</span>}
-                </label>
-                <input
-                  type="url"
-                  value={fields.poster_url}
-                  onChange={(e) => updateField('poster_url', e.target.value)}
-                  placeholder="https://..."
-                  className={`form-input text-sm ${isChanged('poster_url') ? 'border-amber-500/50 bg-amber-500/5' : ''}`}
-                />
-                {/* Side-by-side preview */}
-                {isChanged('poster_url') && (film.poster_url || fields.poster_url) && (
-                  <div className="mt-2 grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-zinc-500 font-mono uppercase">Current Live</p>
-                      <div className="aspect-[2/3] max-w-[80px] rounded-lg overflow-hidden border border-white/10 bg-black/40">
-                        {film.poster_url
-                          ? <img src={film.poster_url} alt="current" className="w-full h-full object-cover" />
-                          : <div className="w-full h-full flex items-center justify-center text-zinc-700 text-[9px]">None</div>
-                        }
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-amber-400/70 font-mono uppercase">Proposed</p>
-                      <div className="aspect-[2/3] max-w-[80px] rounded-lg overflow-hidden border border-amber-500/20 bg-black/40">
-                        {fields.poster_url
-                          ? <img src={fields.poster_url} alt="proposed" className="w-full h-full object-cover" />
-                          : <div className="w-full h-full flex items-center justify-center text-zinc-700 text-[9px]">None</div>
-                        }
-                      </div>
+              {/* Theatrical Posters & Artworks */}
+              <div className="space-y-4 pt-2 border-t border-white/[0.08]">
+                <h4 className="text-xs font-semibold text-white/90 flex items-center gap-1.5">
+                  <ImageIcon className="h-4 w-4 text-amber-400" />
+                  <span>Theatrical Artworks &amp; Posters</span>
+                </h4>
+
+                {/* 1. Portrait Poster (2:3) */}
+                <div className="p-3.5 rounded-xl bg-white/[0.03] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-medium text-white flex items-center gap-1.5">
+                      <span>{FIELD_LABELS.poster_url}</span>
+                      {isChanged('poster_url') && (
+                        <span className="text-amber-400 text-[10px] font-bold bg-amber-500/10 px-1.5 py-0.5 rounded">
+                          Modified
+                        </span>
+                      )}
+                    </label>
+
+                    <div className="flex items-center gap-2">
+                      {isChanged('poster_url') && (
+                        <button
+                          type="button"
+                          onClick={() => updateField('poster_url', initial.poster_url)}
+                          className="text-[10px] text-zinc-400 hover:text-white flex items-center gap-1"
+                        >
+                          <RotateCcw className="h-2.5 w-2.5" />
+                          <span>Reset</span>
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setShowPosterUrlInput(!showPosterUrlInput)}
+                        className="text-[10px] text-amber-400 hover:underline flex items-center gap-1"
+                      >
+                        <LinkIcon className="h-2.5 w-2.5" />
+                        <span>{showPosterUrlInput ? 'Hide Link' : 'Paste Link'}</span>
+                      </button>
                     </div>
                   </div>
-                )}
+
+                  {/* Side-by-side comparison + Upload Button */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+                    {/* Live & Proposed Previews */}
+                    <div className="flex items-center gap-3">
+                      <div className="space-y-1">
+                        <p className="text-[9px] text-zinc-500 font-mono uppercase">Current Live</p>
+                        <div className="aspect-[2/3] w-16 rounded-lg overflow-hidden bg-black/60 shadow">
+                          {film.poster_url ? (
+                            <img src={film.poster_url} alt="current" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-zinc-600 text-[9px]">None</div>
+                          )}
+                        </div>
+                      </div>
+
+                      {isChanged('poster_url') && (
+                        <div className="space-y-1">
+                          <p className="text-[9px] text-amber-400 font-mono uppercase">Proposed (New)</p>
+                          <div className="aspect-[2/3] w-16 rounded-lg overflow-hidden bg-black/60 shadow ring-1 ring-amber-500/50">
+                            {fields.poster_url ? (
+                              <img src={fields.poster_url} alt="proposed" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-zinc-600 text-[9px]">Removed</div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Upload Dropzone */}
+                    <div>
+                      <label
+                        htmlFor="film-poster-update-upload"
+                        className="flex flex-col items-center justify-center p-3 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] transition-colors cursor-pointer text-center border-0"
+                      >
+                        {uploadingPoster ? (
+                          <div className="flex items-center gap-2 py-1">
+                            <Loader2 className="h-4 w-4 text-amber-400 animate-spin" />
+                            <span className="text-xs text-white">Uploading poster...</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 py-1 text-zinc-300 hover:text-white">
+                            <Upload className="h-4 w-4 text-amber-400" />
+                            <span className="text-xs font-semibold">Upload New Poster</span>
+                          </div>
+                        )}
+                        <span className="text-[10px] text-zinc-500 mt-0.5">JPG, PNG, WebP up to 5MB</span>
+                      </label>
+                      <input
+                        type="file"
+                        id="film-poster-update-upload"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handlePosterFileSelect}
+                        disabled={uploadingPoster}
+                        className="hidden"
+                      />
+                      {posterUploadError && (
+                        <p className="text-[10px] text-rose-400 mt-1">{posterUploadError}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {showPosterUrlInput && (
+                    <input
+                      type="url"
+                      value={fields.poster_url}
+                      onChange={(e) => updateField('poster_url', e.target.value)}
+                      placeholder="https://... (or direct image URL)"
+                      className="form-input text-xs w-full mt-1.5"
+                    />
+                  )}
+                </div>
+
+                {/* 2. Landscape Backdrop Banner (16:9) */}
+                <div className="p-3.5 rounded-xl bg-white/[0.03] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-medium text-white flex items-center gap-1.5">
+                      <span>{FIELD_LABELS.backdrop_url}</span>
+                      {isChanged('backdrop_url') && (
+                        <span className="text-amber-400 text-[10px] font-bold bg-amber-500/10 px-1.5 py-0.5 rounded">
+                          Modified
+                        </span>
+                      )}
+                    </label>
+
+                    <div className="flex items-center gap-2">
+                      {isChanged('backdrop_url') && (
+                        <button
+                          type="button"
+                          onClick={() => updateField('backdrop_url', initial.backdrop_url)}
+                          className="text-[10px] text-zinc-400 hover:text-white flex items-center gap-1"
+                        >
+                          <RotateCcw className="h-2.5 w-2.5" />
+                          <span>Reset</span>
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setShowBackdropUrlInput(!showBackdropUrlInput)}
+                        className="text-[10px] text-amber-400 hover:underline flex items-center gap-1"
+                      >
+                        <LinkIcon className="h-2.5 w-2.5" />
+                        <span>{showBackdropUrlInput ? 'Hide Link' : 'Paste Link'}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Side-by-side comparison + Upload Button */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+                    {/* Live & Proposed Previews */}
+                    <div className="flex items-center gap-3">
+                      <div className="space-y-1">
+                        <p className="text-[9px] text-zinc-500 font-mono uppercase">Current Live</p>
+                        <div className="aspect-video w-24 rounded-lg overflow-hidden bg-black/60 shadow">
+                          {film.backdrop_url ? (
+                            <img src={film.backdrop_url} alt="current backdrop" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-zinc-600 text-[9px]">None</div>
+                          )}
+                        </div>
+                      </div>
+
+                      {isChanged('backdrop_url') && (
+                        <div className="space-y-1">
+                          <p className="text-[9px] text-amber-400 font-mono uppercase">Proposed (New)</p>
+                          <div className="aspect-video w-24 rounded-lg overflow-hidden bg-black/60 shadow ring-1 ring-amber-500/50">
+                            {fields.backdrop_url ? (
+                              <img src={fields.backdrop_url} alt="proposed backdrop" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-zinc-600 text-[9px]">Removed</div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Upload Dropzone */}
+                    <div>
+                      <label
+                        htmlFor="film-backdrop-update-upload"
+                        className="flex flex-col items-center justify-center p-3 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] transition-colors cursor-pointer text-center border-0"
+                      >
+                        {uploadingBackdrop ? (
+                          <div className="flex items-center gap-2 py-1">
+                            <Loader2 className="h-4 w-4 text-amber-400 animate-spin" />
+                            <span className="text-xs text-white">Uploading banner...</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 py-1 text-zinc-300 hover:text-white">
+                            <Upload className="h-4 w-4 text-amber-400" />
+                            <span className="text-xs font-semibold">Upload New Banner</span>
+                          </div>
+                        )}
+                        <span className="text-[10px] text-zinc-500 mt-0.5">16:9 widescreen up to 5MB</span>
+                      </label>
+                      <input
+                        type="file"
+                        id="film-backdrop-update-upload"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleBackdropFileSelect}
+                        disabled={uploadingBackdrop}
+                        className="hidden"
+                      />
+                      {backdropUploadError && (
+                        <p className="text-[10px] text-rose-400 mt-1">{backdropUploadError}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {showBackdropUrlInput && (
+                    <input
+                      type="url"
+                      value={fields.backdrop_url}
+                      onChange={(e) => updateField('backdrop_url', e.target.value)}
+                      placeholder="https://... (or direct image URL)"
+                      className="form-input text-xs w-full mt-1.5"
+                    />
+                  )}
+                </div>
               </div>
 
               {/* Video Ref */}

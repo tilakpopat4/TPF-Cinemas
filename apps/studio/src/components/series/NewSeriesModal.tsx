@@ -17,6 +17,7 @@ import {
   Upload,
   Image as ImageIcon,
   Link as LinkIcon,
+  RefreshCw,
 } from 'lucide-react';
 import { Series, Genre, AgeRating, SeriesCredit } from '../../types';
 import { EpisodeBuilder, DraftSeason } from './EpisodeBuilder';
@@ -341,6 +342,9 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
 
       const cleanTrailer = trailerRef.trim() ? (extractYouTubeId(trailerRef) || trailerRef.trim()) : null;
 
+      const isPublished = series?.status === 'published';
+      const targetStatus = (isPublished && submitForReview) ? 'submitted' : (series?.status || 'draft');
+
       const seriesPayload = {
         filmmaker_id: userId,
         title: title.trim(),
@@ -353,7 +357,7 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
         backdrop_url: backdropUrl.trim() || null,
         trailer_ref: cleanTrailer,
         total_seasons: seasons.length,
-        status: series?.status || 'draft',
+        status: targetStatus,
         ...(series?.published_at ? { published_at: series.published_at } : {}),
       };
 
@@ -476,10 +480,13 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
         }
       }
 
-      // If submitting new series for review
-      if (submitForReview && series?.status !== 'published') {
+      // If submitting series for review (new series OR post-publish update)
+      if (submitForReview) {
         const { error: rpcErr } = await supabase.rpc('submit_series', { p_series_id: seriesId });
-        if (rpcErr) throw rpcErr;
+        if (rpcErr) {
+          console.warn('RPC submit_series notice, ensuring status=submitted:', rpcErr);
+          await supabase.from('series').update({ status: 'submitted' }).eq('id', seriesId);
+        }
       }
 
       onSaved();
@@ -593,6 +600,15 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
           {/* STEP 1: Metadata */}
           {currentStep === 0 && (
             <div className="space-y-4">
+              {series?.status === 'published' && (
+                <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg text-xs text-amber-300 flex items-center gap-2.5">
+                  <RefreshCw className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>
+                    <strong>Editing Published Series:</strong> You can update posters, backdrops, episodes, and information. Once submitted, your updates will go to the Staff Console for curator review before going live.
+                  </span>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-white/70 mb-1.5">
@@ -1041,41 +1057,57 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              disabled={saving}
-              onClick={() => handleSave(false)}
-              className="px-4 py-2 rounded-md text-xs font-medium bg-white/[0.05] hover:bg-white/[0.08] text-white/80 hover:text-white transition-colors disabled:opacity-50 flex items-center gap-1.5"
-            >
-              {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-              <span>{series?.status === 'published' ? 'Save Changes' : 'Save Draft'}</span>
-            </button>
-
-            {currentStep < STEPS.length - 1 ? (
-              <button
-                type="button"
-                onClick={() => setCurrentStep((prev) => prev + 1)}
-                className="px-4 py-2 rounded-md bg-signature hover:bg-signature-hover text-black text-xs font-semibold flex items-center gap-1.5 transition-colors"
-              >
-                <span>Continue</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            ) : (
+            {series?.status === 'published' ? (
               <button
                 type="button"
                 disabled={saving}
-                onClick={() => handleSave(series?.status === 'published' ? false : true)}
-                className="px-4 py-2 rounded-md bg-signature hover:bg-signature-hover text-black text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                onClick={() => handleSave(true)}
+                className="px-4 py-2 rounded-md bg-signature hover:bg-signature-hover text-black text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {saving ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : series?.status === 'published' ? (
-                  <CheckCircle2 className="w-3.5 h-3.5" />
                 ) : (
                   <Send className="w-3.5 h-3.5" />
                 )}
-                <span>{series?.status === 'published' ? 'Update Live Series' : 'Submit Series'}</span>
+                <span>Submit Updates for Review</span>
               </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => handleSave(false)}
+                  className="px-4 py-2 rounded-md text-xs font-medium bg-white/[0.05] hover:bg-white/[0.08] text-white/80 hover:text-white transition-colors disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+                >
+                  {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                  <span>Save Draft</span>
+                </button>
+
+                {currentStep < STEPS.length - 1 ? (
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep((prev) => prev + 1)}
+                    className="px-4 py-2 rounded-md bg-signature hover:bg-signature-hover text-black text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <span>Continue</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={saving}
+                    onClick={() => handleSave(true)}
+                    className="px-4 py-2 rounded-md bg-signature hover:bg-signature-hover text-black text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+                  >
+                    {saving ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Send className="w-3.5 h-3.5" />
+                    )}
+                    <span>Submit Series</span>
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>

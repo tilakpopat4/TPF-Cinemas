@@ -691,13 +691,18 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                         </div>
                         {Object.entries(pendingUpdate.proposed_changes).map(([field, newVal]) => {
                           const liveVal = (f as unknown as Record<string, unknown>)[field];
-                          const isImage = field === 'poster_url';
+                          const isPoster = field === 'poster_url';
+                          const isBackdrop = field === 'backdrop_url';
                           return (
                             <div key={field} className="grid grid-cols-2 text-xs border-b border-white/[0.06] last:border-b-0">
                               <div className="px-3 py-3 border-r border-white/10">
                                 <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-mono mb-1">{field.replace(/_/g, ' ')}</p>
-                                {isImage ? (
-                                  <div className="w-16 h-20 rounded overflow-hidden bg-black/40">
+                                {isPoster ? (
+                                  <div className="w-16 h-24 rounded-lg overflow-hidden bg-black/40 shadow">
+                                    {liveVal ? <img src={String(liveVal)} alt="current" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-zinc-700 text-[9px]">None</div>}
+                                  </div>
+                                ) : isBackdrop ? (
+                                  <div className="w-28 aspect-video rounded-lg overflow-hidden bg-black/40 shadow">
                                     {liveVal ? <img src={String(liveVal)} alt="current" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-zinc-700 text-[9px]">None</div>}
                                   </div>
                                 ) : (
@@ -706,8 +711,12 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                               </div>
                               <div className="px-3 py-3 bg-amber-500/[0.03]">
                                 <p className="text-[10px] text-amber-500/60 uppercase tracking-wider font-mono mb-1">→ New</p>
-                                {isImage ? (
-                                  <div className="w-16 h-20 rounded overflow-hidden bg-black/40">
+                                {isPoster ? (
+                                  <div className="w-16 h-24 rounded-lg overflow-hidden bg-black/40 ring-1 ring-amber-500/50 shadow">
+                                    {newVal ? <img src={String(newVal)} alt="proposed" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-zinc-700 text-[9px]">None</div>}
+                                  </div>
+                                ) : isBackdrop ? (
+                                  <div className="w-28 aspect-video rounded-lg overflow-hidden bg-black/40 ring-1 ring-amber-500/50 shadow">
                                     {newVal ? <img src={String(newVal)} alt="proposed" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-zinc-700 text-[9px]">None</div>}
                                   </div>
                                 ) : (
