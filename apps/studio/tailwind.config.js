@@ -16,7 +16,7 @@ export default {
           muted: 'rgba(229, 169, 59, 0.15)',
         },
         muted: '#9CA3AF',
-        hairline: 'rgba(245, 245, 247, 0.08)',
+        hairline: 'transparent',
         background: '#07080A',
         surface: {
           50: '#1e2430',

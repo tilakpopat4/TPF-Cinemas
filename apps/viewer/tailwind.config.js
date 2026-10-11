@@ -20,7 +20,7 @@ export default {
           muted: 'rgba(229, 169, 59, 0.15)',
         },
         muted: '#9CA3AF',
-        hairline: 'rgba(245, 245, 247, 0.08)',
+        hairline: 'transparent',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],

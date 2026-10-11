@@ -336,3 +336,18 @@ select option, .form-select option {
     margin: 14mm 14mm 14mm 14mm;
   }
 }
+
+/* Global Clean Design: Remove Visible Section Outlines & Hairline Borders */
+.border-hairline,
+[class*='border-hairline'],
+.divide-hairline > :not([hidden]) ~ :not([hidden]) {
+  border-color: transparent !important;
+}
+
+.hairline-divider,
+.hairline-signature {
+  height: 0px !important;
+  background: transparent !important;
+  display: none !important;
+}
+
