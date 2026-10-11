@@ -34,6 +34,7 @@ export const SeriesReviewModal: React.FC<SeriesReviewModalProps> = ({
   const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(() => {
     return currentSeason?.episodes?.[0] || null;
   });
+  const [screeningMode, setScreeningMode] = useState<'episode' | 'trailer'>('episode');
 
   // Decision box states
   const [decision, setDecision] = useState<'approved' | 'changes_requested' | 'rejected' | null>(null);
@@ -242,25 +243,70 @@ export const SeriesReviewModal: React.FC<SeriesReviewModalProps> = ({
                 <div className="flex items-center gap-2">
                   <Play className="w-4 h-4 text-amber-500" />
                   <span className="text-xs font-bold uppercase tracking-wider text-white">
-                    Episode Screening: {selectedEpisode ? `E${selectedEpisode.episode_number} · ${selectedEpisode.title}` : 'Select an Episode'}
+                    {screeningMode === 'trailer'
+                      ? 'Official Series Trailer'
+                      : `Episode Screening: ${selectedEpisode ? `E${selectedEpisode.episode_number} · ${selectedEpisode.title}` : 'Select an Episode'}`}
                   </span>
                 </div>
-                {selectedEpisode?.video_ref && (
-                  <a
-                    href={`https://www.youtube.com/watch?v=${selectedEpisode.video_ref}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[10px] font-mono text-slate-400 hover:text-white flex items-center gap-1"
-                  >
-                    <span>Open YouTube</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                )}
+                <div className="flex items-center gap-2">
+                  {series.trailer_ref?.trim() && (
+                    <div className="flex items-center gap-1 bg-white/5 p-1 rounded-lg border border-white/10">
+                      <button
+                        type="button"
+                        onClick={() => setScreeningMode('episode')}
+                        className={`px-2.5 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider transition-all ${
+                          screeningMode === 'episode' ? 'bg-amber-500 text-black font-bold' : 'text-white/60 hover:text-white'
+                        }`}
+                      >
+                        Episode
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setScreeningMode('trailer')}
+                        className={`px-2.5 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider transition-all ${
+                          screeningMode === 'trailer' ? 'bg-amber-500 text-black font-bold' : 'text-white/60 hover:text-white'
+                        }`}
+                      >
+                        Trailer
+                      </button>
+                    </div>
+                  )}
+
+                  {screeningMode === 'trailer' && series.trailer_ref?.trim() ? (
+                    <a
+                      href={`https://www.youtube.com/watch?v=${series.trailer_ref}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[10px] font-mono text-slate-400 hover:text-white flex items-center gap-1"
+                    >
+                      <span>Open Trailer</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  ) : selectedEpisode?.video_ref ? (
+                    <a
+                      href={`https://www.youtube.com/watch?v=${selectedEpisode.video_ref}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[10px] font-mono text-slate-400 hover:text-white flex items-center gap-1"
+                    >
+                      <span>Open YouTube</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  ) : null}
+                </div>
               </div>
 
               {/* 16:9 Screening Player */}
               <div className="w-full aspect-video rounded-2xl bg-black border border-white/10 overflow-hidden shadow-2xl relative flex items-center justify-center">
-                {selectedEpisode?.video_ref ? (
+                {screeningMode === 'trailer' && series.trailer_ref?.trim() ? (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${series.trailer_ref}?autoplay=0&rel=0`}
+                    title="Series Trailer"
+                    className="w-full h-full border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : selectedEpisode?.video_ref ? (
                   <iframe
                     src={`https://www.youtube.com/embed/${selectedEpisode.video_ref}?autoplay=0&rel=0`}
                     title={selectedEpisode.title}

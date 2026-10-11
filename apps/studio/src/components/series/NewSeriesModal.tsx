@@ -393,7 +393,7 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] font-mono uppercase tracking-wider text-white/50">Primary Language</label>
                   <select
@@ -426,18 +426,57 @@ export const NewSeriesModal: React.FC<NewSeriesModalProps> = ({
                     <option value="A">A (18+ Adults Only)</option>
                   </select>
                 </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-mono uppercase tracking-wider text-white/50">Trailer Link (Optional)</label>
-                  <input
-                    type="text"
-                    value={trailerRef}
-                    onChange={(e) => setTrailerRef(e.target.value)}
-                    placeholder="YouTube trailer URL or ID"
-                    className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white text-xs focus:border-amber-500 outline-none"
-                  />
-                </div>
               </div>
+
+              {/* Dedicated Series Trailer Input & Live Preview */}
+              {(() => {
+                const cleanTrailerId = trailerRef.trim()
+                  ? extractYouTubeId(trailerRef) || (trailerRef.trim().length === 11 ? trailerRef.trim() : '')
+                  : '';
+                return (
+                  <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Film className="w-4 h-4 text-amber-500" />
+                        <label className="text-xs font-semibold uppercase tracking-wider text-white/90">
+                          Official Series Trailer (Optional)
+                        </label>
+                      </div>
+                      {cleanTrailerId && (
+                        <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                          <CheckCircle2 className="w-3 h-3" />
+                          <span>Trailer Linked</span>
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <input
+                        type="text"
+                        value={trailerRef}
+                        onChange={(e) => setTrailerRef(e.target.value)}
+                        placeholder="Paste YouTube trailer link or ID (e.g. https://youtu.be/... or EmFDd_MvVKo)"
+                        className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white text-xs focus:border-amber-500 outline-none font-mono"
+                      />
+                      <p className="text-[11px] text-white/50">
+                        When linked, viewers get an official <strong>Watch Trailer</strong> button on the billboard and series detail page.
+                      </p>
+                    </div>
+
+                    {cleanTrailerId && (
+                      <div className="relative aspect-video max-w-sm rounded-lg overflow-hidden border border-white/10 bg-black shadow-lg mt-2">
+                        <iframe
+                          src={`https://www.youtube-nocookie.com/embed/${cleanTrailerId}?rel=0`}
+                          title="Trailer preview"
+                          className="w-full h-full border-0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Genres */}
               <div className="space-y-1.5">

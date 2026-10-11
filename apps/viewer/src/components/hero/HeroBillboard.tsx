@@ -26,6 +26,7 @@ export interface HeroBillboardProps {
   customTagline?: string;
   seriesList?: Series[];
   onSelectSeries?: (series: Series) => void;
+  onPlaySeriesTrailer?: (series: Series) => void;
 }
 
 /**
@@ -51,6 +52,7 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
   customTagline,
   seriesList = [],
   onSelectSeries,
+  onPlaySeriesTrailer,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -248,16 +250,30 @@ export const HeroBillboard: React.FC<HeroBillboardProps> = ({
               })()}
 
               {/* Option 2: Watch Trailer (Secondary) — only when the creator supplied a trailer link */}
-              {currentFilm.trailer_ref?.trim() && (
-                <button
-                  onClick={() => onPlay(currentFilm, 'trailer')}
-                  className="px-5 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-ivory hover:text-white font-medium text-xs uppercase tracking-wider transition-all duration-200 flex items-center gap-2 backdrop-blur-md hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap shadow-md"
-                  title="Watch Official Trailer"
-                >
-                  <FilmIcon className="h-4 w-4 text-signature shrink-0" />
-                  <span>Watch Trailer</span>
-                </button>
-              )}
+              {(() => {
+                const matchingSeries = seriesList.find(
+                  (s) => s.slug === currentFilm.slug || s.title.toLowerCase() === currentFilm.title.toLowerCase()
+                );
+                const hasTrailer = !!(currentFilm.trailer_ref?.trim() || matchingSeries?.trailer_ref?.trim());
+                if (!hasTrailer) return null;
+
+                return (
+                  <button
+                    onClick={() => {
+                      if (matchingSeries && matchingSeries.trailer_ref?.trim() && onPlaySeriesTrailer) {
+                        onPlaySeriesTrailer(matchingSeries);
+                      } else {
+                        onPlay(currentFilm, 'trailer');
+                      }
+                    }}
+                    className="px-5 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-ivory hover:text-white font-medium text-xs uppercase tracking-wider transition-all duration-200 flex items-center gap-2 backdrop-blur-md hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap shadow-md"
+                    title="Watch Official Trailer"
+                  >
+                    <FilmIcon className="h-4 w-4 text-signature shrink-0" />
+                    <span>Watch Trailer</span>
+                  </button>
+                );
+              })()}
 
               {/* Add to Queue / In Queue with Soft Frosted Styling */}
               <button

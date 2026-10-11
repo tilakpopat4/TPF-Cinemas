@@ -113,6 +113,37 @@ export default function App() {
     });
   };
 
+  const handlePlaySeriesTrailer = (series: Series) => {
+    if (!series.trailer_ref?.trim()) return;
+    const trailerFilm: FilmType = {
+      id: series.id,
+      filmmaker_id: series.creator_id,
+      title: `${series.title} (Official Trailer)`,
+      slug: `${series.slug}-trailer`,
+      synopsis: series.synopsis,
+      runtime_minutes: 3,
+      release_year: series.release_year,
+      language: series.language,
+      age_rating: series.age_rating,
+      video_provider: 'youtube',
+      video_ref: series.trailer_ref.trim(),
+      trailer_ref: series.trailer_ref.trim(),
+      poster_url: series.poster_url,
+      backdrop_url: series.backdrop_url,
+      is_featured: false,
+      is_debut: false,
+      status: 'published',
+      published_at: series.published_at || series.created_at,
+      view_count: 0,
+      created_at: series.created_at,
+      profiles: series.profiles,
+    };
+    setSelectedSeries(null);
+    setActiveEpisodicWatch(null);
+    setActiveWatchFilm(trailerFilm);
+    setActiveWatchMode('trailer');
+  };
+
   // Automatically start playback once the user completes sign-in / sign-up
   useEffect(() => {
     if (user && pendingWatchFilm) {
@@ -296,6 +327,7 @@ export default function App() {
                   film={featuredFilm}
                   seriesList={seriesList}
                   onSelectSeries={setSelectedSeries}
+                  onPlaySeriesTrailer={handlePlaySeriesTrailer}
                   onPlay={(f, mode) => handlePlay(f, mode)}
                   isInWatchlist={(id) => isInWatchlist(id)}
                   onToggleWatchlist={toggleWatchlist}
@@ -714,6 +746,7 @@ export default function App() {
               series={selectedSeries}
               onClose={() => setSelectedSeries(null)}
               onPlayEpisode={handlePlayEpisode}
+              onPlayTrailer={handlePlaySeriesTrailer}
               isInWatchlist={isInSeriesWatchlist(selectedSeries.id)}
               onToggleWatchlist={toggleSeriesWatchlist}
               getEpisodeProgress={getEpisodeProgress}

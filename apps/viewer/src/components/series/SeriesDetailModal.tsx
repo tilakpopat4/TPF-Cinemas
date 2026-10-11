@@ -6,6 +6,7 @@ import {
   Bookmark,
   Check,
   Tv,
+  Film,
 } from 'lucide-react';
 import { Series, Season, Episode } from '../../types';
 import { formatRuntime } from '../../lib/utils';
@@ -14,6 +15,7 @@ interface SeriesDetailModalProps {
   series: Series | null;
   onClose: () => void;
   onPlayEpisode: (series: Series, season: Season, episode: Episode) => void;
+  onPlayTrailer?: (series: Series) => void;
   isInWatchlist: boolean;
   onToggleWatchlist: (seriesId: string) => void;
   getEpisodeProgress?: (episodeId: string) => number;
@@ -23,6 +25,7 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
   series,
   onClose,
   onPlayEpisode,
+  onPlayTrailer,
   isInWatchlist,
   onToggleWatchlist,
   getEpisodeProgress,
@@ -133,6 +136,17 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
                     <span>Play E1</span>
                   </button>
                 </>
+              )}
+
+              {series.trailer_ref?.trim() && onPlayTrailer && (
+                <button
+                  onClick={() => onPlayTrailer(series)}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-xs font-mono uppercase tracking-wider transition-all border border-white/10 active:scale-95"
+                  title="Watch Official Series Trailer"
+                >
+                  <Film className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Watch Trailer</span>
+                </button>
               )}
 
               <button
