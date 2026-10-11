@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { motion } from 'motion/react';
 import { ChevronLeft, ChevronRight, Tv } from 'lucide-react';
 import { Series } from '../../types';
 import { SeriesCard } from './SeriesCard';
@@ -14,7 +15,7 @@ interface SeriesRailProps {
 
 export const SeriesRail: React.FC<SeriesRailProps> = ({
   title = 'Original Web Series',
-  subtitle = 'Episodic cinematic storytelling, curated seasons, and exclusive indie narratives.',
+  subtitle,
   seriesList,
   onSelectSeries,
   isInWatchlist,
@@ -56,71 +57,86 @@ export const SeriesRail: React.FC<SeriesRailProps> = ({
   };
 
   return (
-    <section className="relative py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 group/rail">
-      {/* Rail Header */}
-      <div className="flex items-baseline justify-between mb-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="w-2 h-2 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50" />
-            <h2 className="text-xl sm:text-2xl font-normal font-display tracking-widest text-ivory uppercase flex items-center gap-2">
-              <Tv className="w-5 h-5 text-amber-500" />
-              <span>{title}</span>
-            </h2>
-          </div>
-          {subtitle && (
-            <p className="font-editorial italic text-xs sm:text-sm text-muted mt-1 ml-4.5">
-              {subtitle}
-            </p>
-          )}
+    <section className="relative py-6 group/rail">
+      {/* Rail Header — Exactly matching ContentRail layout & typography */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-3">
+        <div className="flex items-baseline gap-3 pb-1">
+          <h2 className="text-xl sm:text-2xl font-normal font-display tracking-widest text-ivory uppercase flex items-center gap-2">
+            <Tv className="w-5 h-5 text-signature" />
+            <span>{title}</span>
+          </h2>
+          <span className="font-mono text-[10px] text-muted tracking-widest">
+            [{seriesList.length}]
+          </span>
         </div>
-
-        {/* Scroll Nav Indicators */}
-        <div className="hidden sm:flex items-center gap-1.5 opacity-0 group-hover/rail:opacity-100 transition-opacity">
-          <button
-            onClick={() => scroll('left')}
-            disabled={!canScrollLeft}
-            aria-label="Scroll left"
-            className="p-1.5 rounded-full bg-white/[0.06] hover:bg-white/[0.12] disabled:opacity-20 disabled:cursor-not-allowed text-ivory transition-colors"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <button
-            onClick={() => scroll('right')}
-            disabled={!canScrollRight}
-            aria-label="Scroll right"
-            className="p-1.5 rounded-full bg-white/[0.06] hover:bg-white/[0.12] disabled:opacity-20 disabled:cursor-not-allowed text-ivory transition-colors"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
-        </div>
+        {subtitle && (
+          <p className="font-editorial italic text-xs sm:text-sm text-muted">
+            {subtitle}
+          </p>
+        )}
       </div>
 
-      {/* Horizontal Carousel Container */}
-      <div className="relative -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
-        {/* Left Shadow Mask Fade */}
+      {/* Horizontal Scroll Area */}
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Left Arrow Button — Boundary Aware */}
         {canScrollLeft && (
-          <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-canvas to-transparent z-20 pointer-events-none" />
+          <button
+            onClick={() => scroll('left')}
+            className="absolute left-1 top-1/2 -translate-y-1/2 z-30 h-12 w-9 bg-black/80 hover:bg-black text-ivory rounded-r-md opacity-0 group-hover/rail:opacity-100 transition-opacity flex items-center justify-center focus:outline-none shadow-2xl backdrop-blur-md"
+            title="Scroll Left"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
         )}
 
-        <div
-          ref={scrollContainerRef}
-          className="flex items-stretch gap-4 sm:gap-6 overflow-x-auto scrollbar-none py-2 scroll-smooth"
+        {/* Series Row — Always visible and smoothly scrollable with touch support & exact motion stagger */}
+        <motion.div
+          ref={scrollContainerRef as any}
+          className="flex items-start gap-4 sm:gap-5 overflow-x-auto pb-4 pt-1 hide-scrollbar scroll-smooth touch-pan-x"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '0px 100px' }}
+          variants={{
+            visible: {
+              transition: { staggerChildren: 0.05 },
+            },
+            hidden: {},
+          }}
         >
           {seriesList.map((series) => (
-            <SeriesCard
+            <motion.div
               key={series.id}
-              series={series}
-              onSelect={onSelectSeries}
-              isInWatchlist={isInWatchlist(series.id)}
-              onToggleWatchlist={onToggleWatchlist}
-              inRail
-            />
+              className="flex-none"
+              variants={{
+                hidden: { opacity: 0, scale: 0.95, y: 10 },
+                visible: {
+                  opacity: 1,
+                  scale: 1,
+                  y: 0,
+                  transition: { type: 'spring', stiffness: 400, damping: 30 },
+                },
+              }}
+            >
+              <SeriesCard
+                series={series}
+                onSelect={onSelectSeries}
+                isInWatchlist={isInWatchlist(series.id)}
+                onToggleWatchlist={onToggleWatchlist}
+                inRail={true}
+              />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
-        {/* Right Shadow Mask Fade */}
+        {/* Right Arrow Button — Boundary Aware */}
         {canScrollRight && (
-          <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-canvas to-transparent z-20 pointer-events-none" />
+          <button
+            onClick={() => scroll('right')}
+            className="absolute right-1 top-1/2 -translate-y-1/2 z-30 h-12 w-9 bg-black/80 hover:bg-black text-ivory rounded-l-md opacity-0 group-hover/rail:opacity-100 transition-opacity flex items-center justify-center focus:outline-none shadow-2xl backdrop-blur-md"
+            title="Scroll Right"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
         )}
       </div>
     </section>
