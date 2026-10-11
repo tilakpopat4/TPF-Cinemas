@@ -280,15 +280,15 @@ export const App: React.FC = () => {
                   </div>
                 </div>
               ) : filteredSeries.length === 0 ? (
-                <div className="py-20 text-center border border-dashed border-white/10 rounded-2xl bg-white/[0.01]">
-                  <Tv className="h-12 w-12 text-white/20 mx-auto mb-3" />
-                  <h3 className="text-base font-bold text-white mb-1">No Web Series Found</h3>
-                  <p className="text-xs text-white/50 mb-4 max-w-sm mx-auto">
+                <div className="py-20 text-center border border-hairline rounded-sm bg-graphite/40">
+                  <Tv className="h-10 w-10 text-muted/40 mx-auto mb-3" />
+                  <h3 className="font-display text-lg tracking-wide uppercase text-ivory mb-1">No Web Series Found</h3>
+                  <p className="font-editorial italic text-xs text-muted mb-5 max-w-sm mx-auto">
                     Create and publish serialized stories with multi-season and episodic video support.
                   </p>
                   <button
                     onClick={handleOpenNewSeries}
-                    className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-lg shadow-amber-500/20"
+                    className="px-4 py-2 rounded-sm bg-signature hover:bg-signature-hover text-black text-xs font-mono font-bold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-sm"
                   >
                     <Plus className="w-4 h-4" />
                     <span>Create Your First Series</span>
